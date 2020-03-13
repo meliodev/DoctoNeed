@@ -1,6 +1,7 @@
 // Home.js
 // Customize Home page for: Patient, Doctor, Admin
 // A patient can not read/write any other patient's data (users)
+//Done
 import React from 'react'
 import { StyleSheet, Platform, Image, Text, View, Button, SafeAreaView, FlatList, Dimensions, TouchableOpacity, ScrollView } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient';

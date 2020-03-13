@@ -1,0 +1,54 @@
+1. Sign Up:
+
+a. Sign up 1: Check email format (xxx@yyy.zz) (render error message if wrong format) ; opt: send email to verify the email id ; 
+b. Sign up 2: 
+
+Tasks done:
+
+Sign Up:
+
+1. Squelette/Designs (10jours):
+a. Formation dans react native: 
+
+
+2. (Librairies 8jours): 
+page1 (adresse email)
+page2 (numéro de téléphone) (3jours) : Recherche/Tests/choix et implémentation (adaptation) d'une librairie qui fournit un champs de saisie de numéro de téléphone (drapeaux, extensions)
+page3 (nom et prénom) 
+page4 (Date de naissance) : Recherche/Tests/choix et implémentation (adaptation) d'une librairie qui fournit un champs de saisie de date (calendrier)
+page5 (Pays) (2jours) : Recherche/Tests/choix et implémentation (adaptation) d'une librairie qui fournit: la liste de tout les pays - barre de recherche - filtre alphabetique
+page6 (Mot de passe) 
+
+
+3. Navigation
+- Navigation fluide d'un écran au suivant
+- Récupération et transmission des données de l'utilisateur d'un écran au suivant
+
+4. Gestion des erreurs de saisie (6h)
+- Mise en place technique et personnalisation des erreurs affichées en cas de saisie incorrecte notamment de l'adresse email et du numéro de téléphone.
+- librairie: react-native-form-validator
+5. Firestore Back end/ Front end configuration:
+- 
+
+To do:
+--Bugs
+-Login: handle error on submit with no internet
+
+-Phone Verification: If the user has entered an invalid phone number during SignUp -> On his first connection, the code will be send
+to this phone number (if it is existant) or it will give error message (if the number doesn't exist)
+-> Solution: Verify the users phone number during the SignUp process 
+
+--Optimization:
+- Remove useless code (clean)
+- Organize Code Structure
+- Optimize layout/style (phone verification screens)
+
+----------------
+Done successfully:
+--Bugs:
+-Login Time: Reduce time between Onpress Login and Display of PhoneAuth Screen (useless code was slowing down the process)
+
+--Optimization:
+
+
+

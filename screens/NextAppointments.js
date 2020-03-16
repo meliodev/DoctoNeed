@@ -10,6 +10,7 @@ import firebase from 'react-native-firebase'
 
 import Button from '../components/Button';
 import AppointmentItem from './AppointmentItem'
+import { TouchableHighlight } from 'react-native-gesture-handler';
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -106,10 +107,13 @@ export default class NextAppointments extends React.Component {
                                         </Text>
                                         </View> }
 
-          <View style={styles.button_container}>              
-               <Button fontSize= {SCREEN_HEIGHT*0.02} text="Prendre un rendez-vous en urgence" onPress={this._onPressButton1.bind(this) } />
-               <Button fontSize= {SCREEN_HEIGHT*0.02} text="Planifier une consultation" onPress={this._onPressButton2.bind(this) } />
-          </View> 
+                    <View style={styles.button_container}>              
+                       <Button fontSize= {SCREEN_HEIGHT*0.02} text="Prendre un rendez-vous en urgence" onPress={this._onPressButton1.bind(this) } />
+                       <TouchableHighlight style={styles.Button2}
+                                         onPress={() => this.props.navigation.navigate('Search')}> 
+                          <Text style={styles.Button2_Text}> Planifier une consultation </Text>
+                       </TouchableHighlight>     
+                    </View> 
     </View>
   );
 }
@@ -126,7 +130,7 @@ logo_container: {
   flex: 0.25,
   //justifyContent: 'center',
   alignItems: 'center',
-  backgroundColor: 'green',
+  //backgroundColor: 'green',
 },
 logoIcon: {
   height: SCREEN_WIDTH * 0.15,
@@ -137,7 +141,7 @@ header_container: {
   flex: 0.1,
   justifyContent: 'center',
   alignItems: 'center',
-  backgroundColor: 'blue',
+  //backgroundColor: 'blue',
 },
 header: {
   fontSize: SCREEN_HEIGHT * 0.025,
@@ -167,7 +171,34 @@ button_container: {
   flex: 0.35,
   justifyContent: 'flex-end',
   alignItems: 'center',
-  backgroundColor: 'yellow',
+  //backgroundColor: 'yellow',
   paddingBottom: SCREEN_HEIGHT * 0.03
+},
+Button2: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: '#ffffff',
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.32,
+  shadowRadius: 5.46,
+  elevation: 5,
+  paddingLeft: 15,
+  paddingRight: 15,
+  paddingBottom: 5,
+  paddingTop:5,
+  borderRadius: 30,
+  marginTop:16,
+  width: SCREEN_WIDTH * 0.87,
+},
+Button2_Text: {
+    color: 'black',
+    fontSize: SCREEN_HEIGHT * 0.02,
+    fontWeight: 'bold',
+    fontFamily: 'Avenir',
+    textAlign: 'center',
+    margin: SCREEN_HEIGHT * 0.012,
+    backgroundColor: 'transparent',
 },
 });

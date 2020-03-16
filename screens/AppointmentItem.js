@@ -58,42 +58,27 @@ class AppointmentItem extends React.Component {
 
 const styles = StyleSheet.create({
   main_container: {
-   // flex: 1,
-   // backgroundColor: '#ffffff',
-    /*borderRadius: 25,
-    height: SCREEN_HEIGHT*0.12,
-    width: SCREEN_WIDTH*0.95,
-    flexDirection: 'row',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.32,
-    shadowRadius: 5.46,
-    elevation: 10,
-    marginBottom: SCREEN_HEIGHT*0.03,*/
-    //backgroundColor: 'green'
     textAlignVertical: 'top',
     textAlign: 'center',
     backgroundColor: '#ffffff',
     borderRadius: 25,
-    //borderColor: 'green',
-    //borderWidth: 1,
-    height: 120,
-    width: SCREEN_WIDTH*0.95,
+    height: SCREEN_HEIGHT*0.13,
+    width: SCREEN_WIDTH*0.9,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SCREEN_HEIGHT*0.02,
+    marginBottom: SCREEN_HEIGHT*0.01,
     alignItems: 'center',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 7,
+    elevation: 5,
     flexDirection: 'row',
     margin: 15,
     },
     
   dot_container: {
-    flex: 0.1,
+    flex: 0.08,
     justifyContent: 'center',
     alignItems: 'center',
     //backgroundColor: 'black'
@@ -108,6 +93,7 @@ const styles = StyleSheet.create({
     flex: 0.17,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingRight: SCREEN_WIDTH*0.016,
     //backgroundColor: 'orange'
   },
   date_day: {
@@ -130,7 +116,7 @@ const styles = StyleSheet.create({
     fontSize: SCREEN_HEIGHT*0.013,
   },
   data_container: {
-    flex: 0.28,
+    flex: 0.3,
     justifyContent: 'center',
     //backgroundColor: 'yellow'
   },

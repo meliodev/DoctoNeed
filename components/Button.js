@@ -27,7 +27,7 @@ export default class Button extends Component {
                   end={{x: 1, y: 0}} 
                   colors={['#b3f3fd', '#84e2f4', '#5fe0fe']} 
                   style={styles.linearGradient}>
-                  <Text style={styles.buttonText}> {this.props.text} </Text>
+                  <Text style={[styles.buttonText, {fontSize: this.props.fontSize}]}> {this.props.text} </Text>
                 </LinearGradient>
               </TouchableOpacity>
     );

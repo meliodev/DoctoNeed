@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, View, Text, Image, TouchableHighlight, Dimensions } from 'react-native'
+import { StyleSheet, View, Text, TouchableHighlight, Dimensions } from 'react-native'
 import Icon from 'react-native-vector-icons/AntDesign';
 
 const SCREEN_WIDTH = Dimensions.get("window").width
@@ -14,19 +14,43 @@ class AppointmentItem extends React.Component {
 
           <View style = {styles.main_container}>
 
-          <View style={styles.content_container}>
-            <View style={styles.header_container}>
-              <Text style={styles.title_text}>Dr. {appointment.doctorName} </Text>
+            <View style={styles.dot_container}>
+              <View style={styles.dot}>
+              </View>
             </View>
-            <View style={styles.description_container}>
-              <Text style={styles.description_text}>Prévu le {appointment.day} {appointment.month} {appointment.year}</Text>
-            </View>
-            <View style={styles.date_container}>
-              <Text style={styles.date_text}>à  {appointment.timeslot}</Text>
-            </View>
-          </View>
 
-          </View>
+            <View style={styles.date_container}>
+              <Text style={styles.date_day}>07</Text>
+              <Text style={styles.date_month}>Avril</Text>
+            </View>
+
+            <View style={styles.titles_container}>
+              <Text style={styles.title_text}>Médecin</Text>
+              <Text style={styles.title_text}>Spécialité</Text>
+              <Text style={styles.title_text}>Durée</Text>
+            </View>
+
+            <View style={styles.data_container}>
+              <Text style={styles.data_text}>Nom Prénom</Text>
+              <Text style={styles.data_text}>Généraliste</Text>
+              <Text style={styles.data_text}>30 minutes</Text>
+            </View>
+
+            <View style={styles.buttons_container}>
+              <TouchableHighlight
+                style={styles.button}
+                onPress={() => displayDetailForDoctor(doctor.uid)}>
+                  <View style= {styles.button_elements}>
+                     <Text style={{fontSize: SCREEN_HEIGHT*0.014, color: 'white', marginRight: SCREEN_WIDTH*0.01}}>Voir les détails</Text>
+                     <Icon name="rightcircleo" 
+                           size={SCREEN_WIDTH*0.03} 
+                           color="white"/>
+                  </View>
+                  
+                </TouchableHighlight>
+            </View>
+
+          </View> 
 
     )
   }
@@ -34,6 +58,19 @@ class AppointmentItem extends React.Component {
 
 const styles = StyleSheet.create({
   main_container: {
+   // flex: 1,
+   // backgroundColor: '#ffffff',
+    /*borderRadius: 25,
+    height: SCREEN_HEIGHT*0.12,
+    width: SCREEN_WIDTH*0.95,
+    flexDirection: 'row',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.32,
+    shadowRadius: 5.46,
+    elevation: 10,
+    marginBottom: SCREEN_HEIGHT*0.03,*/
+    //backgroundColor: 'green'
     textAlignVertical: 'top',
     textAlign: 'center',
     backgroundColor: '#ffffff',
@@ -41,10 +78,10 @@ const styles = StyleSheet.create({
     //borderColor: 'green',
     //borderWidth: 1,
     height: 120,
-    width: SCREEN_WIDTH*0.9,
+    width: SCREEN_WIDTH*0.95,
     flexDirection: 'row',
     alignItems: 'center',
-    //marginBottom: SCREEN_HEIGHT*0.02,
+    marginBottom: SCREEN_HEIGHT*0.02,
     alignItems: 'center',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -52,92 +89,73 @@ const styles = StyleSheet.create({
     shadowRadius: 5.46,
     elevation: 7,
     flexDirection: 'row',
-    marginBottom: SCREEN_HEIGHT*0.04,
-    marginLeft: SCREEN_WIDTH*0.01,
-    paddingLeft: SCREEN_WIDTH*0.05
+    margin: 15,
     },
-    imageFrame: {
-      width: 95, 
-      height: 95, 
-      margin: 5, 
-      borderRadius: 50,  
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      textAlignVertical: 'top',
-      textAlign: 'center',
-      backgroundColor: '#ffffff',
-      borderRadius: 50,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.32,
-      shadowRadius: 5.46,
-      elevation: 10,
-      shadowColor: '#93eafe'
-    },
-  image: {
-    width: 80,
-    height: 80,
-    margin: 5,
+    
+  dot_container: {
+    flex: 0.1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    //backgroundColor: 'black'
+  },
+  dot: {
+    width: SCREEN_WIDTH*0.02,
+    height: SCREEN_WIDTH*0.02,
     borderRadius: 50,
-    backgroundColor: 'black'
+    backgroundColor: '#93eafe'
   },
-  content_container: {
-    margin: 5,
-    paddingTop: 5
-    //backgroundColor: 'green'
+  date_container: {
+    flex: 0.17,
+    justifyContent: 'center',
+    alignItems: 'center',
+    //backgroundColor: 'orange'
   },
-  header_container: {
-    flex: 0.22,
-    //backgroundColor: 'purple'
+  date_day: {
+    color: '#93eafe',
+    fontSize: SCREEN_HEIGHT*0.03,
+    fontWeight: 'bold'
   },
-  button_container: {
-    flex: 0.2,
-   // backgroundColor: 'blue'
+  date_month: {
+    color: '#93eafe',
+    fontSize: SCREEN_HEIGHT*0.017,
+    fontWeight: 'bold'
+  },
+  titles_container: {
+    flex: 0.15,
+    justifyContent: 'center',
+    //backgroundColor: 'pink'
+  },
+  title_text: {
+    fontStyle: 'italic',
+    fontSize: SCREEN_HEIGHT*0.013,
+  },
+  data_container: {
+    flex: 0.28,
+    justifyContent: 'center',
+    //backgroundColor: 'yellow'
+  },
+  data_text: {
+    fontWeight: 'bold',
+    fontSize: SCREEN_HEIGHT*0.013,
+  },
+  buttons_container: {
+    flex: 0.3,
+    justifyContent: 'center',
+    //backgroundColor: 'brown'
   },
   button:{
-    height: SCREEN_HEIGHT*0.05, 
+    height: SCREEN_HEIGHT*0.04, 
     alignItems: 'flex-start', 
     justifyContent: 'center', 
     paddingLeft: SCREEN_WIDTH*0.03, 
     backgroundColor: '#93eafe',
     borderTopLeftRadius: 25,
     borderBottomLeftRadius: 25,
-
   },
-  title_text: {
-    fontWeight: 'bold',
-    fontSize: 12,
-    flex: 1,
-    flexWrap: 'wrap',
-    paddingRight: 5
+  button_elements: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  vote_text: {
-    fontWeight: 'bold',
-    fontSize: 26,
-    color: '#666666'
-  },
-  description_container: {
-    flex: 0.43,
-    //backgroundColor: 'yellow'
-  },
-  description_text: {
-    fontStyle: 'italic',
-    fontSize: 11,
-    color: '#666666'
-  },
-  date_container: {
-    flex: 0.3,
-    //backgroundColor: 'brown'
-  },
-  date_text: {
-    fontSize: 11,
-    fontWeight: 'bold'
-  },
-  favorite_image: {
-    width: 25,
-    height: 25,
-    marginRight: 5
-  }
 })
 
 export default AppointmentItem

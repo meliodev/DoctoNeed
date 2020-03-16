@@ -76,7 +76,7 @@ this.UserAuthStatus()
           
               {this.state.isUser ?   <View style={styles.cnxButton_container}>
                                              <TouchableOpacity
-                                              onPress={() => this.props.navigation.navigate('Home') }>         
+                                              onPress={() => this.props.navigation.navigate('NextAppointments') }>         
                                               <LinearGradient 
                                                start={{x: 0, y: 0}} 
                                                end={{x: 1, y: 0}} 

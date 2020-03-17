@@ -57,11 +57,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     marginTop:16,
     width: SCREEN_WIDTH * 0.87,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.32,
-    shadowRadius: 5.46,
-    elevation: 5,
+   
   },
   buttonText: {
     fontSize: SCREEN_HEIGHT * 0.023,

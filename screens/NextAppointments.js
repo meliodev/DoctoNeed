@@ -4,13 +4,12 @@
 //2. Add a swiper (slides)
 
 import React from 'react'
-import { View, TextInput, Text, Image, Dimensions, ScrollView, StyleSheet } from 'react-native'
+import { View, TextInput, Text, Image, Dimensions, TouchableHighlight, ScrollView, StyleSheet } from 'react-native'
 
 import firebase from 'react-native-firebase'
 
 import Button from '../components/Button';
-import AppointmentItem from './AppointmentItem'
-import { TouchableHighlight } from 'react-native-gesture-handler';
+import AppointmentItem from './NextAppointments/AppointmentItem'
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -43,6 +42,7 @@ export default class NextAppointments extends React.Component {
         let year= doc.data().year
         let timeslot= doc.data().timeslot
         let doctorName= doc.data().doctorName
+        let doctorSpeciality= doc.data().doctorSpeciality
   
         let app = {
             id: id,
@@ -50,7 +50,8 @@ export default class NextAppointments extends React.Component {
             month: month,
             year: year,
             timeslot: timeslot,
-            doctorName: doctorName
+            doctorName: doctorName,
+            doctorSpeciality: doctorSpeciality
         }
         
         this.appointments.push(app)
@@ -70,7 +71,7 @@ export default class NextAppointments extends React.Component {
   }
 
   render() {
-    
+    console.log(this.state.appointments)
     return (
       <View style={styles.container}>
 
@@ -79,7 +80,7 @@ export default class NextAppointments extends React.Component {
           </View>
 
           <View style={styles.header_container}>
-          <Text style={styles.header}> Mes consultations à venir </Text>
+          <Text style={styles.header}>Mes consultations à venir</Text>
           </View>
 
           {this.state.appointments.length !==0 ?  <ScrollView style= {styles.appointments_container_scrollview}>
@@ -102,9 +103,9 @@ export default class NextAppointments extends React.Component {
                                paddingBottom= {2}
                                paddingTop= {2}
                                text="Prendre un rendez-vous en urgence" 
-                               onPress={this._onPressButton1.bind(this) } />
+                               onPress={this._onPressButton1.bind(this)} />
                        <TouchableHighlight style={styles.Button2}
-                                         onPress={() => this.props.navigation.navigate('Search')}> 
+                                           onPress={this._onPressButton2.bind(this)}> 
                           <Text style={styles.Button2_Text}> Planifier une consultation </Text>
                        </TouchableHighlight>     
                     </View> 
@@ -166,7 +167,7 @@ button_container: {
   justifyContent: 'flex-end',
   alignItems: 'center',
   //backgroundColor: 'yellow',
-  paddingBottom: SCREEN_HEIGHT * 0.03
+  paddingBottom: SCREEN_HEIGHT * 0.04
 },
 Button2: {
   flexDirection: 'row',
@@ -177,7 +178,7 @@ Button2: {
   shadowOffset: { width: 0, height: 4 },
   shadowOpacity: 0.32,
   shadowRadius: 5.46,
-  elevation: 5,
+  elevation: 4,
   paddingLeft: 15,
   paddingRight: 15,
   paddingBottom: 2,

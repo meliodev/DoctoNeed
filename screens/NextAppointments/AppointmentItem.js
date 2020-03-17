@@ -20,8 +20,8 @@ class AppointmentItem extends React.Component {
             </View>
 
             <View style={styles.date_container}>
-              <Text style={styles.date_day}>07</Text>
-              <Text style={styles.date_month}>Avril</Text>
+              <Text style={styles.date_day}>{appointment.day}</Text>
+              <Text style={styles.date_month}>{appointment.month}</Text>
             </View>
 
             <View style={styles.titles_container}>
@@ -31,8 +31,8 @@ class AppointmentItem extends React.Component {
             </View>
 
             <View style={styles.data_container}>
-              <Text style={styles.data_text}>Nom Prénom</Text>
-              <Text style={styles.data_text}>Généraliste</Text>
+              <Text style={styles.data_text}>{appointment.doctorName}</Text>
+              <Text style={styles.data_text}>{appointment.doctorSpeciality}</Text>
               <Text style={styles.data_text}>30 minutes</Text>
             </View>
 

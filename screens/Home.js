@@ -7,7 +7,7 @@ import { StyleSheet, Platform, Image, Text, View, Button, SafeAreaView, FlatList
 import LinearGradient from 'react-native-linear-gradient';
 
 import firebase from 'react-native-firebase'
-import AppointmentItem from './AppointmentItem';
+import AppointmentItem from './NextAppointments/AppointmentItem';
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;

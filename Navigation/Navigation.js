@@ -30,6 +30,7 @@ import Booking from '../screens/Booking'
 import Symptomes from '../screens/Symptomes'
 import Upload from '../screens/Upload'
 import BookingConfirmed from '../screens/BookingConfirmed'
+import PreviousAppointments from '../screens/PreviousAppointments'
 import NextAppointments from '../screens/NextAppointments'
 import RootComponent  from '../screens/RootComponent'
 //import PhoneVerify  from '../screens/PhoneVerify'
@@ -110,10 +111,16 @@ const SearchStackNavigator = createStackNavigator({
       title: 'Confirmation'
     } 
   }, 
+  PreviousAppointments: { 
+    screen: PreviousAppointments,
+    navigationOptions: {
+      title: 'Mes Consultations Passées'
+    } 
+  }, 
   NextAppointments: { 
     screen: NextAppointments,
     navigationOptions: {
-      title: 'Mes Consultations'
+      title: 'Mes Consultations à Venir'
     } 
   }, 
    SignUp1: { 

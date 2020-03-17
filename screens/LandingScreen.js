@@ -76,13 +76,23 @@ this.UserAuthStatus()
           
               {this.state.isUser ?   <View style={styles.cnxButton_container}>
                                              <TouchableOpacity
+                                              onPress={() => this.props.navigation.navigate('PreviousAppointments') }>         
+                                              <LinearGradient 
+                                               start={{x: 0, y: 0}} 
+                                               end={{x: 1, y: 0}} 
+                                               colors={['#b3f3fd', '#84e2f4', '#5fe0fe']} 
+                                               style={styles.linearGradient}>
+                                                 <Text style={styles.buttonText}> Mes Consultations passées </Text>
+                                              </LinearGradient>
+                                              </TouchableOpacity> 
+                                             <TouchableOpacity
                                               onPress={() => this.props.navigation.navigate('NextAppointments') }>         
                                               <LinearGradient 
                                                start={{x: 0, y: 0}} 
                                                end={{x: 1, y: 0}} 
                                                colors={['#b3f3fd', '#84e2f4', '#5fe0fe']} 
                                                style={styles.linearGradient}>
-                                                 <Text style={styles.buttonText}> Mes Consultations </Text>
+                                                 <Text style={styles.buttonText}> Mes Consultations à venir </Text>
                                               </LinearGradient>
                                               </TouchableOpacity> 
 

@@ -16,7 +16,7 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 const ratioLogo = 420/244;
-const LOGO_WIDTH = SCREEN_WIDTH * 0.15 * ratioLogo ;
+const LOGO_WIDTH = SCREEN_WIDTH * 0.14 * ratioLogo ;
 
 export default class NextAppointments extends React.Component {
   constructor(props) {
@@ -61,22 +61,12 @@ export default class NextAppointments extends React.Component {
   }).then(() => this.setState({ appointments: this.appointments }))
   }
 
-  _onPressButton1() {
-    // Call ValidationComponent validate method
-    this.validate({
-      email: {email: true, required: true}
-    })
-
-   if( this.validate({
-      email: {email: true, required: true}
-    })) {
-      this.removeErrorMessages()
-      this.props.navigation.navigate('SignUp2', {email: this.state.email.toString() })
-    } 
+  _onPressButton1() { 
+      this.props.navigation.navigate('Search')
   }
 
   _onPressButton2() {
-      this.props.navigation.navigate('NextAppointments')
+      this.props.navigation.navigate('Search')
   }
 
   render() {
@@ -108,7 +98,11 @@ export default class NextAppointments extends React.Component {
                                         </View> }
 
                     <View style={styles.button_container}>              
-                       <Button fontSize= {SCREEN_HEIGHT*0.02} text="Prendre un rendez-vous en urgence" onPress={this._onPressButton1.bind(this) } />
+                       <Button fontSize= {SCREEN_HEIGHT*0.02} 
+                               paddingBottom= {2}
+                               paddingTop= {2}
+                               text="Prendre un rendez-vous en urgence" 
+                               onPress={this._onPressButton1.bind(this) } />
                        <TouchableHighlight style={styles.Button2}
                                          onPress={() => this.props.navigation.navigate('Search')}> 
                           <Text style={styles.Button2_Text}> Planifier une consultation </Text>
@@ -127,24 +121,24 @@ container: {
   backgroundColor: '#ffffff',
 },
 logo_container: {
-  flex: 0.25,
-  //justifyContent: 'center',
+  flex: 0.3,
+  justifyContent: 'flex-end',
   alignItems: 'center',
   //backgroundColor: 'green',
 },
 logoIcon: {
-  height: SCREEN_WIDTH * 0.15,
+  height: SCREEN_WIDTH * 0.14,
   width: LOGO_WIDTH,
-  marginTop: SCREEN_WIDTH * 0.05
+  //marginTop: SCREEN_WIDTH * 0.05
 },
 header_container: {
-  flex: 0.1,
+  flex: 0.31,
   justifyContent: 'center',
   alignItems: 'center',
   //backgroundColor: 'blue',
 },
 header: {
-  fontSize: SCREEN_HEIGHT * 0.025,
+  fontSize: SCREEN_HEIGHT * 0.02,
   fontWeight: 'bold',
   fontFamily: 'Gill Sans',
   textAlign: 'center',
@@ -153,22 +147,22 @@ header: {
   marginBottom: SCREEN_HEIGHT * 0.01
 },
 appointments_container_scrollview: {
-    flex: 0.35,
+    flex: 0.01,
     //alignItems: 'center',
     //justifyContent: 'center',
-    paddingTop: SCREEN_HEIGHT*0.05,
-    paddingLeft: SCREEN_WIDTH*0.025,
-    //backgroundColor: 'brown'
+    //paddingTop: SCREEN_HEIGHT*0.05,
+    //paddingLeft: SCREEN_WIDTH*0.025,
+  // backgroundColor: 'brown'
   },
   appointments_container_view: {
-    flex: 0.3,
+    flex: 0.01,
     alignItems: 'center',
     //justifyContent: 'center',
     paddingLeft: SCREEN_WIDTH*0.025,
-    //backgroundColor: 'brown'
+   // backgroundColor: 'brown'
   },
 button_container: {
-  flex: 0.35,
+  flex: 0.9,
   justifyContent: 'flex-end',
   alignItems: 'center',
   //backgroundColor: 'yellow',
@@ -186,10 +180,10 @@ Button2: {
   elevation: 5,
   paddingLeft: 15,
   paddingRight: 15,
-  paddingBottom: 5,
-  paddingTop:5,
+  paddingBottom: 2,
+  paddingTop:2,
   borderRadius: 30,
-  marginTop:16,
+  marginTop:SCREEN_HEIGHT*0.02,
   width: SCREEN_WIDTH * 0.87,
 },
 Button2_Text: {

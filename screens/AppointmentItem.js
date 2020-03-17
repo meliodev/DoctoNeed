@@ -41,7 +41,7 @@ class AppointmentItem extends React.Component {
                 style={styles.button}
                 onPress={() => displayDetailForDoctor(doctor.uid)}>
                   <View style= {styles.button_elements}>
-                     <Text style={{fontSize: SCREEN_HEIGHT*0.014, color: 'white', marginRight: SCREEN_WIDTH*0.01}}>Voir les détails</Text>
+                     <Text style={{fontSize: SCREEN_HEIGHT*0.015, color: 'white', marginRight: SCREEN_WIDTH*0.01}}>Voir les détails</Text>
                      <Icon name="rightcircleo" 
                            size={SCREEN_WIDTH*0.03} 
                            color="white"/>
@@ -61,20 +61,22 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     textAlign: 'center',
     backgroundColor: '#ffffff',
-    borderRadius: 25,
-    height: SCREEN_HEIGHT*0.13,
-    width: SCREEN_WIDTH*0.9,
+    borderRadius: 20,
+    height: SCREEN_HEIGHT*0.1,
+    width: SCREEN_WIDTH*0.95,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SCREEN_HEIGHT*0.01,
+    marginBottom: SCREEN_HEIGHT*0.025,
+    marginLeft: SCREEN_HEIGHT*0.01,
     alignItems: 'center',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 5,
+    elevation: 4,
     flexDirection: 'row',
-    margin: 15,
+    //margin: 15,
+    //backgroundColor: 'green'
     },
     
   dot_container: {
@@ -98,16 +100,16 @@ const styles = StyleSheet.create({
   },
   date_day: {
     color: '#93eafe',
-    fontSize: SCREEN_HEIGHT*0.03,
+    fontSize: SCREEN_HEIGHT*0.025,
     fontWeight: 'bold'
   },
   date_month: {
     color: '#93eafe',
-    fontSize: SCREEN_HEIGHT*0.017,
+    fontSize: SCREEN_HEIGHT*0.015,
     fontWeight: 'bold'
   },
   titles_container: {
-    flex: 0.15,
+    flex: 0.17,
     justifyContent: 'center',
     //backgroundColor: 'pink'
   },
@@ -116,7 +118,7 @@ const styles = StyleSheet.create({
     fontSize: SCREEN_HEIGHT*0.013,
   },
   data_container: {
-    flex: 0.3,
+    flex: 0.33,
     justifyContent: 'center',
     //backgroundColor: 'yellow'
   },
@@ -125,12 +127,12 @@ const styles = StyleSheet.create({
     fontSize: SCREEN_HEIGHT*0.013,
   },
   buttons_container: {
-    flex: 0.3,
+    flex: 0.35,
     justifyContent: 'center',
     //backgroundColor: 'brown'
   },
   button:{
-    height: SCREEN_HEIGHT*0.04, 
+    height: SCREEN_HEIGHT*0.035, 
     alignItems: 'flex-start', 
     justifyContent: 'center', 
     paddingLeft: SCREEN_WIDTH*0.03, 

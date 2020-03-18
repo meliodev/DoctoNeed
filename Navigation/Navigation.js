@@ -32,6 +32,7 @@ import Upload from '../screens/Upload'
 import BookingConfirmed from '../screens/BookingConfirmed'
 import PreviousAppointments from '../screens/PreviousAppointments'
 import NextAppointments from '../screens/NextAppointments'
+import ProfileSettings from '../screens/ProfileSettings'
 import RootComponent  from '../screens/RootComponent'
 //import PhoneVerify  from '../screens/PhoneVerify'
 
@@ -121,6 +122,12 @@ const SearchStackNavigator = createStackNavigator({
     screen: NextAppointments,
     navigationOptions: {
       title: 'Mes Consultations à Venir'
+    } 
+  }, 
+  ProfileSettings: { 
+    screen: ProfileSettings,
+    navigationOptions: {
+      title: 'Profile'
     } 
   }, 
    SignUp1: { 

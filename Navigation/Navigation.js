@@ -27,6 +27,7 @@ import PreviousAppointments from '../screens/User/PreviousAppointments'
 import NextAppointments from '../screens/User/NextAppointments'
 import MedicalFolder from '../screens/User/Patient/MedicalFolder'
 import DispoConfig from '../screens/User/Doctor/DispoConfig'
+import DoctorFile from '../screens/DoctorFile'
 import RootComponent from '../screens/Root/Guest/RootComponent'
 import Test1 from '../screens/Test1'
 import Test2 from '../screens/Test2'
@@ -40,6 +41,12 @@ const SearchStackNavigator = createStackNavigator({
       headerShown: false
     }
   },
+  DoctorFile: { 
+    screen: DoctorFile,
+    navigationOptions: {
+      title: 'DoctorFile'
+    }
+  }, 
   Login: {
     screen: Login,
     navigationOptions: {

@@ -14,6 +14,7 @@ import Test4 from '../screens/Test4'
 import Test5 from '../screens/Test5'
 import Loading from '../screens/Loading'*/this
 //The app screens bellow
+import DoctorFile from '../screens/DoctorFile'
 import Screens from '../screens/Screens'
 import LandingScreen from '../screens/LandingScreen'
 import SignUp1 from '../screens/SignUp1'
@@ -37,6 +38,12 @@ import RootComponent  from '../screens/RootComponent'
 //import PhoneVerify  from '../screens/PhoneVerify'
 
 const SearchStackNavigator = createStackNavigator({
+  DoctorFile: { 
+    screen: DoctorFile,
+    navigationOptions: {
+      title: 'DoctorFile'
+    }
+  }, 
  RootComponent: { 
     screen: RootComponent,
     navigationOptions: {
@@ -72,7 +79,8 @@ const SearchStackNavigator = createStackNavigator({
     navigationOptions: {
       title: 'Screens'
     }
-  }, 
+  },
+
   
   //The app screens
   LandingScreen: { 

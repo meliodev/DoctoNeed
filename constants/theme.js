@@ -1,3 +1,5 @@
+
+/*
 const colors = {
     accent: "#F3534A",
     primary: "#0AC4BA",
@@ -51,3 +53,19 @@ const colors = {
   };
   
   export { colors, sizes, fonts };
+  */
+
+ export default {
+  FONT_SIZE_SMALL: 12,
+  FONT_SIZE_MEDIUM: 14,
+  FONT_SIZE_LARGE: 16,
+  FONT_FAMILY: 'Gill Sans',
+  BACKGROUND_COLOR: '#f7f7f7',
+  BLACK_COLOR: '#333', //black
+  WHITE_COLOR: '#ffffff',
+  GRAY_COLOR: '#b4c1c2',  //gray
+  THEME_COLOR: '#5fdefd',  //blue light
+  FONT_WEIGHT_LIGHT: 200,
+  FONT_WEIGHT_MEDIUM: 600,
+  FONT_WEIGHT_HEAVY: 800
+};

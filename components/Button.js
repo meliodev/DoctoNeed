@@ -20,16 +20,16 @@ import LinearGradient from 'react-native-linear-gradient';
 export default class Button extends Component {
   render({ onPress } = this.props) {
     return (
-              <TouchableOpacity
-                onPress={onPress}>         
-                <LinearGradient 
-                  start={{x: 0, y: 0}} 
-                  end={{x: 1, y: 0}} 
-                  colors={['#b3f3fd', '#84e2f4', '#5fe0fe']} 
-                  style={[styles.linearGradient, {paddingBottom: this.props.paddingBottom, paddingTop: this.props.paddingTop}]}>
-                  <Text style={[styles.buttonText, {fontSize: this.props.fontSize}]}> {this.props.text} </Text>
-                </LinearGradient>
-              </TouchableOpacity>
+      <TouchableOpacity
+        onPress={onPress}>
+        <LinearGradient
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          colors={['#b3f3fd', '#84e2f4', '#5fe0fe']}
+          style={[styles.linearGradient, { paddingBottom: this.props.paddingBottom, paddingTop: this.props.paddingTop }]}>
+          <Text style={[styles.buttonText, { fontSize: this.props.fontSize }]}> {this.props.text} </Text>
+        </LinearGradient>
+      </TouchableOpacity>
     );
   }
 }
@@ -53,11 +53,11 @@ const styles = StyleSheet.create({
     paddingLeft: 15,
     paddingRight: 15,
     paddingBottom: 5,
-    paddingTop:5,
+    paddingTop: 5,
     borderRadius: 30,
-    marginTop:16,
+    marginTop: 16,
     width: SCREEN_WIDTH * 0.87,
-   
+
   },
   buttonText: {
     fontSize: SCREEN_HEIGHT * 0.023,

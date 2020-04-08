@@ -1,234 +1,202 @@
 import { createStackNavigator } from 'react-navigation-stack'
-import {createAppContainer} from 'react-navigation';
 
-//Firestore test screens
-//import SignUp from '../screens/Trash/SignUp'
-//import Login2 from '../screens/Trash/Login2'
-//import Login3 from '../screens/Login3'
-//import Main from '../screens/Trash/Main'
-//other tests screens
-/*import Test1 from '../screens/Test1'
-import Test2 from '../screens/Test2'
-import Test3 from '../screens/Test3'
-import Test4 from '../screens/Test4'
-import Test5 from '../screens/Test5'
-import Loading from '../screens/Loading'*/this
+import { createAppContainer } from 'react-navigation';
+
 //The app screens bellow
-import Screens from '../screens/Screens'
-import LandingScreen from '../screens/LandingScreen'
-import SignUp1 from '../screens/SignUp1'
-import SignUp2 from '../screens/SignUp2'
-import SignUp3 from '../screens/SignUp3'
-import SignUp4 from '../screens/SignUp4'
-import SignUp5 from '../screens/SignUp5'
-import SignUp6 from '../screens/SignUp6'
-import PhoneAuth from '../screens/PhoneAuth'
-import Login from '../screens/Login'
-import Home from '../screens/Home'
-import Search from '../screens/Search'
-import Booking from '../screens/Booking'
-import Symptomes from '../screens/Symptomes'
-import Upload from '../screens/Upload'
-import BookingConfirmed from '../screens/BookingConfirmed'
-import PreviousAppointments from '../screens/PreviousAppointments'
-import NextAppointments from '../screens/NextAppointments'
-import ProfileSettings from '../screens/ProfileSettings'
-import RootComponent  from '../screens/RootComponent'
+import Screens from '../screens/Welcome/Screens'
+import SignUp1 from '../screens/SignUp/SignUp1'
+import SignUp2 from '../screens/SignUp/SignUp2'
+import SignUp3 from '../screens/SignUp/SignUp3'
+import SignUp4 from '../screens/SignUp/SignUp4'
+import SignUp5P from '../screens/SignUp/SignUp5P'
+import SignUp5D from '../screens/SignUp/Doctor/SignUp5D'
+import SignUp6 from '../screens/SignUp/Doctor/SignUp6'
+import SignUp7 from '../screens/SignUp/Doctor/SignUp7'
+import AddDoctorClaim from '../screens/SignUp/Doctor/AddDoctorClaim'
+import SignUpPW from '../screens/SignUp/SignUpPW'
+import PhoneAuth0 from '../screens/SignUp/PhoneAuth0'
+import PhoneAuth from '../screens/Login/PhoneAuth'
+import Login from '../screens/Login/Login'
+import Search from '../screens/Booking/Search'
+import Booking from '../screens/Booking/Booking'
+import Symptomes from '../screens/Booking/Symptomes'
+import Upload from '../screens/Booking/Upload'
+import BookingConfirmed from '../screens/Booking/BookingConfirmed'
+import Home from '../screens/Home/Home'
+import PreviousAppointments from '../screens/User/PreviousAppointments'
+import NextAppointments from '../screens/User/NextAppointments'
+import MedicalFolder from '../screens/User/Patient/MedicalFolder'
+import DispoConfig from '../screens/User/Doctor/DispoConfig'
+import RootComponent from '../screens/Root/Guest/RootComponent'
+import Test1 from '../screens/Test1'
+import Test2 from '../screens/Test2'
 //import PhoneVerify  from '../screens/PhoneVerify'
 
 const SearchStackNavigator = createStackNavigator({
- RootComponent: { 
+  RootComponent: {
     screen: RootComponent,
     navigationOptions: {
-      title: 'Accueil'
+      title: 'Accueil',
+      headerShown: false
     }
-  }, 
-  Login: { 
+  },
+  Login: {
     screen: Login,
     navigationOptions: {
       title: 'Connection'
-    } 
-  }, 
-  PhoneAuth: { 
+    }
+  },
+  PhoneAuth: {
     screen: PhoneAuth,
     navigationOptions: {
       title: 'Connection'
-    } 
-  }, 
-  /*Login3: { 
-    screen: Login3,
+    }
+  },
+  PhoneAuth0: {
+    screen: PhoneAuth0,
+    navigationOptions: {
+      title: 'Phone auth'
+    }
+  },
+  Test1: {
+    screen: Test1,
     navigationOptions: {
       title: 'Connection'
-    } 
-  }, */
-  /*PhoneVerify: { 
-    screen: PhoneVerify,
-    navigationOptions: {
-      title: 'PhoneVerify'
     }
-  }, */
-  Screens: { 
+  },
+  Test2: {
+    screen: Test2,
+    navigationOptions: {
+      title: 'Connection'
+    }
+  },
+  Screens: {
     screen: Screens,
     navigationOptions: {
       title: 'Screens'
     }
-  }, 
-  
+  },
   //The app screens
-  LandingScreen: { 
-    screen: LandingScreen,
-    navigationOptions: {
-      title: 'Accueil',
-      headerLeft: null
-    }
-  }, 
-  Search: { 
+  Search: {
     screen: Search,
     navigationOptions: {
       title: 'Rechercher'
     }
-  }, 
-  Booking: { 
+  },
+  Booking: {
     screen: Booking,
     navigationOptions: {
       title: 'Booking'
     }
-  }, 
-  Symptomes: { 
+  },
+  Symptomes: {
     screen: Symptomes,
     navigationOptions: {
       title: 'Symptomes'
-    } 
-  }, 
-  Upload: { 
+    }
+  },
+  Upload: {
     screen: Upload,
     navigationOptions: {
       title: 'Upload'
-    } 
-  }, 
-  BookingConfirmed: { 
+    }
+  },
+  BookingConfirmed: {
     screen: BookingConfirmed,
     navigationOptions: {
       title: 'Confirmation'
-    } 
-  }, 
-  PreviousAppointments: { 
+    }
+  },
+  Home: {
+    screen: Home,
+    navigationOptions: {
+      title: ''
+    }
+  },
+  PreviousAppointments: {
     screen: PreviousAppointments,
     navigationOptions: {
       title: 'Mes Consultations Passées'
-    } 
-  }, 
-  NextAppointments: { 
+    }
+  },
+  NextAppointments: {
     screen: NextAppointments,
     navigationOptions: {
       title: 'Mes Consultations à Venir'
-    } 
-  }, 
-  ProfileSettings: { 
-    screen: ProfileSettings,
+    }
+  },
+  MedicalFolder: {
+    screen: MedicalFolder,
     navigationOptions: {
-      title: 'Profile'
-    } 
-  }, 
-   SignUp1: { 
+      title: 'Mon dossier médical'
+    }
+  },
+  DispoConfig: {
+    screen: DispoConfig,
+    navigationOptions: {
+      title: 'Mes horaires'
+    }
+  },
+  SignUp1: {
     screen: SignUp1,
     navigationOptions: {
       title: 'Inscription'
     }
   },
-  SignUp2: { 
+  SignUp2: {
     screen: SignUp2,
     navigationOptions: {
       title: 'Inscription'
     }
-  }, 
-  SignUp3: { 
+  },
+  SignUp3: {
     screen: SignUp3,
     navigationOptions: {
       title: 'Inscription'
     }
   },
-  SignUp4: { 
+  SignUp4: {
     screen: SignUp4,
     navigationOptions: {
       title: 'Inscription'
     }
   },
-  SignUp5: { 
-    screen: SignUp5,
+  SignUp5P: {
+    screen: SignUp5P,
     navigationOptions: {
       title: 'Inscription'
     }
   },
-  SignUp6: { 
+  SignUp5D: {
+    screen: SignUp5D,
+    navigationOptions: {
+      title: 'Inscription'
+    }
+  },
+  SignUp6: {
     screen: SignUp6,
     navigationOptions: {
       title: 'Inscription'
     }
-  }, 
-
-  Home: { 
-    screen: Home,
+  },
+  SignUp7: {
+    screen: SignUp7,
     navigationOptions: {
-      title: 'Home'
-    }
-    }, 
-    // Test screens 
-   /* Test1: { 
-      screen: Test1,
-      navigationOptions: {
-        title: 'Test1'
-      }
-    },  
-    Test2: { 
-    screen: Test2,
-    navigationOptions: {
-      title: 'Test2'
-    }
-    },    
-    Test3: { 
-      screen: Test3,
-      navigationOptions: {
-        title: 'Test3'
-      }
-  },  
-  Test4: { 
-    screen: Test4,
-    navigationOptions: {
-      title: 'Test4'
+      title: 'Inscription'
     }
   },
-  Test5: { 
-    screen: Test5,
+  SignUpPW: {
+    screen: SignUpPW,
     navigationOptions: {
-      title: 'Test5'
+      title: 'Inscription'
     }
-  }, 
-  Loading: { 
-  screen: Loading,
-  navigationOptions: {
-    title: 'Loading'
-  }
-},*/
-  //Firestore test screens
-  /*Login2: { 
-    screen: Login2,
+  },
+  AddDoctorClaim: {
+    screen: AddDoctorClaim,
     navigationOptions: {
-      title: 'Login2'
+      title: 'Inscription'
     }
-  }, */
-  /*SignUp: { 
-  screen: SignUp,
-  navigationOptions: {
-    title: 'SignUp'
-  }
-}, */
-/*Main: { 
-screen: Main,
-navigationOptions: {
-  title: 'Main'
-}
-},*/ 
+  },
 })
 
 export default createAppContainer(SearchStackNavigator)

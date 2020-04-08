@@ -13,6 +13,7 @@ import io.invertase.firebase.auth.RNFirebaseAuthPackage;
 import io.invertase.firebase.storage.RNFirebaseStoragePackage;
 import io.invertase.firebase.firestore.RNFirebaseFirestorePackage; 
 import io.invertase.firebase.storage.RNFirebaseStoragePackage; // <-- Add this line
+import io.invertase.firebase.functions.RNFirebaseFunctionsPackage; // <-- Add this line
 
 //import io.invertase.firebase.firestore.RNFirebaseFirestorePackage;
 //import io.invertase.firebase.firestore.ReactNativeFirebaseFirestorePackage;
@@ -35,6 +36,7 @@ public class MainApplication extends Application implements ReactApplication {
           packages.add(new RNFirebaseAuthPackage());
           packages.add(new RNFirebaseFirestorePackage());
           packages.add(new RNFirebaseStoragePackage());
+          packages.add(new RNFirebaseFunctionsPackage());
 
           //packages.add(new RNFirebaseFirestorePackage());
           //packages.add(new ReactNativeFirebaseFirestorePackage());

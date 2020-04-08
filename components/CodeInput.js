@@ -8,7 +8,7 @@ import {
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
  
-const styles = StyleSheet.create({
+const codeInputStyle = StyleSheet.create({
   root: {flex: 1, },
   title: {textAlign: 'center', fontSize: 30},
   codeFiledRoot: {marginTop: 20},
@@ -28,36 +28,39 @@ const styles = StyleSheet.create({
  
 const CELL_COUNT = 6;
  
-const CodeInput = () => {
+/*const CodeInput = () => {
   const [value, setValue] = useState('');
   const ref = useBlurOnFulfill({value, cellCount: CELL_COUNT});
   const [props, getCellOnLayoutHandler] = useClearByFocusCell({
     value,
     setValue,
-  });
+  });*/
  
+  class CodeInput extends React.Component {
+  render() {
   return (
-    <View style={styles.root}>
-    {/*  <Text style={styles.title}>Verification</Text> */}
+    <View style={codeInputStyle.root}>
+    {/*  <Text style={codeInputStyle.title}>Verification</Text> */}
       <CodeField
         ref={ref}
         {...props}
-        value={value}
-        onChangeText={setValue}
-        cellCount={CELL_COUNT}
-        rootStyle={styles.codeFiledRoot}
+        value={this.props.value}
+        onChangeText={this.props.setValue}
+        cellCount={6}
+        rootStyle={codeInputStyle.codeFiledRoot}
         keyboardType="number-pad"
-        renderCell={({index, symbol, isFocused}) => (
+        /*renderCell={({index, symbol, isFocused}) => (
           <Text
             key={index}
-            style={[styles.cell, isFocused && styles.focusCell]}
+            style={[codeInputStyle.cell, isFocused && codeInputStyle.focusCell]}
             onLayout={getCellOnLayoutHandler(index)}>
             {symbol || (isFocused ? <Cursor /> : null)}
           </Text>
-        )}
+        )}*/
       />
     </View>
   );
+ }
 };
  
 export default CodeInput;

@@ -16,7 +16,7 @@ import com.android.build.OutputFile
  *   bundleAssetName: "index.android.bundle",
  *
  *   // the entry file for bundle generation
- *   entryFile: "index.android.js",
+ *   entryFile: "index.android.js", 
  *
  *   // https://facebook.github.io/react-native/docs/performance#enable-the-ram-format
  *   bundleCommand: "ram-bundle",
@@ -200,11 +200,12 @@ dependencies {
     //implementation 'com.google.firebase:firebase-analytics:17.2.1'
     implementation 'com.google.firebase:firebase-auth:19.2.0'
     implementation "com.google.android.gms:play-services-base:17.1.0"
-    implementation 'com.google.firebase:firebase-storage:19.1.0'
+    //implementation 'com.google.firebase:firebase-storage:19.1.0'
     //implementation "com.google.firebase:firebase-core:19.2.0"
     //implementation 'com.google.firebase:firebase-firestore:21.3.1'
     implementation "com.google.firebase:firebase-firestore:19.0.0"
     implementation "com.google.firebase:firebase-storage:19.1.1"
+    implementation 'com.google.firebase:firebase-functions:19.0.2'
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation group: 'io.grpc', name: 'grpc-core', version: '1.16.1'
 

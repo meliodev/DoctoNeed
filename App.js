@@ -2,17 +2,11 @@
 
 import React, { Component } from 'react'
 import Navigation from './Navigation/Navigation'
-import { Provider } from 'react-redux'
-import Store from './Store/configureStore'
-//import { View, Text } from 'react-native'
 
 class App extends Component {
+
   render() {
-    return (
-      <Provider store={Store}>
-         <Navigation/>
-      </Provider>
-    )
+      return <Navigation/>    
   }
 }
 

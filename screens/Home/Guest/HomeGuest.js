@@ -1,7 +1,7 @@
 
 import React from 'react'
 import LinearGradient from 'react-native-linear-gradient';
-import { View, Text, Image, TouchableOpacity, TouchableHighlight, Dimensions, TextInput, StyleSheet, ImageBackground } from 'react-native'
+import { View, Text, Image, TouchableOpacity, Dimensions, TextInput, StyleSheet, ImageBackground } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icon1 from 'react-native-vector-icons/Feather';
 
@@ -48,7 +48,6 @@ class LandingScreen extends React.Component {
               <Icon name="search" size={20} color="#afbbbc" />
               <Text style={styles.searchText}> Rechercher un médecin </Text>
             </TouchableOpacity>
-
           </View>
 
           <View style={styles.cnxButton_container}>
@@ -110,6 +109,7 @@ const styles = StyleSheet.create({
   logo_container_guest: {
     flex: 0.25,
     alignItems: 'center',
+    justifyContent: 'center',
     //backgroundColor: 'red',
   },
   logoIcon: {
@@ -118,8 +118,8 @@ const styles = StyleSheet.create({
     marginTop: SCREEN_HEIGHT * 0.025
   },
   search_container: {
-    flex: 0.2,
-    justifyContent: 'center',
+    flex: 0.25,
+    justifyContent: 'flex-end',
     alignItems: 'center',
     //backgroundColor: 'green',
   },
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     marginLeft: SCREEN_WIDTH * 0.03
   },
   cnxButton_container: {
-    flex: 0.27,
+    flex: 0.25,
     justifyContent: 'flex-end',
     alignItems: 'center',
     //backgroundColor: 'yellow',
@@ -162,6 +162,7 @@ const styles = StyleSheet.create({
   terms_container: {
     flex: 0.05,
     justifyContent: 'center',
+    alignItems: 'center',
     flexDirection: 'row',
     //backgroundColor: 'brown',
   },
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   footer_container: {
-    flex: 0.23,
+    flex: 0.2,
     justifyContent: 'flex-end',
     alignItems: 'center',
     paddingBottom: SCREEN_HEIGHT*0.02,

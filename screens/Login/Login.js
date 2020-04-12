@@ -94,7 +94,7 @@ export default class LoginDoctor extends React.Component {
 
             {isDoctor === 'nothing sent' ?
               <View style={styles.button_container}>
-                <Button text="Se Connecter" onPress={this.handleLogin} />
+                <Button width= {SCREEN_WIDTH*0.65} text="Se Connecter" onPress={this.handleLogin} />
                 <Text style={styles.text}>Vous n'avez pas de compte? <Text onPress={() => this.props.navigation.navigate('SignUp1')} style={{ textDecorationLine: 'underline', color: '#70e2f9', fontFamily: 'Avenir', }}>
                   Inscrivez-vous</Text>
                 </Text>
@@ -174,14 +174,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#ffffff',
-    borderRadius: 22,
+    borderRadius: 50,
     padding: 15,
+    paddingLeft: SCREEN_WIDTH*0.1,
     width: SCREEN_WIDTH * 0.8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 9,
+    elevation: 4,
   },
   searchText: {
     color: '#b2bbbc',

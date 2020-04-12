@@ -157,6 +157,7 @@ search_button: {
   backgroundColor: '#ffffff',
   borderRadius: 22,
   padding: 15,
+  paddingLeft: SCREEN_WIDTH*0.1,
   width: SCREEN_WIDTH * 0.8,
   shadowColor: "#000",
   shadowOffset: { width: 0, height: 4 },

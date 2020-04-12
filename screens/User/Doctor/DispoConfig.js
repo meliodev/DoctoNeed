@@ -117,6 +117,7 @@ export default class DispoConfig extends React.Component {
             items={timezones}
           />
           <Text> Horaires disponibles </Text>
+          
 
         </ScrollView>
 

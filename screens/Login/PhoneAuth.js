@@ -54,6 +54,9 @@ export default class PhoneAuth extends Component {
     this.setState({
       autoVerifyCountDown: this.state.autoVerifyCountDown - 1,
     });
+    if (this.state.autoVerifyCountDown<0) {
+      this.setState({ auto: false })
+    }
   }
 
   /**
@@ -276,9 +279,13 @@ export default class PhoneAuth extends Component {
     }
     return (
       <View style={{ padding: 0, justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ paddingBottom: 25, textAlign: 'center' }}>
-          {`Le code de vérification a été envoyé avec succès au '${phoneNumber}'.`}
+          <Text style={{ paddingBottom: 25, textAlign: 'center' }}>
+          {`Le code de vérification a été envoyé avec succès au`}
         </Text>
+        <Text style={{ paddingBottom: 25, textAlign: 'center', fontWeight: 'bold', fontSize: 16 }}>
+        {phoneNumber}
+        </Text>
+        
         <Text style={{ marginBottom: 25, textAlign: 'center' }}>
           {`Nous allons essayer de vérifier automatiquement le code pour vous. Cela expirera dans ${autoVerifyCountDown} secondes.`}
         </Text>

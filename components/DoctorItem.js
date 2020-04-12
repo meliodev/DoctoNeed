@@ -9,12 +9,12 @@ class DoctorItem extends React.Component {
 
 
   render() {
-    const { doctor, displayDetailForDoctor } = this.props
+    const { doctor, displayDoctorDetails, displayDoctorCalendar } = this.props
     return (
       <View>
         <TouchableHighlight
 
-          onPress={() => displayDetailForDoctor(doctor.uid)}>
+          onPress={() => displayDoctorCalendar(doctor.uid)}>
 
           <View style={styles.main_container}>
             <View style={{ flex: 0.37, paddingLeft: SCREEN_WIDTH * 0.04, borderBottomLeftRadius: 25, borderTopLeftRadius: 25, }}>
@@ -42,7 +42,7 @@ class DoctorItem extends React.Component {
             <View style={styles.button_container}>
               <TouchableHighlight
                 style={styles.button}
-                onPress={() => displayDetailForDoctor(doctor.uid)}>
+                onPress={() => displayDoctorDetails(doctor.uid)}>
                 <Icon name="rightcircleo"
                   size={SCREEN_WIDTH * 0.055}
                   color="white" />

@@ -104,7 +104,7 @@ export default class SignUp2 extends ValidationComponent {
           </View>
 
           <View style={styles.button_container}>
-             <Button text="Suivant" onPress={this._onPressButton.bind(this) } />
+             <Button width={SCREEN_WIDTH*0.65} text="Suivant" onPress={this._onPressButton.bind(this) } />
           </View> 
     </View>
   );
@@ -182,20 +182,6 @@ error_container:{
   alignItems: 'center',
   justifyContent: 'center',
  // backgroundColor: 'green',
-},
-
-search_button: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#ffffff',
-  borderRadius: 22,
-  padding: 15,
-  width: SCREEN_WIDTH * 0.8,
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 4 },
-  shadowOpacity: 0.32,
-  shadowRadius: 5.46,
-  elevation: 9,
 },
 searchText: {
   color: '#b2bbbc',

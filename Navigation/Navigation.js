@@ -19,15 +19,15 @@ import PhoneAuth from '../screens/Login/PhoneAuth'
 import Login from '../screens/Login/Login'
 import Search from '../screens/Booking/Search'
 import Booking from '../screens/Booking/Booking'
-import Symptomes from '../screens/Booking/Symptomes'
+/*import Symptomes from '../screens/Booking/Symptomes'
 import Upload from '../screens/Booking/Upload'
-import BookingConfirmed from '../screens/Booking/BookingConfirmed'
+import BookingConfirmed from '../screens/Booking/BookingConfirmed'*/
 import Home from '../screens/Home/Home'
-import PreviousAppointments from '../screens/User/PreviousAppointments'
+/*import PreviousAppointments from '../screens/User/PreviousAppointments'
 import NextAppointments from '../screens/User/NextAppointments'
 import MedicalFolder from '../screens/User/Patient/MedicalFolder'
-import DispoConfig from '../screens/User/Doctor/DispoConfig'
-import DoctorFile from '../screens/DoctorFile'
+import DispoConfig from '../screens/User/Doctor/DispoConfig'*/
+import DoctorFile from '../screens/Booking/DoctorFile'
 import RootComponent from '../screens/Root/Guest/RootComponent'
 import Test1 from '../screens/Test1'
 import Test2 from '../screens/Test2'
@@ -41,12 +41,6 @@ const SearchStackNavigator = createStackNavigator({
       headerShown: false
     }
   },
-  DoctorFile: { 
-    screen: DoctorFile,
-    navigationOptions: {
-      title: 'DoctorFile'
-    }
-  }, 
   Login: {
     screen: Login,
     navigationOptions: {
@@ -62,7 +56,7 @@ const SearchStackNavigator = createStackNavigator({
   PhoneAuth0: {
     screen: PhoneAuth0,
     navigationOptions: {
-      title: 'Phone auth'
+      title: ''
     }
   },
   Test1: {
@@ -90,13 +84,19 @@ const SearchStackNavigator = createStackNavigator({
       title: 'Rechercher'
     }
   },
+  DoctorFile: { 
+    screen: DoctorFile,
+    navigationOptions: {
+      title: 'DoctorFile'
+    }
+  }, 
   Booking: {
     screen: Booking,
     navigationOptions: {
       title: 'Booking'
     }
   },
-  Symptomes: {
+ /* Symptomes: {
     screen: Symptomes,
     navigationOptions: {
       title: 'Symptomes'
@@ -113,14 +113,16 @@ const SearchStackNavigator = createStackNavigator({
     navigationOptions: {
       title: 'Confirmation'
     }
-  },
+  },*/
+  
   Home: {
     screen: Home,
     navigationOptions: {
       title: ''
     }
   },
-  PreviousAppointments: {
+
+ /* PreviousAppointments: {
     screen: PreviousAppointments,
     navigationOptions: {
       title: 'Mes Consultations Passées'
@@ -143,7 +145,8 @@ const SearchStackNavigator = createStackNavigator({
     navigationOptions: {
       title: 'Mes horaires'
     }
-  },
+  },*/
+  
   SignUp1: {
     screen: SignUp1,
     navigationOptions: {

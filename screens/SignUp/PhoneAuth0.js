@@ -54,13 +54,16 @@ export default class PhoneAuth0 extends Component {
     this.setState({
       autoVerifyCountDown: this.state.autoVerifyCountDown - 1,
     });
+    if (this.state.autoVerifyCountDown<0) {
+      this.setState({ auto: false })
+    }
   }
 
   /**
    * Called when confirm code is pressed - we should have the code and verificationId now in state.
    */
   //--OLD Handle the button press
-  signIn = () => {
+ /* signIn = () => {
     const phoneNumber = this.props.navigation.getParam('phoneNumber', 'nothing sent')
     console.log('signIn method received the phone number: ' + phoneNumber)
     //const { phoneNumber } = this.state;
@@ -152,7 +155,7 @@ export default class PhoneAuth0 extends Component {
       })
       .catch(console.error);
     // const email = 'Rn@gmail.com'
-    //const password = 'Azerty111'
+    //const password = 'Azerty111'*/
 
 
     /* firebase
@@ -162,13 +165,12 @@ export default class PhoneAuth0 extends Component {
        .catch(error => console.log(error.message))*/
 
     //firebase.auth().currentUser.linkWithCredential(credential);
-  };
+ // };
 
   // Handle the button press
+  
   async signInWithPhoneNumber() {
     const phoneNumber = this.props.navigation.getParam('phoneNumber', 'nothing sent')
-    console.log('phone !!!!!!!!!!!!!!')
-
 
     this.setState(
       {
@@ -259,7 +261,8 @@ export default class PhoneAuth0 extends Component {
 
     try {
       await (await firebase.auth().signInWithPhoneNumber(phoneNumber)).confirm(code).then(() => {
-        this.setState({ isLoading: true }, () =>       this.props.navigation.navigate('SignUpPW', {email: email, pays: pays, nom: nom, prenom: prenom, date: date, speciality: speciality, phoneNumber: phoneNumber, isDoctor: isDoctor })   //Add documents uploaded once defined 
+        this.setState({ isLoading: true }, async () => { //await firebase.auth().signOut()
+                                                         this.props.navigation.navigate('SignUpPW', {email: email, pays: pays, nom: nom, prenom: prenom, date: date, speciality: speciality, phoneNumber: phoneNumber, isDoctor: isDoctor }) } //Add documents uploaded once defined 
         )
         console.log('weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee')
 
@@ -300,8 +303,12 @@ export default class PhoneAuth0 extends Component {
     return (
       <View style={{ padding: 0, justifyContent: 'center', alignItems: 'center' }}>
         <Text style={{ paddingBottom: 25, textAlign: 'center' }}>
-          {`Le code de vérification a été envoyé avec succès au '${phoneNumber}'.`}
+          {`Le code de vérification a été envoyé avec succès au`}
         </Text>
+        <Text style={{ paddingBottom: 25, textAlign: 'center', fontWeight: 'bold', fontSize: 16 }}>
+        {phoneNumber}
+        </Text>
+
         <Text style={{ marginBottom: 25, textAlign: 'center' }}>
           {`Nous allons essayer de vérifier automatiquement le code pour vous. Cela expirera dans ${autoVerifyCountDown} secondes.`}
         </Text>

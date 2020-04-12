@@ -107,13 +107,13 @@ export default class SignUp4 extends ValidationComponent {
               marginLeft: 40,
               alignItems: 'center',
               backgroundColor: '#ffffff',
-              borderRadius: 20,
+              borderRadius: 50,
               padding: 15,
               shadowColor: "#000",
-              //shadowOffset: { width: 0, height: 4 },
+              shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.32,
               shadowRadius: 5.46,
-              elevation: 9,
+              elevation: 4,
           }
           // ... You can check the source to find the other keys.
         }}
@@ -127,7 +127,7 @@ export default class SignUp4 extends ValidationComponent {
           </View>
 
           <View style={styles.button_container}>
-             <Button text="Suivant" onPress={this._onPressButton.bind(this) } />
+             <Button width= {SCREEN_WIDTH*0.65} text="Suivant" onPress={this._onPressButton.bind(this) } />
           </View> 
     </View>
   );

@@ -38,6 +38,8 @@ export default class SignUp2 extends React.Component {
     });
   }
 
+  
+
   renderInfo() {
     if (this.state.value) {
       return (
@@ -98,9 +100,9 @@ export default class SignUp2 extends React.Component {
           <View style={styles.bar_progression}>
             <View style={[styles.bar, styles.activeBar]}/>
             <View style={[styles.bar, styles.activeBar]}/>
-            <View style={styles.bar}/>
-            <View style={styles.bar}/>
-            <View style={styles.bar}/>
+            <View style={[styles.bar, styles.activeBar]}/>
+            <View style={[styles.bar, styles.activeBar]}/>
+            <View style={[styles.bar, styles.activeBar]}/>
             <View style={styles.bar}/>
           </View>
            : 

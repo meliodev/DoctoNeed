@@ -158,6 +158,11 @@ class Search extends React.Component {
       })
   }
 
+  displayDoctorDetails(doctor) {
+    //console.log(doctor)
+    this.props.navigation.navigate('DoctorFile', { doctor: doctor })
+  }
+
   _displayLoading() {
     if (this.state.isLoading) {
       return (
@@ -417,7 +422,8 @@ class Search extends React.Component {
               <View style={{ flex: 1, alignItems: 'center' }}>
                 <DoctorItem
                   doctor={doctor}
-                  displayDetailForDoctor={() => this.onDoctorClick(doctor)}
+                  displayDoctorCalendar={() => this.onDoctorClick(doctor)}
+                  displayDoctorDetails={() => this.displayDoctorDetails(doctor)} 
                 />
               </View>
             )

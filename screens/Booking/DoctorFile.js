@@ -72,6 +72,8 @@ const styles = StyleSheet.create({
   imagebg: {
     width: SCREEN_WIDTH,
     height: HEADER_ICON_HEIGHT,
+    justifyContent: 'flex-end',
+    //backgroundColor: 'blue'
   },
   logo_container: {
     flex: 0.23,

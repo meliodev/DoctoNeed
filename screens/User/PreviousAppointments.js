@@ -21,6 +21,7 @@ const KEYS_TO_FILTERS_SPECIALITY = ['doctorSpeciality'];
 const KEYS_TO_FILTERS_DATE = ['date'];
 
 import Button from '../../components/Button';
+import Button2 from '../../components/Button2';
 import AppointmentItem from '../../components/AppointmentItem'
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -88,7 +89,7 @@ export default class PreviousAppointments extends React.Component {
           this.setState({ isUser: false })
         }
       })
-  }; 
+  };
 
   // Load appointments
   loadAppointments() {
@@ -136,7 +137,7 @@ export default class PreviousAppointments extends React.Component {
     else
       this.setState({ doctor: doctor, isDoctorSelected: true })
   }
- 
+
   onSelectSpeciality = (speciality) => {
     if (speciality === "")
       this.setState({ speciality: speciality, isSpecialitySelected: false })
@@ -209,7 +210,7 @@ export default class PreviousAppointments extends React.Component {
           navigateToDispoConfig={this.navigateToDispoConfig}
           navigateToAppointments={this.navigateToAppointments}
           signOutUser={this.signOutUserandToggle}
-          navigate={this.props.navigation} /> 
+          navigate={this.props.navigation} />
 
         <RightSideMenu
           isSideMenuVisible={this.state.isRightSideMenuVisible}
@@ -271,6 +272,11 @@ export default class PreviousAppointments extends React.Component {
           })}
         </ScrollView>
 
+        <View style= {{flex: 0.4, alignItems: 'center'}}>
+          <Button width = {SCREEN_WIDTH*0.87} text="Prendre un rendez-vous en urgence"/* onPress={ this.handleLogin } */ />
+          <Button2 style={{ backgroundColor: "#ffffff", color: "#000000" }} text="Planifier une consultation" onPress={() => this.props.navigation.navigate('Search')} />
+        </View>
+
       </View>
     );
   }
@@ -288,7 +294,7 @@ const styles = StyleSheet.create({
     flex: 0.3,
     //justifyContent: 'flex-end',
     //alignItems: 'center',
-    //backgroundColor: 'green',
+    backgroundColor: 'green',
   },
   logoIcon: {
     height: SCREEN_WIDTH * 0.14,
@@ -302,7 +308,7 @@ const styles = StyleSheet.create({
     flex: 0.2,
     justifyContent: 'center',
     alignItems: 'center',
-    //backgroundColor: 'blue',
+    backgroundColor: 'blue',
   },
   header: {
     fontSize: SCREEN_HEIGHT * 0.02,

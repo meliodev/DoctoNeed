@@ -1,5 +1,5 @@
 import React from 'react'
-import { StyleSheet, View, Text, Image, TouchableHighlight, Dimensions } from 'react-native'
+import { StyleSheet, View, Text, Image, TouchableHighlight, TouchableOpacity, Dimensions } from 'react-native'
 import Icon from 'react-native-vector-icons/AntDesign';
 
 const SCREEN_WIDTH = Dimensions.get("window").width
@@ -13,6 +13,7 @@ class DoctorItem extends React.Component {
     return (
       <View>
         <TouchableHighlight
+          underlayColor="#93eafe"
 
           onPress={() => displayDoctorCalendar(doctor.uid)}>
 
@@ -40,13 +41,14 @@ class DoctorItem extends React.Component {
             </View>
 
             <View style={styles.button_container}>
-              <TouchableHighlight
+              <TouchableOpacity
+                underlayColor="#93eafe"
                 style={styles.button}
                 onPress={() => displayDoctorDetails(doctor.uid)}>
                 <Icon name="rightcircleo"
                   size={SCREEN_WIDTH * 0.055}
                   color="white" />
-              </TouchableHighlight>
+              </TouchableOpacity>
             </View>
           </View>
         </TouchableHighlight>

@@ -21,6 +21,7 @@ const KEYS_TO_FILTERS_SPECIALITY = ['doctorSpeciality'];
 const KEYS_TO_FILTERS_DATE = ['date'];
 
 import Button from '../../components/Button';
+import Button2 from '../../components/Button2';
 import AppointmentItem from '../../components/AppointmentItem'
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -85,7 +86,7 @@ export default class NextAppointments extends React.Component {
           this.setState({ isUser: false })
         }
       })
-  }; 
+  };
 
   // Load appointments
   loadAppointments() {
@@ -133,7 +134,7 @@ export default class NextAppointments extends React.Component {
     else
       this.setState({ doctor: doctor, isDoctorSelected: true })
   }
- 
+
   onSelectSpeciality = (speciality) => {
     if (speciality === "")
       this.setState({ speciality: speciality, isSpecialitySelected: false })
@@ -261,7 +262,10 @@ export default class NextAppointments extends React.Component {
 
           })}
         </ScrollView>
-
+        <View style={{ flex: 0.4, alignItems: 'center' }}>
+          <Button width={SCREEN_WIDTH * 0.87} text="Prendre un rendez-vous en urgence"/* onPress={ this.handleLogin } */ />
+          <Button2 style={{ backgroundColor: "#ffffff", color: "#000000" }} text="Planifier une consultation" onPress={() => this.props.navigation.navigate('Search')} />
+        </View>
       </View>
     );
   }

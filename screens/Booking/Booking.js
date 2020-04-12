@@ -5,12 +5,14 @@ import {
   View,
   TextInput,
   TouchableHighlight,
+  TouchableOpacity,
   ScrollView,
   Dimensions,
-  Button
 } from 'react-native';
+import Button from '../../components/Button';
 //import { Actions } from 'react-native-router-flux';
 import Swiper from 'react-native-swiper';
+import firebase from 'react-native-firebase';
 const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
 
@@ -35,24 +37,21 @@ class Booking extends React.Component {
       day: 0,
       time: 0
     }
-
     this.onAppointmentClick = this.onAppointmentClick.bind(this);
-
   }
 
   onAppointmentClick() {
-    this.props.navigation.navigate('Symptomes', {
-      doctor: this.doctor, fullDate: this.state.fullDate,
-      daySelected: this.state.daySelected, monthSelected: this.state.monthSelected,
-      yearSelected: this.state.yearSelected, timeSelected: this.state.timeSelected
-    })
-    /* Actions.symptomes({
-       doctor: 'this.props.doctor',
-       //currentUser: this.props.currentUser,
-       monthSelected: 'this.state.monthSelected',
-       daySelected: 'this.state.daySelected',
-       timeslotSelected: 'this.state.timeSelected',
-     });*/
+    if (firebase.auth().currentUser) {
+      this.props.navigation.navigate('Symptomes', {
+        doctor: this.doctor, fullDate: this.state.fullDate,
+        daySelected: this.state.daySelected, monthSelected: this.state.monthSelected,
+        yearSelected: this.state.yearSelected, timeSelected: this.state.timeSelected
+      })
+    }
+
+    else
+    this.props.navigation.navigate('SignUp1')
+
   }
 
   displayDays() {
@@ -74,8 +73,7 @@ class Booking extends React.Component {
 
         if (Journee.status === 'open')
           return (
-
-            <TouchableHighlight key={index} style={dayStyle}
+            <TouchableOpacity key={index} style={dayStyle}
               onPress={() => this.setState({
                 daySelected: dayMonth[index].day,
                 monthSelected: dayMonth[index].month,
@@ -95,7 +93,7 @@ class Booking extends React.Component {
               <Text style={index === this.state.day ? { color: 'white', alignSelf: 'center', fontFamily: 'Arial' } : dayText}>
                 {Journee.day}
               </Text>
-            </TouchableHighlight>
+            </TouchableOpacity>
           );
 
         else return (
@@ -246,7 +244,7 @@ class Booking extends React.Component {
 
         if (timeslot.status === 'open')
           return (
-            <TouchableHighlight key={index} style={timeStyle}
+            <TouchableOpacity key={index} style={timeStyle}
               onPress={() => this.setState({
                 timeSelected: doctorSchedule[day][index].time,
                 time: index
@@ -264,7 +262,7 @@ class Booking extends React.Component {
               <Text style={index === this.state.time ? { color: 'white', alignSelf: 'center', fontFamily: 'Arial' } : timeText}>
                 {timeslot.time}
               </Text>
-            </TouchableHighlight>
+            </TouchableOpacity>
           );
 
         else return (
@@ -327,11 +325,16 @@ class Booking extends React.Component {
         </View>
 
         <View style={styles.days}>
-          <Swiper style={styles.wrapper} showsPagination={false} loop={false} nextButton={<Text style={{ marginTop: 200 }}>›</Text>} prevButton={<Text style={{ marginTop: 200 }}>‹</Text>} buttonWrapperStyle={{
-            backgroundColor: 'transparent',
-            flexDirection: 'row', position: 'absolute', top: 0, left: 0, flex: 1, paddingHorizontal: 10, paddingVertical: 0,
-            justifyContent: 'space-between', alignItems: 'center'
-          }} index={global.pos}>
+          <Swiper style={styles.wrapper}
+            showsPagination={false}
+            loop={false}
+            nextButton={<Text style={{ marginTop: 200 }}>›</Text>}
+            prevButton={<Text style={{ marginTop: 200 }}>‹</Text>}
+            buttonWrapperStyle={{
+              backgroundColor: 'transparent', flexDirection: 'row', position: 'absolute',
+              top: 0, left: 0, flex: 1, paddingHorizontal: 10, paddingVertical: 0,
+              justifyContent: 'space-between', alignItems: 'center'
+            }} index={global.pos}>
             {this.swiperView()}
           </Swiper>
         </View>
@@ -345,7 +348,7 @@ class Booking extends React.Component {
         </View>
 
         <View style={styles.button_container}>
-          <Button style={styles.Button} title="Confirmer" color="#93eafe" onPress={this.onAppointmentClick} />
+          <Button width={SCREEN_WIDTH * 0.65} text="Confirmer" onPress={this.onAppointmentClick} />
         </View>
 
       </View>
@@ -356,12 +359,12 @@ class Booking extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    width: null,
-    height: null,
+    //flexDirection: 'column',
+    //justifyContent: 'flex-start',
+    //alignItems: 'center',
+    //alignSelf: 'stretch',
+    // width: null,
+    //height: null,
     backgroundColor: 'white'
   },
   bar_progression: {
@@ -369,7 +372,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    //backgroundColor: 'purple',
+    backgroundColor: 'purple',
   },
   bar: {
     height: SCREEN_HEIGHT * 0.01,
@@ -386,7 +389,7 @@ const styles = StyleSheet.create({
     flex: 0.1,
     justifyContent: 'center',
     alignItems: 'center',
-    //backgroundColor: 'green',
+    backgroundColor: 'green',
   },
   header: {
     fontSize: SCREEN_HEIGHT * 0.025,
@@ -412,11 +415,10 @@ const styles = StyleSheet.create({
   },
   button_container: {
     flex: 0.15,
-    justifyContent: 'center',
-    //backgroundColor: 'orange'
+    alignItems: 'center',
+    //justifyContent: 'center',
+    backgroundColor: 'orange'
   },
-
-
   wrapper: {
   },
   slide: {

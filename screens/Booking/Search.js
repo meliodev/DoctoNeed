@@ -78,7 +78,7 @@ class Search extends React.Component {
       isCountrySelected: false, isUrgencesSelected: false, isSpecialitySelected: false, isPriceSelected: false
     })
   }
-  
+
   //Get data from filters
   onSelectCountry = (childData) => {
     this.setState({ country: childData.name, isCountrySelected: true })
@@ -378,7 +378,7 @@ class Search extends React.Component {
             <View style={styles.filterItem}>
               <Text style={styles.filterItem_text}>Pays</Text>
               <Icon name="close"
-                size={SCREEN_WIDTH * 0.05}
+                //size= {20}
                 color="#93eafe"
                 onPress={() => this.setState({ country: '', isCountrySelected: false })} />
             </View>
@@ -414,8 +414,8 @@ class Search extends React.Component {
                 onPress={() => this.setState({ price: 50, isPriceSelected: false })} />
             </View>
             : null}
-
         </View>
+
         <ScrollView style={styles.doctorList_container}>
           {this.filteredDoctors1.map(doctor => {
             return (
@@ -423,7 +423,7 @@ class Search extends React.Component {
                 <DoctorItem
                   doctor={doctor}
                   displayDoctorCalendar={() => this.onDoctorClick(doctor)}
-                  displayDoctorDetails={() => this.displayDoctorDetails(doctor)} 
+                  displayDoctorDetails={() => this.displayDoctorDetails(doctor)}
                 />
               </View>
             )
@@ -445,8 +445,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   logo_container: {
-    flex: 0.25,
-    //justifyContent: 'center',
+    flex: 0.3,
+    justifyContent: 'flex-end',
     alignItems: 'center',
     //backgroundColor: 'blue',
   },
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     marginTop: SCREEN_WIDTH * 0.05
   },
   search_container: {
-    flex: 0.25,
+    flex: 0.2,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'center',
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
   },
   placeHolder: {
     color: '#d5d5d5',
-    fontSize: SCREEN_HEIGHT*0.015  
+    fontSize: SCREEN_HEIGHT * 0.015
   },
   filter_button: {
     width: SCREEN_WIDTH * 0.12,
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     fontSize: SCREEN_HEIGHT * 0.013
   },
   doctorList_container: {
-    flex: 0.4,
+    flex: 1,
     //backgroundColor: 'yellow'
   }
 

@@ -81,19 +81,21 @@ const SearchStackNavigator = createStackNavigator({
   Search: {
     screen: Search,
     navigationOptions: {
-      title: 'Rechercher'
+      title: '',
+      headerShown: false
     }
   },
   DoctorFile: { 
     screen: DoctorFile,
     navigationOptions: {
-      title: 'DoctorFile'
+      title: '',
+      headerShown: false
     }
   }, 
   Booking: {
     screen: Booking,
     navigationOptions: {
-      title: 'Booking'
+      title: ''
     }
   },
  /* Symptomes: {

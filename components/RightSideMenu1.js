@@ -250,8 +250,8 @@ const styles = StyleSheet.create({
     },
     slider: {
         marginTop: SCREEN_HEIGHT * 0.05,
-        marginBottom: SCREEN_HEIGHT*0.02
-        //marginRight: SCREEN_HEIGHT*0.07
+        marginBottom: SCREEN_HEIGHT*0.02,
+        marginRight: SCREEN_HEIGHT*0.03
     },
     buttons_container: {
         flex: 0.25,

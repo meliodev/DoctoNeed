@@ -22,7 +22,7 @@ const KEYS_TO_FILTERS_DATE = ['date'];
 
 import Button from '../../components/Button';
 import Button2 from '../../components/Button2';
-import AppointmentItem from '../../components/AppointmentItem'
+import AppointmentItem from '../../components/PreviousAppointmentItem'
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -54,7 +54,7 @@ export default class PreviousAppointments extends React.Component {
       prenom: "",
       email: "",
       age: "",
-
+      test: '',
       doctor: null,
       speciality: null,
       isDoctorSelected: false,
@@ -63,7 +63,12 @@ export default class PreviousAppointments extends React.Component {
   }
 
   componentDidMount() {
+
+    const {navigation} = this.props;
+    navigation.addListener ('willFocus', () =>
     this.loadAppointments()
+    );
+
     this.UserAuthStatus()
 
     const { currentUser } = firebase.auth()
@@ -93,6 +98,9 @@ export default class PreviousAppointments extends React.Component {
 
   // Load appointments
   loadAppointments() {
+    console.log('Appointments loading start...')
+    this.appointments = []
+    
     firebase.firestore().collection("users").doc(firebase.auth().currentUser.uid).collection("appointments").orderBy('fullDate', 'desc').limit(100)
       .get().then(querySnapshot => {
         querySnapshot.forEach(doc => {
@@ -120,6 +128,8 @@ export default class PreviousAppointments extends React.Component {
         //this.setState({ appointments: this.appointments })
 
       }).then(() => this.setState({ appointments: this.appointments }))
+      console.log('Appointments loading end...')
+
   }
 
   signOutUser() {
@@ -171,7 +181,7 @@ export default class PreviousAppointments extends React.Component {
 
   navigateToAppointments() {
     this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('Appointments'));
+      () => this.props.navigation.navigate('TabScreen'));
   }
 
   signOutUserandToggle() {
@@ -182,11 +192,11 @@ export default class PreviousAppointments extends React.Component {
   render() {
 
     this.filteredAppointments = this.state.appointments
-    console.log(this.filteredAppointments)
+    //console.log(this.filteredAppointments)
 
     if (this.state.doctor) {
       this.filteredAppointments = this.filteredAppointments.filter(createFilter(this.state.doctor, KEYS_TO_FILTERS_DOCTOR))
-      console.log(this.filteredAppointments)
+      //console.log(this.filteredAppointments)
     }
     if (this.state.speciality) {
       this.filteredAppointments = this.filteredAppointments.filter(createFilter(this.state.speciality, KEYS_TO_FILTERS_SPECIALITY))
@@ -195,8 +205,8 @@ export default class PreviousAppointments extends React.Component {
       this.filteredAppointments = this.filteredAppointments.filter(createFilter(this.state.date, KEYS_TO_FILTERS_SPECIALITY))
     }*/
 
-    console.log(this.state.appointments)
-    console.log(this.state.doctor)
+    //console.log(this.state.appointments)
+    //console.log(this.state.doctor)
     return (
       <View style={styles.container}>
 
@@ -226,7 +236,7 @@ export default class PreviousAppointments extends React.Component {
           onSelectSpeciality={this.onSelectSpeciality}
           onSelectPriceMax={this.onSelectPriceMax} *//>
 
-        <View style={{ height: SCREEN_HEIGHT * 0.24, flexDirection: 'row', paddingTop: SCREEN_HEIGHT * 0.02, justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <View style={{ height: SCREEN_HEIGHT * 0.24, flexDirection: 'row', paddingTop: SCREEN_HEIGHT * 0.04, justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <TouchableHighlight style={styles.menu_button}
             onPress={this.toggleLeftSideMenu}>
             <Icon1 name="bars" size={25} color="#93eafe" />
@@ -258,7 +268,7 @@ export default class PreviousAppointments extends React.Component {
               )
             }
 
-            else if (app.month !== this.month || this.month === '') {
+            else if (app.month !== this.month) {
               this.month = app.month
               this.year = app.year
               return (
@@ -272,13 +282,14 @@ export default class PreviousAppointments extends React.Component {
           })}
         </ScrollView>
 
-        <View style= {{flex: 0.4, alignItems: 'center'}}>
+        <View style= {{flex: 0.4, alignItems: 'center', justifyContent: 'center'}}>
           <Button width = {SCREEN_WIDTH*0.87} text="Prendre un rendez-vous en urgence"/* onPress={ this.handleLogin } */ />
           <Button2 style={{ backgroundColor: "#ffffff", color: "#000000" }} text="Planifier une consultation" onPress={() => this.props.navigation.navigate('Search')} />
         </View>
 
       </View>
     );
+
   }
 }
 

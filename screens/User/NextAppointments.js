@@ -22,7 +22,7 @@ const KEYS_TO_FILTERS_DATE = ['date'];
 
 import Button from '../../components/Button';
 import Button2 from '../../components/Button2';
-import AppointmentItem from '../../components/AppointmentItem'
+import AppointmentItem from '../../components/NextAppointmentItem'
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -60,7 +60,12 @@ export default class NextAppointments extends React.Component {
   }
 
   componentDidMount() {
+
+    const {navigation} = this.props;
+    navigation.addListener ('willFocus', () =>
     this.loadAppointments()
+    );
+
     this.UserAuthStatus()
 
     const { currentUser } = firebase.auth()
@@ -90,6 +95,9 @@ export default class NextAppointments extends React.Component {
 
   // Load appointments
   loadAppointments() {
+    console.log('Appointments loading start...')
+    this.appointments = []
+    
     firebase.firestore().collection("users").doc(firebase.auth().currentUser.uid).collection("appointments").orderBy('fullDate', 'desc').limit(100)
       .get().then(querySnapshot => {
         querySnapshot.forEach(doc => {
@@ -217,7 +225,7 @@ export default class NextAppointments extends React.Component {
           onSelectSpeciality={this.onSelectSpeciality}
           onSelectPriceMax={this.onSelectPriceMax} *//>
 
-        <View style={{ height: SCREEN_HEIGHT * 0.24, flexDirection: 'row', paddingTop: SCREEN_HEIGHT * 0.02, justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <View style={{ height: SCREEN_HEIGHT * 0.24, flexDirection: 'row', paddingTop: SCREEN_HEIGHT * 0.04, justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <TouchableHighlight style={styles.menu_button}
             onPress={this.toggleLeftSideMenu}>
             <Icon1 name="bars" size={25} color="#93eafe" />
@@ -262,7 +270,7 @@ export default class NextAppointments extends React.Component {
 
           })}
         </ScrollView>
-        <View style={{ flex: 0.4, alignItems: 'center' }}>
+        <View style={{ flex: 0.4, alignItems: 'center', justifyContent: 'center' }}>
           <Button width={SCREEN_WIDTH * 0.87} text="Prendre un rendez-vous en urgence"/* onPress={ this.handleLogin } */ />
           <Button2 style={{ backgroundColor: "#ffffff", color: "#000000" }} text="Planifier une consultation" onPress={() => this.props.navigation.navigate('Search')} />
         </View>

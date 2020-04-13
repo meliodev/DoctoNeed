@@ -117,19 +117,19 @@ export default class Main extends React.Component {
             Une notification de rappel vous sera envoyée
             </Text>
           <Text style={styles.text_details2}>
-            30min avant la consultation
+            30min avant la consultation.
             </Text>
         </ScrollView>
 
         <View style={styles.button_container}>
           <TouchableOpacity
-            onPress={() => this.props.navigation.navigate('LandingScreen')}>
+            onPress={() => this.props.navigation.navigate('TabScreen')}>
             <LinearGradient
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               colors={['#b3f3fd', '#84e2f4', '#5fe0fe']}
               style={styles.linearGradient}>
-              <Text style={styles.buttonText}> Retour à la page d'accueil </Text>
+              <Text style={styles.buttonText}> Retour à mon profile </Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>

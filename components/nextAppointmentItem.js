@@ -3,54 +3,51 @@ import { StyleSheet, View, Text, TouchableHighlight, Dimensions } from 'react-na
 import Icon from 'react-native-vector-icons/AntDesign';
 
 const SCREEN_WIDTH = Dimensions.get("window").width
-const SCREEN_HEIGHT= Dimensions.get("window").height
+const SCREEN_HEIGHT = Dimensions.get("window").height
 
-class AppointmentItem extends React.Component {
-
+class NextAppointmentItem extends React.Component {
 
   render() {
     const { appointment } = this.props
     return (
 
-          <View style = {styles.main_container}>
+      <View style={styles.main_container}>
 
-            <View style={styles.dot_container}>
-              <View style={styles.dot}>
-              </View>
+        <View style={styles.dot_container}>
+
+        </View>
+
+        <View style={styles.date_container}>
+          <Text style={styles.date_day}>{appointment.day}</Text>
+        </View>
+
+        <View style={styles.titles_container}>
+          <Text style={styles.title_text}>Médecin</Text>
+          <Text style={styles.title_text}>Spécialité</Text>
+          <Text style={styles.title_text}>Durée</Text>
+        </View>
+
+        <View style={styles.data_container}>
+          <Text style={styles.data_text}>{appointment.doctorName}</Text>
+          <Text style={styles.data_text}>{appointment.doctorSpeciality}</Text>
+          <Text style={styles.data_text}>30 minutes</Text>
+        </View>
+
+        <View style={styles.buttons_container}>
+          <TouchableHighlight
+            style={styles.button}
+            onPress={() => displayDetailForDoctor(doctor.uid)}>
+            <View style={styles.button_elements}>
+              <Text style={{ fontSize: SCREEN_HEIGHT * 0.015, color: 'white', marginRight: SCREEN_WIDTH * 0.01 }}>Voir les détails</Text>
+              <Icon name="rightcircleo"
+                size={SCREEN_WIDTH * 0.03}
+                color="white" />
             </View>
 
-            <View style={styles.date_container}>
-              <Text style={styles.date_day}>{appointment.day}</Text>
-              <Text style={styles.date_month}>{appointment.month}</Text>
-            </View>
+          </TouchableHighlight>
+        </View>
 
-            <View style={styles.titles_container}>
-              <Text style={styles.title_text}>Médecin</Text>
-              <Text style={styles.title_text}>Spécialité</Text>
-              <Text style={styles.title_text}>Durée</Text>
-            </View>
-
-            <View style={styles.data_container}>
-              <Text style={styles.data_text}>{appointment.doctorName}</Text>
-              <Text style={styles.data_text}>{appointment.doctorSpeciality}</Text>
-              <Text style={styles.data_text}>30 minutes</Text>
-            </View>
-
-            <View style={styles.buttons_container}>
-              <TouchableHighlight
-                style={styles.button}
-                onPress={() => displayDetailForDoctor(doctor.uid)}>
-                  <View style= {styles.button_elements}>
-                     <Text style={{fontSize: SCREEN_HEIGHT*0.015, color: 'white', marginRight: SCREEN_WIDTH*0.01}}>Voir les détails</Text>
-                     <Icon name="rightcircleo" 
-                           size={SCREEN_WIDTH*0.03} 
-                           color="white"/>
-                  </View>
-                  
-                </TouchableHighlight>
-            </View>
-
-          </View> 
+      </View>
 
     )
   }
@@ -62,12 +59,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     backgroundColor: '#ffffff',
     borderRadius: 20,
-    height: SCREEN_HEIGHT*0.1,
-    width: SCREEN_WIDTH*0.95,
+    height: SCREEN_HEIGHT * 0.1,
+    width: SCREEN_WIDTH * 0.95,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SCREEN_HEIGHT*0.025,
-    marginLeft: SCREEN_HEIGHT*0.01,
+    marginBottom: SCREEN_HEIGHT * 0.025,
+    marginLeft: SCREEN_HEIGHT * 0.01,
     alignItems: 'center',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -77,35 +74,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     //margin: 15,
     //backgroundColor: 'green'
-    },
-    
+  },
+
   dot_container: {
-    flex: 0.08,
+    flex: 0.05,
     justifyContent: 'center',
     alignItems: 'center',
     //backgroundColor: 'black'
   },
   dot: {
-    width: SCREEN_WIDTH*0.02,
-    height: SCREEN_WIDTH*0.02,
+    width: SCREEN_WIDTH * 0.02,
+    height: SCREEN_WIDTH * 0.02,
     borderRadius: 50,
     backgroundColor: '#93eafe'
   },
   date_container: {
-    flex: 0.17,
+    flex: 0.2,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingRight: SCREEN_WIDTH*0.016,
+    paddingRight: SCREEN_WIDTH * 0.016,
     //backgroundColor: 'orange'
   },
   date_day: {
     color: '#93eafe',
-    fontSize: SCREEN_HEIGHT*0.025,
+    fontSize: SCREEN_HEIGHT * 0.032,
     fontWeight: 'bold'
   },
   date_month: {
     color: '#93eafe',
-    fontSize: SCREEN_HEIGHT*0.015,
+    fontSize: SCREEN_HEIGHT * 0.015,
     fontWeight: 'bold'
   },
   titles_container: {
@@ -115,7 +112,7 @@ const styles = StyleSheet.create({
   },
   title_text: {
     fontStyle: 'italic',
-    fontSize: SCREEN_HEIGHT*0.013,
+    fontSize: SCREEN_HEIGHT * 0.013,
   },
   data_container: {
     flex: 0.33,
@@ -124,18 +121,18 @@ const styles = StyleSheet.create({
   },
   data_text: {
     fontWeight: 'bold',
-    fontSize: SCREEN_HEIGHT*0.013,
+    fontSize: SCREEN_HEIGHT * 0.013,
   },
   buttons_container: {
     flex: 0.35,
     justifyContent: 'center',
     //backgroundColor: 'brown'
   },
-  button:{
-    height: SCREEN_HEIGHT*0.035, 
-    alignItems: 'flex-start', 
-    justifyContent: 'center', 
-    paddingLeft: SCREEN_WIDTH*0.03, 
+  button: {
+    height: SCREEN_HEIGHT * 0.035,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    paddingLeft: SCREEN_WIDTH * 0.03,
     backgroundColor: '#93eafe',
     borderTopLeftRadius: 25,
     borderBottomLeftRadius: 25,
@@ -146,4 +143,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default AppointmentItem
+export default NextAppointmentItem

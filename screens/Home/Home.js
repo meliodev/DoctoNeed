@@ -100,14 +100,11 @@ const TabScreen = createMaterialTopTabNavigator(
         position: 'absolute',
         zIndex: 1,
         backgroundColor: '#ffffff',
-        marginTop: SCREEN_HEIGHT * 0.17,
+        marginTop: SCREEN_HEIGHT * 0.16,
         borderTopWidth: 0,
         borderTopColor: '#ffffff',
         borderBottomWidth: 1,
         borderBottomColor: '#d3d7d7'
-      },
-      containerStyle: {
-
       },
       labelStyle: {
         textAlign: 'center',
@@ -127,38 +124,32 @@ const StackNavigator = createStackNavigator({
     screen: TabScreen,
     navigationOptions: {
       title: 'Accueil',
-      headerShown: false
-
-    }
-  },
-  MedicalFolder: {
-    screen: MedicalFolder,
-    navigationOptions: {
-      title: 'Mon dossier médical'
-    }
+      headerShown: false,
+    },
   },
   Search: {
     screen: Search,
     navigationOptions: {
-      title: 'Recherche médecins'
+      title: 'Recherche médecins',
+      headerShown: false
     }
   },
   Booking: {
     screen: Booking,
     navigationOptions: {
-      title: 'Booking'
+      title: ''
     }
   },
   Symptomes: {
     screen: Symptomes,
     navigationOptions: {
-      title: 'Symptomes'
+      title: ''
     }
   },
   Upload: {
     screen: Upload,
     navigationOptions: {
-      title: 'Upload'
+      title: ''
     }
   },
   BookingConfirmed: {
@@ -170,7 +161,8 @@ const StackNavigator = createStackNavigator({
   MedicalFolder: {
     screen: MedicalFolder,
     navigationOptions: {
-      title: 'Mon dossier médical'
+      title: 'Mon dossier médical',
+      headerShown: false
     }
   },
   DispoConfig: {

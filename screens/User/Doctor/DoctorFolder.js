@@ -27,6 +27,9 @@ import LeftSideMenu from '../../../components/LeftSideMenu'
 import RightSideMenu from '../../../components/RightSideMenu2'
 import Icon1 from 'react-native-vector-icons/FontAwesome';
 
+
+
+
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
@@ -38,10 +41,6 @@ const LOGO_WIDTH = SCREEN_WIDTH * 0.25 * ratioLogo;
 
 const options = {
   title: 'Select Image',
-
-  takePhotoButtonTitle: 'Take photo with your camera',
-  chooseFromLibraryButtonTitle: 'Choose photo from library',
-
   // customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
   storageOptions: {
     skipBackup: true,
@@ -49,10 +48,10 @@ const options = {
   },
 };
 
-export default class MedicalFolder extends React.Component {
+export default class DoctorFolder extends React.Component {
   constructor(props) {
     super(props);
-    this.renderForm = this.renderForm.bind(this);
+    this.openModalSex = this.openModalSex.bind(this);
 
 
     this.state = {
@@ -80,7 +79,7 @@ export default class MedicalFolder extends React.Component {
     this.signOutUser = this.signOutUser.bind(this);
     this.signOutUserandToggle = this.signOutUserandToggle.bind(this);
     this.navigateToAppointments = this.navigateToAppointments.bind(this);
-    this.navigateToMedicalFolder = this.navigateToMedicalFolder.bind(this);
+    this.navigateToDoctorFolder = this.navigateToDoctorFolder.bind(this);
     this.navigateToDispoConfig = this.navigateToDispoConfig.bind(this);
 
 
@@ -111,7 +110,25 @@ export default class MedicalFolder extends React.Component {
 
   }
 
-
+  getImages = () => {
+    ImagePicker.showImagePicker(imagePickerOptions, imagePickerResponse => {
+      const { didCancel, error } = imagePickerResponse;
+      if (didCancel) { console.log('Post canceled'); }
+      else if (error) { alert('An error occurred: ', error); }
+      else {
+        this.fileSrce = getFileLocalPath((imagePickerResponse))
+        this.stgRef = createStorageReferenceToFile(imagePickerResponse)
+        this.ImageObjects = this.state.ImageObjects
+        this.ImageObjects.push({ fileSource: this.fileSrce, storageRef: this.stgRef })
+        this.setState({
+          ImageURI: imagePickerResponse.uri,
+          ImageObjects: this.ImageObjects
+        }, console.log(this.state.ImageObjects[0].storageRef))
+      }
+      
+    }
+    );
+  };
 
 
   componentWillMount() {
@@ -132,10 +149,29 @@ export default class MedicalFolder extends React.Component {
 
   }
 
+  componentDidMount() {
+    this.UserAuthStatus()
+  }
 
-  //Modal (data modification interfaces)
-  openModal() {
-    this.setState({ ismodalVisible: true })
+  UserAuthStatus = () => {
+    firebase
+      .auth()
+      .onAuthStateChanged(user => {
+        if (user) {
+          this.setState({ isUser: true })
+        } else {
+          this.setState({ isUser: false })
+        }
+      })
+  };
+
+  signOutUser = async () => {
+    try {
+      await firebase.auth().signOut();
+      this.props.navigation.navigate('LandingScreen');
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   //Modals for edit
@@ -146,114 +182,31 @@ export default class MedicalFolder extends React.Component {
 
   toggleModalSex = () => {
     this.setState({
-      ismodalVisible: !this.state.ismodalVisible
+      ismodalSexVisible: !this.state.ismodalSexVisible
     })
   }
 
-  closeModal = () => {
+  closeModalSex = () => {
     this.setState({
-      ismodalVisible: false,
-      isSexe: false,
-      isPoids: false,
-      isTaille: false
+      ismodalSexVisible: false
     })
   }
 
-  renderForm() {
-    if (this.state.isSexe)
-      return (
-        <View>
-          <View style={{ flex: 1, justifyContent: 'center' }}>
-            <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.1 }}>Quel est votre sexe</Text>
-            <View style={{ flexDirection: 'row', marginBottom: SCREEN_HEIGHT * 0.07, }}>
-              {this.state.sexe === 'female' || this.state.sexe === '' ? <TouchableOpacity onPress={() => {
-                if (this.state.sexe === 'female' || this.state.sexe === '') this.setState({ sexe: 'male' })
-              }}
-                style={modalStyles.item_inactive}><Text style={modalStyles.item_text}>Homme</Text></TouchableOpacity>
-                : <View style={modalStyles.item_active}><Text style={modalStyles.item_text}>Homme</Text></View>}
+  //Poids
+  openModalPoids() {
+    this.setState({ ismodalPoidsVisible: true })
+  }
 
-              {this.state.sexe === 'male' || this.state.sexe === '' ? <TouchableOpacity onPress={() => {
-                if (this.state.sexe === 'male' || this.state.sexe === '') this.setState({ sexe: 'female' })
-              }}
-                style={modalStyles.item_inactive}><Text style={modalStyles.item_text}>Femme</Text></TouchableOpacity>
-                : <View style={modalStyles.item_active}><Text style={modalStyles.item_text}>Femme</Text></View>}
-            </View>
-          </View>
+  toggleModalPoids = () => {
+    this.setState({
+      ismodalPoidsVisible: !this.state.ismodalPoidsVisible
+    })
+  }
 
-          <View style={{ flex: 1, justifyContent: 'center', position: 'absolute', bottom: 0 }}>
-            <View style={{ flexDirection: 'row', }}>
-              <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
-                <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModal()}>
-                <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      );
-
-    else if (this.state.isPoids)
-      return (
-        <View>
-          <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT * 0.1 }}>
-            <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 28, marginBottom: SCREEN_HEIGHT * 0.04 }}>Quel est votre Poids?</Text>
-            <Text style={{ fontWeight: 'bold', fontSize: 30, textAlign: 'center', marginBottom: SCREEN_HEIGHT * 0.07 }}>{this.state.poids} Kg</Text>
-            <Slider
-              value={this.state.poids}
-              onValueChange={value => this.setState({ poids: value })}
-              minimumValue={0}
-              maximumValue={200}
-              step={1}
-              minimumTrackTintColor='#93eafe'
-              thumbTintColor='#93eafe'
-              style={{ width: SCREEN_WIDTH * 0.7 }}
-            />
-          </View>
-
-          <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center'}}>
-              <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
-                <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModal()}>
-                <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      );
-
-    else if (this.state.isTaille)
-      return (
-        <View>
-          <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT * 0.1 }}>
-            <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 28, marginBottom: SCREEN_HEIGHT * 0.04 }}>Quel est votre taille?</Text>
-            <Text style={{ fontWeight: 'bold', fontSize: 30, textAlign: 'center', marginBottom: SCREEN_HEIGHT * 0.07 }}>{this.state.taille} cm</Text>
-            <Slider
-              value={this.state.taille}
-              onValueChange={value => this.setState({ taille: value })}
-              minimumValue={0}
-              maximumValue={300}
-              step={1}
-              minimumTrackTintColor='#93eafe'
-              thumbTintColor='#93eafe'
-              style={{ width: SCREEN_WIDTH * 0.7 }}
-            />
-          </View>
-
-          <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
-            <View style={{ flexDirection: 'row', }}>
-              <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
-                <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModal()}>
-                <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      );
+  closeModalPoids = () => {
+    this.setState({
+      ismodalPoidsVisible: false
+    })
   }
 
   //Taille
@@ -305,9 +258,9 @@ export default class MedicalFolder extends React.Component {
     this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible });
   }
 
-  navigateToMedicalFolder() {
+  navigateToDoctorFolder() {
     this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('MedicalFolder'));
+      () => this.props.navigation.navigate('DoctorFolder'));
     //console.log(this.props)
   }
   navigateToDispoConfig() {
@@ -338,71 +291,6 @@ export default class MedicalFolder extends React.Component {
 
   }
 
-  myImagefunction_vital=()=>{
-
-    ImagePicker.showImagePicker(options, (response) => {
-      console.log('Response = ', response);
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      }
-      else if (response.error) {
-        console.log('Image Picker Error: ', response.error);
-      }
-      else {
-        let source = { uri: response.uri };
-        // You can also display the image using data:
-        // let source = { uri: 'data:image/jpeg;base64,' + response.data };
-        this.setState({
-          avatarSource1: source,
-          pic:response.data
-        });
-      }
-    });
-    console.log('clicked');
-  }
-
-  myImagefunction_mutuel=()=>{
-
-    ImagePicker.showImagePicker(options, (response) => {
-      console.log('Response = ', response);
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      }
-      else if (response.error) {
-        console.log('Image Picker Error: ', response.error);
-      }
-      else {
-        let source = { uri: response.uri };
-        // You can also display the image using data:
-        // let source = { uri: 'data:image/jpeg;base64,' + response.data };
-        this.setState({
-          avatarSource2: source,
-          pic:response.data
-        });
-      }
-    });
-    console.log('clicked');
-  }
-  getImages = () => {
-    ImagePicker.showImagePicker(imagePickerOptions, imagePickerResponse => {
-      const { didCancel, error } = imagePickerResponse;
-      if (didCancel) { console.log('Post canceled'); }
-      else if (error) { alert('An error occurred: ', error); }
-      else {
-        this.fileSrce = getFileLocalPath((imagePickerResponse))
-        this.stgRef = createStorageReferenceToFile(imagePickerResponse)
-        this.ImageObjects = this.state.ImageObjects
-        this.ImageObjects.push({ fileSource: this.fileSrce, storageRef: this.stgRef })
-        this.setState({
-          ImageURI: imagePickerResponse.uri,
-          ImageObjects: this.ImageObjects
-        }, console.log(this.state.ImageObjects[0].storageRef))
-      }
-      
-    }
-    );
-  };
-
   render() {
     // const currentUser= firebase.auth().currentUser.
     console.log(this.state.Sexe)
@@ -421,7 +309,7 @@ export default class MedicalFolder extends React.Component {
           nom={this.state.nom}
           prenom={this.state.prenom}
           email={this.state.email}
-          navigateToMedicalFolder={this.navigateToMedicalFolder}
+          navigateToDoctorFolder={this.navigateToDoctorFolder}
           navigateToDispoConfig={this.navigateToDispoConfig}
           navigateToAppointments={this.navigateToAppointments}
           signOutUser={this.signOutUserandToggle}
@@ -520,7 +408,7 @@ export default class MedicalFolder extends React.Component {
               onBackdropPress={() => this.closeModalSex()}
               animationIn="slideInLeft"
               animationOut="slideOutLeft"
-              onSwipeComplete={() => this.closeModal()}
+              onSwipeComplete={() => this.closeModalSex()}
               swipeDirection="left"
               style={{ backgroundColor: 'white', maxHeight: SCREEN_HEIGHT / 2, marginTop: SCREEN_HEIGHT * 0.25, alignItems: 'center', }}>
 
@@ -556,17 +444,11 @@ export default class MedicalFolder extends React.Component {
               </View>
             </Modal>
 
-            <TouchableOpacity style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}
-              onPress={() => { this.setState({ isSexe: true }, this.openModal()) }}>
-              <Text style={styles.title_text}>Sexe</Text>
-              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>F/H</Text>
-            </TouchableOpacity>
-
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
 
 
             <TouchableOpacity style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}
-              onPress={() => { this.setState({ isPoids: true }, this.openModal()) }}>
+              onPress={() => this.openModalPoids()}>
               <Text style={styles.title_text}>Poids</Text>
               <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>{this.state.Poids} kgs</Text>
             </TouchableOpacity>
@@ -978,7 +860,7 @@ export default class MedicalFolder extends React.Component {
 
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
 
-            <TouchableOpacity style={styles.uploadButton} onPress={this.myImagefunction_vital}>
+            <TouchableHighlight style={styles.uploadButton} onPress={this.getImages}>
             <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
               <Text style={styles.title_text}>Carte Vitale</Text>
              
@@ -989,46 +871,9 @@ export default class MedicalFolder extends React.Component {
                   color="#BDB7AD" />
               </View>
             
-            </View>
-            <Image source={this.state.avatarSource1} style={{width:'99%',height:270,margin:0}}/>
-            </TouchableOpacity>
+            </View></TouchableHighlight>
 
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-              {/*<TouchableHighlight style={styles.uploadButton} onPress={this.getImages}>
-              <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-                <Text style={styles.title_text}>Carte Vitale</Text>
-              
-                <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ color: 'gray' }}> Télécharger un document </Text>
-                  <Icon name="upload"
-                    size={SCREEN_WIDTH * 0.04}
-                    color="#BDB7AD" />
-                </View>
-
-              </View>
-              </TouchableHighlight>
-                  */}
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-            
-            <TouchableOpacity style={styles.uploadButton} onPress={this.myImagefunction_mutuel}>
-            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Mutuel</Text>
-             
-              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ color: 'gray' }}> Télécharger un document </Text>
-                <Icon name="upload"
-                  size={SCREEN_WIDTH * 0.04}
-                  color="#BDB7AD" />
-              </View>
-            
-            </View>
-            <Image source={this.state.avatarSource2} style={{width:'99%',height:270,margin:0}}/>
-          </TouchableOpacity>
-
-        {/*  <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-            
             <TouchableHighlight style={styles.uploadButton} onPress={this.getImages}>
             <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
               <Text style={styles.title_text}>Mutuel</Text>
@@ -1041,21 +886,10 @@ export default class MedicalFolder extends React.Component {
               </View>
             
             </View>
-          </TouchableHighlight>
-          
-          //Simple image picker
-               <TouchableOpacity style={{margin:10,padding:10}}
-     onPress={this.myImagefunction}
-     >
-       <Image source={this.state.avatarSource} style={{width:'99%',height:270,margin:0}}/>
-      <Text>Select Image</Text>
-     </TouchableOpacity>
-     */}
-
+            </TouchableHighlight>
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
 
-      
-
+   
 
           </View>
 

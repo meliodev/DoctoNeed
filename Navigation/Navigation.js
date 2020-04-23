@@ -25,13 +25,15 @@ import BookingConfirmed from '../screens/Booking/BookingConfirmed'*/
 import Home from '../screens/Home/Home'
 /*import PreviousAppointments from '../screens/User/PreviousAppointments'
 import NextAppointments from '../screens/User/NextAppointments'
-import MedicalFolder from '../screens/User/Patient/MedicalFolder'
+
 import DispoConfig from '../screens/User/Doctor/DispoConfig'*/
 import DoctorFile from '../screens/Booking/DoctorFile'
 import RootComponent from '../screens/Root/Guest/RootComponent'
 import Test1 from '../screens/Test1'
 import Test2 from '../screens/Test2'
 //import PhoneVerify  from '../screens/PhoneVerify'
+import DispoConfig from '../screens/User/Doctor/DispoConfig'
+import MedicalFolder from '../screens/User/Patient/MedicalFolder'
 
 const SearchStackNavigator = createStackNavigator({
   RootComponent: {
@@ -41,6 +43,29 @@ const SearchStackNavigator = createStackNavigator({
       headerShown: false
     }
   },
+  MedicalFolder: {
+    screen: MedicalFolder,
+    navigationOptions: {
+      title: 'Mon dossier médical', 
+      headerShown: false
+    }
+  },
+  DispoConfig:{
+    screen: DispoConfig,
+    navigationOptions:{
+      title: '',
+      headerShown: false
+    }
+  },
+
+  DoctorFile: { 
+    screen: DoctorFile,
+    navigationOptions: {
+      title: '',
+      headerShown: false
+    }
+  }, 
+
   Login: {
     screen: Login,
     navigationOptions: {
@@ -85,13 +110,7 @@ const SearchStackNavigator = createStackNavigator({
       headerShown: false
     }
   },
-  DoctorFile: { 
-    screen: DoctorFile,
-    navigationOptions: {
-      title: '',
-      headerShown: false
-    }
-  }, 
+
   Booking: {
     screen: Booking,
     navigationOptions: {
@@ -134,12 +153,6 @@ const SearchStackNavigator = createStackNavigator({
     screen: NextAppointments,
     navigationOptions: {
       title: 'Mes Consultations à Venir'
-    }
-  },
-  MedicalFolder: {
-    screen: MedicalFolder,
-    navigationOptions: {
-      title: 'Mon dossier médical'
     }
   },
   DispoConfig: {

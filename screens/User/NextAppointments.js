@@ -231,7 +231,7 @@ export default class NextAppointments extends React.Component {
             <Icon1 name="bars" size={25} color="#93eafe" />
           </TouchableHighlight>
 
-          <Image source={require('../../assets/doctoneedLogoIcon.png')} style={styles.logoIcon} />
+         <Image source={require('../../assets/doctoneedLogoIcon.png')} style={styles.logoIcon} />
 
           <TouchableHighlight style={styles.filter_button}
             onPress={this.toggleRightSideMenu}>

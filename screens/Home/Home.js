@@ -161,7 +161,7 @@ const StackNavigator = createStackNavigator({
   MedicalFolder: {
     screen: MedicalFolder,
     navigationOptions: {
-      title: 'Mon dossier médical',
+      title: 'Mon dossier médical', 
       headerShown: false
     }
   },

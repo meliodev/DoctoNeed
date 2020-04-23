@@ -28,6 +28,8 @@ import RightSideMenu from '../../../components/RightSideMenu2'
 import Icon1 from 'react-native-vector-icons/FontAwesome';
 
 
+
+
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
@@ -39,10 +41,6 @@ const LOGO_WIDTH = SCREEN_WIDTH * 0.25 * ratioLogo;
 
 const options = {
   title: 'Select Image',
-
-  takePhotoButtonTitle: 'Take photo with your camera',
-  chooseFromLibraryButtonTitle: 'Choose photo from library',
-
   // customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
   storageOptions: {
     skipBackup: true,
@@ -50,7 +48,7 @@ const options = {
   },
 };
 
-export default class MedicalFolder extends React.Component {
+export default class DoctorFolder extends React.Component {
   constructor(props) {
     super(props);
     this.openModalSex = this.openModalSex.bind(this);
@@ -81,7 +79,7 @@ export default class MedicalFolder extends React.Component {
     this.signOutUser = this.signOutUser.bind(this);
     this.signOutUserandToggle = this.signOutUserandToggle.bind(this);
     this.navigateToAppointments = this.navigateToAppointments.bind(this);
-    this.navigateToMedicalFolder = this.navigateToMedicalFolder.bind(this);
+    this.navigateToDoctorFolder = this.navigateToDoctorFolder.bind(this);
     this.navigateToDispoConfig = this.navigateToDispoConfig.bind(this);
 
 
@@ -112,7 +110,25 @@ export default class MedicalFolder extends React.Component {
 
   }
 
-
+  getImages = () => {
+    ImagePicker.showImagePicker(imagePickerOptions, imagePickerResponse => {
+      const { didCancel, error } = imagePickerResponse;
+      if (didCancel) { console.log('Post canceled'); }
+      else if (error) { alert('An error occurred: ', error); }
+      else {
+        this.fileSrce = getFileLocalPath((imagePickerResponse))
+        this.stgRef = createStorageReferenceToFile(imagePickerResponse)
+        this.ImageObjects = this.state.ImageObjects
+        this.ImageObjects.push({ fileSource: this.fileSrce, storageRef: this.stgRef })
+        this.setState({
+          ImageURI: imagePickerResponse.uri,
+          ImageObjects: this.ImageObjects
+        }, console.log(this.state.ImageObjects[0].storageRef))
+      }
+      
+    }
+    );
+  };
 
 
   componentWillMount() {
@@ -242,9 +258,9 @@ export default class MedicalFolder extends React.Component {
     this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible });
   }
 
-  navigateToMedicalFolder() {
+  navigateToDoctorFolder() {
     this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('MedicalFolder'));
+      () => this.props.navigation.navigate('DoctorFolder'));
     //console.log(this.props)
   }
   navigateToDispoConfig() {
@@ -275,71 +291,6 @@ export default class MedicalFolder extends React.Component {
 
   }
 
-  myImagefunction_vital=()=>{
-
-    ImagePicker.showImagePicker(options, (response) => {
-      console.log('Response = ', response);
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      }
-      else if (response.error) {
-        console.log('Image Picker Error: ', response.error);
-      }
-      else {
-        let source = { uri: response.uri };
-        // You can also display the image using data:
-        // let source = { uri: 'data:image/jpeg;base64,' + response.data };
-        this.setState({
-          avatarSource1: source,
-          pic:response.data
-        });
-      }
-    });
-    console.log('clicked');
-  }
-
-  myImagefunction_mutuel=()=>{
-
-    ImagePicker.showImagePicker(options, (response) => {
-      console.log('Response = ', response);
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      }
-      else if (response.error) {
-        console.log('Image Picker Error: ', response.error);
-      }
-      else {
-        let source = { uri: response.uri };
-        // You can also display the image using data:
-        // let source = { uri: 'data:image/jpeg;base64,' + response.data };
-        this.setState({
-          avatarSource2: source,
-          pic:response.data
-        });
-      }
-    });
-    console.log('clicked');
-  }
-  getImages = () => {
-    ImagePicker.showImagePicker(imagePickerOptions, imagePickerResponse => {
-      const { didCancel, error } = imagePickerResponse;
-      if (didCancel) { console.log('Post canceled'); }
-      else if (error) { alert('An error occurred: ', error); }
-      else {
-        this.fileSrce = getFileLocalPath((imagePickerResponse))
-        this.stgRef = createStorageReferenceToFile(imagePickerResponse)
-        this.ImageObjects = this.state.ImageObjects
-        this.ImageObjects.push({ fileSource: this.fileSrce, storageRef: this.stgRef })
-        this.setState({
-          ImageURI: imagePickerResponse.uri,
-          ImageObjects: this.ImageObjects
-        }, console.log(this.state.ImageObjects[0].storageRef))
-      }
-      
-    }
-    );
-  };
-
   render() {
     // const currentUser= firebase.auth().currentUser.
     console.log(this.state.Sexe)
@@ -358,7 +309,7 @@ export default class MedicalFolder extends React.Component {
           nom={this.state.nom}
           prenom={this.state.prenom}
           email={this.state.email}
-          navigateToMedicalFolder={this.navigateToMedicalFolder}
+          navigateToDoctorFolder={this.navigateToDoctorFolder}
           navigateToDispoConfig={this.navigateToDispoConfig}
           navigateToAppointments={this.navigateToAppointments}
           signOutUser={this.signOutUserandToggle}
@@ -909,7 +860,7 @@ export default class MedicalFolder extends React.Component {
 
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
 
-            <TouchableOpacity style={styles.uploadButton} onPress={this.myImagefunction_vital}>
+            <TouchableHighlight style={styles.uploadButton} onPress={this.getImages}>
             <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
               <Text style={styles.title_text}>Carte Vitale</Text>
              
@@ -920,46 +871,9 @@ export default class MedicalFolder extends React.Component {
                   color="#BDB7AD" />
               </View>
             
-            </View>
-            <Image source={this.state.avatarSource1} style={{width:'99%',height:270,margin:0}}/>
-            </TouchableOpacity>
+            </View></TouchableHighlight>
 
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-              {/*<TouchableHighlight style={styles.uploadButton} onPress={this.getImages}>
-              <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-                <Text style={styles.title_text}>Carte Vitale</Text>
-              
-                <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ color: 'gray' }}> Télécharger un document </Text>
-                  <Icon name="upload"
-                    size={SCREEN_WIDTH * 0.04}
-                    color="#BDB7AD" />
-                </View>
-
-              </View>
-              </TouchableHighlight>
-                  */}
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-            
-            <TouchableOpacity style={styles.uploadButton} onPress={this.myImagefunction_mutuel}>
-            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Mutuel</Text>
-             
-              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ color: 'gray' }}> Télécharger un document </Text>
-                <Icon name="upload"
-                  size={SCREEN_WIDTH * 0.04}
-                  color="#BDB7AD" />
-              </View>
-            
-            </View>
-            <Image source={this.state.avatarSource2} style={{width:'99%',height:270,margin:0}}/>
-          </TouchableOpacity>
-
-        {/*  <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-            
             <TouchableHighlight style={styles.uploadButton} onPress={this.getImages}>
             <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
               <Text style={styles.title_text}>Mutuel</Text>
@@ -972,21 +886,10 @@ export default class MedicalFolder extends React.Component {
               </View>
             
             </View>
-          </TouchableHighlight>
-          
-          //Simple image picker
-               <TouchableOpacity style={{margin:10,padding:10}}
-     onPress={this.myImagefunction}
-     >
-       <Image source={this.state.avatarSource} style={{width:'99%',height:270,margin:0}}/>
-      <Text>Select Image</Text>
-     </TouchableOpacity>
-     */}
-
+            </TouchableHighlight>
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
 
-      
-
+   
 
           </View>
 

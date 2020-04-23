@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingLeft: SCREEN_WIDTH * 0.03,
     backgroundColor: '#93eafe',
-    borderTopLeftRadius: 25,
+    borderTopLeftRadius: 25, 
     borderBottomLeftRadius: 25,
   },
   button_elements: {

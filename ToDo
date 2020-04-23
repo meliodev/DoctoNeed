@@ -1,0 +1,45 @@
+- Add Loadings during data treatments
+
+1- Set up consultation filters for (Patient, Doctor, Admin)
+  + Admin: (Date, ETAT2: En Attente/Confirmé ('CBD'))                                                                                        //Medecin Nom, Médecin Spécialité, Patient Nom, Pays Médecin, ETAT1: En Attente/Confirmé ('CBA')
+  + Doctor: (Date)                                                                                                                          //Patient Nom, Patient country, Etat: En attente/Confirmé ('CBD')
+  + Patient: (Date)                                                                                                                        // Medecin Nom, Médecin Spécialité
+
+  AS- Customize filter (inputs) design
+
+Booking:
+3- Arrange calendar (use Library)
+- Display Loading Media during upload
+
+Patient:
+- Take MedicalFolder screen from Abdesalam
+
+  Consultations:
+  AS- Display Documents with ratio consideration
+  AS- Passées: + 'Voir le rapport' button should lend on aditional data about the appointment comparing to 'Voir les détails' button (design pending...)
+    - A venir: + Add Buttons (Annuler, Reporter) for an appointment (set up the protocol/process)
+
+
+Doctor:
+AS- Profile: Take MedicalFolder screen from Abdesalam and duplicate it into Doctor Profile
+  2- DispoConfig: Take DispoConfig screen from Abdesalam and Handle calendar data
+
+ Consultations:
+  - Passées: + 'Voir le rapport' button should lend in aditional data about the appointment comparing to 'Voir les détails' button (design pending...)
+  - A venir: + Add Buttons (Annuler, Reporter) for an appointment (set up the protocol/process)
+
+Admin:
+- Médecins: Search screen, onpress display Doctor Profile - with read & write access -
+- Patients: MyPatients screen (all users), onpress display MedicalFolder - with read & write access -
+
+Demande d'inscription: ...
+
+  Consultations:
+  AS- Passées: + 'Voir le rapport' button should lend in aditional data about the appointment comparing to 'Voir les détails' button (design pending...)
+    - A venir: + Add Buttons (Annuler, Reporter) for an appointment (set up the protocol/process) 
+
+
+
+
+
+             

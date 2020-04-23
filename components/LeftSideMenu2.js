@@ -22,8 +22,7 @@ export default class LeftSideMenu extends Component {
 
         this.state = {
             isUser: false,
-            //isAdmin: false,
-            isDoctor: undefined,
+            isAdmin: false,
             nom: '',
             prenom: '',
             email: '',
@@ -31,38 +30,25 @@ export default class LeftSideMenu extends Component {
     }
 
     UserAuthStatus = () => {
-        firebase
-            .auth()
-            .onAuthStateChanged(user => {
-                if (user) {
-                    this.setState({ isUser: true })
-                    user.getIdTokenResult().then(idTokenResult => {
-                        //this.setState({ isAdmin: idTokenResult.claims.admin })
-                        //Retrieve Doctor's MetaData
-                        this.setState({ isDoctor: idTokenResult.claims.doctor }, () => {
-                            if (this.state.isDoctor === undefined) {
-                                REFS.users.doc(firebase.auth().currentUser.uid).get().then(doc => {
-                                    this.setState({ nom: doc.data().nom })
-                                    this.setState({ prenom: doc.data().prenom })
-                                    this.setState({ email: firebase.auth().currentUser.email })
-                                })
-                            }
-                            //Retrieve Patient's MetaData
-                            else {
-                                REFS.doctors.doc(firebase.auth().currentUser.uid).get().then(doc => {
-                                    this.setState({ nom: doc.data().nom })
-                                    this.setState({ prenom: doc.data().prenom })
-                                    this.setState({ email: firebase.auth().currentUser.email })
-                                })
-                            }
-
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                this.setState({ isUser: true })
+                user.getIdTokenResult().then(idTokenResult => {
+                    this.setState({ isAdmin: idTokenResult.claims.admin })
+                    //Retrieve Admin's MetaData
+                    this.setState({ isAdmin: idTokenResult.claims.admin }, () => {
+                        REFS.admins.doc(firebase.auth().currentUser.uid).get().then(doc => {
+                            this.setState({ nom: doc.data().nom })
+                            this.setState({ prenom: doc.data().prenom })
+                            this.setState({ email: firebase.auth().currentUser.email })
                         })
                     })
+                })
 
-                } else {
-                    this.setState({ isUser: false })
-                }
-            })
+            } else {
+                this.setState({ isUser: false })
+            }
+        })
     };
 
     componentDidMount() {
@@ -102,24 +88,60 @@ export default class LeftSideMenu extends Component {
 
                     <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth, width: SCREEN_WIDTH * 0.7, marginLeft: SCREEN_WIDTH * 0.04, marginBottom: SCREEN_HEIGHT * 0.07 }} />
 
-                    {this.state.isDoctor ?
+
+
+                    {this.state.isAdmin ?
                         <TouchableHighlight
                             style={sideMenuStyle.pageLink_button}
-                            onPress={this.props.navigateToProfile}>
+                            onPress={this.props.navigateToSearch}>
 
                             <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', paddingLeft: SCREEN_WIDTH * 0.12 }}>
-                                <Icon name="user-md"
+                                <Icon name="home"
                                     size={SCREEN_WIDTH * 0.04}
                                     color="#93eafe" />
                                 <View style={{ flex: 1, flexDirection: 'row', marginLeft: SCREEN_WIDTH * 0.03 }}>
-                                    <Text style={{ color: 'black', fontWeight: 'bold' }}>Profil</Text>
+                                    <Text style={{ color: 'black', fontWeight: 'bold' }}>Médecins</Text>
                                 </View>
                             </View>
                         </TouchableHighlight>
                         :
                         null}
 
-                    {this.state.isDoctor ?
+                    {this.state.isAdmin ?
+                        <TouchableHighlight
+                            style={sideMenuStyle.pageLink_button}
+                            onPress={this.props.navigateToPatients}>
+
+                            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', paddingLeft: SCREEN_WIDTH * 0.12 }}>
+                                <Icon name="home"
+                                    size={SCREEN_WIDTH * 0.04}
+                                    color="#93eafe" />
+                                <View style={{ flex: 1, flexDirection: 'row', marginLeft: SCREEN_WIDTH * 0.03 }}>
+                                    <Text style={{ color: 'black', fontWeight: 'bold' }}>Patients</Text>
+                                </View>
+                            </View>
+                        </TouchableHighlight>
+                        :
+                        null}
+
+                    {this.state.isAdmin ?
+                        <TouchableHighlight
+                            style={sideMenuStyle.pageLink_button}
+                            onPress={this.props.navigateToAppointments}>
+
+                            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', paddingLeft: SCREEN_WIDTH * 0.12 }}>
+                                <Icon name="user-md"
+                                    size={SCREEN_WIDTH * 0.04}
+                                    color="#93eafe" />
+                                <View style={{ flex: 1, flexDirection: 'row', marginLeft: SCREEN_WIDTH * 0.03 }}>
+                                    <Text style={{ color: 'black', fontWeight: 'bold' }}>Consultations</Text>
+                                </View>
+                            </View>
+                        </TouchableHighlight>
+                        :
+                        null}
+
+                    {this.state.isAdmin ?
                         <TouchableHighlight
                             style={sideMenuStyle.pageLink_button}
                             onPress={this.props.navigateToDispoConfig}>
@@ -129,95 +151,12 @@ export default class LeftSideMenu extends Component {
                                     size={SCREEN_WIDTH * 0.04}
                                     color="#93eafe" />
                                 <View style={{ flex: 1, flexDirection: 'row', marginLeft: SCREEN_WIDTH * 0.03 }}>
-                                    <Text style={{ color: 'black', fontWeight: 'bold' }}>Mes disponibilités</Text>
+                                    <Text style={{ color: 'black', fontWeight: 'bold' }}>Demandes d'inscription</Text>
                                 </View>
                             </View>
                         </TouchableHighlight>
                         :
-                        <TouchableHighlight
-                            style={sideMenuStyle.pageLink_button}
-                            onPress={this.props.navigateToMedicalFolder}>
-
-                            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', paddingLeft: SCREEN_WIDTH * 0.12 }}>
-                                <Icon name="user-md"
-                                    size={SCREEN_WIDTH * 0.04}
-                                    color="#93eafe" />
-                                <View style={{ flex: 1, flexDirection: 'row', marginLeft: SCREEN_WIDTH * 0.03 }}>
-                                    <Text style={{ color: 'black', fontWeight: 'bold' }}>Mon dossier médical</Text>
-                                </View>
-                            </View>
-                        </TouchableHighlight>
-                    }
-
-                    <TouchableHighlight
-                        style={sideMenuStyle.pageLink_button}
-                        onPress={this.props.navigateToAppointments}>
-
-                        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', paddingLeft: SCREEN_WIDTH * 0.12 }}>
-                            <Icon name="check-square"
-                                size={SCREEN_WIDTH * 0.04}
-                                color="#93eafe" />
-                            <View style={{ flex: 1, flexDirection: 'row', marginLeft: SCREEN_WIDTH * 0.03 }}>
-                                <Text style={{ color: 'black', fontWeight: 'bold' }}>Mes consultations</Text>
-                            </View>
-                        </View>
-                    </TouchableHighlight>
-
-
-                    {this.state.isDoctor ?
-                        null
-                        :
-                        <TouchableHighlight
-                            style={sideMenuStyle.pageLink_button}
-                            onPress={this.props.navigateToSearch}>
-
-                            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', paddingLeft: SCREEN_WIDTH * 0.12 }}>
-                                <Icon name="check-square"
-                                    size={SCREEN_WIDTH * 0.04}
-                                    color="#93eafe" />
-                                <View style={{ flex: 1, flexDirection: 'row', marginLeft: SCREEN_WIDTH * 0.03 }}>
-                                    <Text style={{ color: 'black', fontWeight: 'bold' }}>Rechercher un médecin</Text>
-                                </View>
-                            </View>
-                        </TouchableHighlight>
-                    }
-
-                    {this.state.isDoctor ?
-                        <TouchableHighlight
-                            style={sideMenuStyle.pageLink_button}
-                            onPress={this.props.navigateToMyPatients}>
-
-                            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', paddingLeft: SCREEN_WIDTH * 0.12 }}>
-                                <Icon name="check-square"
-                                    size={SCREEN_WIDTH * 0.04}
-                                    color="#93eafe" />
-                                <View style={{ flex: 1, flexDirection: 'row', marginLeft: SCREEN_WIDTH * 0.03 }}>
-                                    <Text style={{ color: 'black', fontWeight: 'bold' }}>Mes patients</Text>
-                                </View>
-                            </View>
-                        </TouchableHighlight>
-                        :
-                        null
-                    }
-
-
-
-                    {/*    <TouchableHighlight
-                        style={sideMenuStyle.pageLink_button}
-                        onPress={() => {
-                            this.setState({ isSideMenuVisible: !this.state.isSideMenuVisible });
-                            this.props.navigation.navigate('NextAppointments')
-                        }}>
-
-                        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', paddingLeft: SCREEN_WIDTH * 0.12 }}>
-                            <Icon name="calendar"
-                                size={SCREEN_WIDTH * 0.04}
-                                color="#93eafe" />
-                            <View style={{ flex: 1, flexDirection: 'row', marginLeft: SCREEN_WIDTH * 0.03 }}>
-                                <Text style={{ color: 'black', fontWeight: 'bold' }}>Mes consultations à venir</Text>
-                            </View>
-                        </View>
-                    </TouchableHighlight>*/}
+                        null}
 
                     <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth, width: SCREEN_WIDTH * 0.7, marginLeft: SCREEN_WIDTH * 0.04, marginBottom: SCREEN_HEIGHT * 0.03, marginTop: SCREEN_HEIGHT * 0.04 }} />
 

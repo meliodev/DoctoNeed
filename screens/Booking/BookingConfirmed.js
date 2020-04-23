@@ -108,7 +108,7 @@ export default class Main extends React.Component {
 
         <ScrollView contentContainerStyle={styles.appointments_container} >
           <Text style={styles.paragraph}>
-            Votre rendez-vous avec Dr. {this.doctor.name} est fixé
+            Votre rendez-vous avec Dr. {this.doctor.nom} {this.doctor.prenom} est fixé
             </Text>
           <Text style={styles.paragraph}>
             pour le {this.daySelected} {this.monthSelected} {this.yearSelected} à {this.timeSelected}
@@ -123,7 +123,7 @@ export default class Main extends React.Component {
 
         <View style={styles.button_container}>
           <TouchableOpacity
-            onPress={() => this.props.navigation.navigate('TabScreen')}>
+            onPress={() => this.props.navigation.navigate('TabScreenPatient')}>
             <LinearGradient
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}

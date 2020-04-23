@@ -19,42 +19,52 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 import LinearGradient from 'react-native-linear-gradient';
 import Modal from "react-native-modal";
 
-export default class RightSideMenu2 extends Component {
+export default class RightSideMenu4 extends Component {
     constructor(props) {
         super(props);
+        this.patientNames = []
 
         this.state = {
-            doctorNames: [],
-            doctorSpecialities: []
+            patientNames: [],
+            patientsCountries: []
         }
-    } 
-
-    async  componentDidMount() {
-        console.log('componentdidMount')
-        await REFS.users.doc(firebase.auth().currentUser.uid).get().then(function (docUser) {
-            let doctorsId = docUser.data().myDoctors
-            //let doctorNames = []
-
-            for (let i = 0; i < doctorsId.length; i++) {
-                REFS.doctors.doc(doctorsId[i]).get().then(function (doc) {
-                    //  this.doctorNames.push(doc.data().nom)
-
-                    this.setState({
-                        ...this.state,
-                        doctorNames: this.state.doctorNames.concat(doc.data().nom + ' ' + doc.data().prenom)
-                    });
-                    this.setState({
-                        ...this.state,
-                        doctorSpecialities: this.state.doctorSpecialities.concat(doc.data().speciality)
-                    });
-
-                    // this.setState({ doctorNames: this.doctorNames}) 
-                }.bind(this))
-
-            }
-        }.bind(this))
-
     }
+
+    componentDidMount() {
+        console.log('didmount')
+        this._loadPatients()
+    }
+
+    _loadPatients() {
+        const patientNames = []
+        const patientsCountries = []
+        let patientName = ''
+        let patientCountry = ''
+
+        var query = REFS.users
+        query = query.where("myDoctors", "array-contains", firebase.auth().currentUser.uid) //the doctor id is added to this array By Admin right after Admin confirms the 1st appointment between the User & Doctor
+
+        query.get()
+            .then(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    console.log(doc.data().nom)
+                    patientName = doc.data().nom + ' ' + doc.data().prenom
+                    patientCountry = doc.data().country
+
+                    patientNames.push(patientName)
+                    patientsCountries.push(patientCountry)
+
+                })
+
+                this.setState({
+                    patientNames: patientNames,
+                    patientsCountries: patientsCountries
+                })
+
+            })
+            .catch(error => console.log('Error getting documents:' + error))
+    }
+
 
     render({ onPress } = this.props) {
         let TodayDay = new Date().getDate()
@@ -63,10 +73,10 @@ export default class RightSideMenu2 extends Component {
         let Today = TodayYear + '-' + TodayMonth + '-' + TodayDay
 
 
-        console.log(this.state.doctorNames)
+        console.log(this.state.patientsCountries)
 
         //  console.log(this.state.doctorNames)
-
+        const bool = true
         return (
             <Modal
                 isVisible={this.props.isSideMenuVisible}
@@ -90,29 +100,42 @@ export default class RightSideMenu2 extends Component {
                         </TouchableHighlight>
                     </View>
 
-                    <View style={styles.doctor_container}>
-                        <Text style={styles.title_text}>Médecin</Text>
+                    <View style={styles.patient_container}>
+                        <Text style={styles.title_text}>Patient</Text>
 
-                        <Picker selectedValue={this.props.doctor}
-                                onValueChange={(doctor) => this.props.onSelectDoctor(doctor)}>
-                            <Picker.Item value='' label='Choisissez votre médecin' />
-                            {this.state.doctorNames.map((doctorName, key) => {
-                                return (<Picker.Item key={key} value={doctorName} label={doctorName} />);
+                        <Picker selectedValue={this.props.patient}
+                            onValueChange={(patient) => this.props.onSelectPatient(patient)}>
+                            <Picker.Item value='' label='Choisissez votre patient' />
+                            {this.state.patientNames.map((patientName, key) => {
+                                return (<Picker.Item key={key} value={patientName} label={patientName} />);
                             })}
                         </Picker>
-
                     </View>
 
                     <View style={styles.speciality_container}>
-                        <Text style={styles.title_text}>Spécialité</Text>
-                        <Picker selectedValue={this.props.speciality}
-                                onValueChange={(speciality) => this.props.onSelectSpeciality(speciality)}>
-                            <Picker.Item value='' label='Choisissez une spécialité' />
-                            {this.state.doctorSpecialities.map((doctorSpeciality, key) => {
-                                return (<Picker.Item key={key} value={doctorSpeciality} label={doctorSpeciality} />);
+                        <Text style={styles.title_text}>Pays</Text>
+                        <Picker selectedValue={this.props.country}
+                            onValueChange={(country) => this.props.onSelectCountry(country)}>
+                            <Picker.Item value='' label='Pays de vos patients' />
+                            {this.state.patientsCountries.map((patientsCountry, key) => {
+                                return (<Picker.Item key={key} value={patientsCountry} label={patientsCountry} />);
                             })}
                         </Picker>
                     </View>
+
+                    {this.props.isNextAppointments ?
+                        <View style={styles.speciality_container}>
+                            <Text style={styles.title_text}>Etat</Text>
+                            <Picker selectedValue={this.props.appointmentState}
+                                onValueChange={(state) => this.props.onSelectState(state)}>
+                                <Picker.Item value='' label='Choisissez un état' />
+                                <Picker.Item value='pending' label='En attente' />
+                                <Picker.Item value='CBD' label='Confirmé' />
+                            </Picker>
+                        </View>
+                        : null}
+
+
 
                     <View style={styles.date_container}>
                         <Text style={styles.title_text}>Date</Text>
@@ -154,7 +177,7 @@ export default class RightSideMenu2 extends Component {
                         <TouchableHighlight onPress={this.props.clearAllFilters} style={styles.CancelButton}>
                             <Text style={styles.buttonText1}>Annuler</Text>
                         </TouchableHighlight>
-
+ 
                         <TouchableHighlight
                             onPress={this.props.toggleSideMenu}>
                             <LinearGradient
@@ -236,7 +259,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
-    doctor_container: {
+    patient_container: {
         flex: 0.2,
         paddingLeft: SCREEN_WIDTH * 0.1,
         //backgroundColor: 'blue'

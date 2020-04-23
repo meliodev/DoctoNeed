@@ -31,9 +31,25 @@ import DoctorFile from '../screens/Booking/DoctorFile'
 import RootComponent from '../screens/Root/Guest/RootComponent'
 import Test1 from '../screens/Test1'
 import Test2 from '../screens/Test2'
+//import CustomClaims from '../screens/CustomClaims'
+
 //import PhoneVerify  from '../screens/PhoneVerify'
 
 const SearchStackNavigator = createStackNavigator({
+  /*CustomClaims: {
+    screen: CustomClaims,
+    navigationOptions: {
+      title: 'Add Claims',
+      headerShown: false
+    }
+  },*/
+  Test1: {
+    screen: Test1,
+    navigationOptions: {
+      title: 'Accueil',
+      headerShown: false
+    }
+  },
   RootComponent: {
     screen: RootComponent,
     navigationOptions: {
@@ -120,7 +136,8 @@ const SearchStackNavigator = createStackNavigator({
   Home: {
     screen: Home,
     navigationOptions: {
-      title: ''
+      title: '',
+      headerShown: false
     }
   },
 

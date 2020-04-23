@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    backgroundColor: 'purple',
+    //backgroundColor: 'purple',
   },
   bar: {
     height: SCREEN_HEIGHT * 0.01,
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
     flex: 0.1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'green',
+    //backgroundColor: 'green',
   },
   header: {
     fontSize: SCREEN_HEIGHT * 0.025,
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     flex: 0.15,
     alignItems: 'center',
     //justifyContent: 'center',
-    backgroundColor: 'orange'
+    //backgroundColor: 'orange'
   },
   wrapper: {
   },

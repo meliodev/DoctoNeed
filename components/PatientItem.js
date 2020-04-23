@@ -5,24 +5,24 @@ import Icon from 'react-native-vector-icons/AntDesign';
 const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
 
-class DoctorItem extends React.Component {
+class PatientItem extends React.Component {
 
 
   render() {
-    const { doctor, displayDoctorDetails, displayDoctorCalendar } = this.props
+    const { patient, displayPatientDetails, displayPatientCalendar } = this.props
     return (
       <View>
         <TouchableHighlight
           underlayColor="#93eafe"
 
-          onPress={() => displayDoctorCalendar(doctor.uid)}>
+          onPress={() => displayPatientDetails(patient.uid)}>
 
           <View style={styles.main_container}>
             <View style={{ flex: 0.37, paddingLeft: SCREEN_WIDTH * 0.04, borderBottomLeftRadius: 25, borderTopLeftRadius: 25, }}>
               <TouchableHighlight style={styles.imageFrame}>
                 <Image
                   style={styles.image}
-                  source={require('../assets/profile.jpg')}
+                  source={require('../assets/profilePicture.jpg')}
                 />
               </TouchableHighlight>
             </View>
@@ -30,13 +30,13 @@ class DoctorItem extends React.Component {
 
             <View style={styles.content_container}>
               <View style={styles.header_container}>
-                <Text style={styles.title_text}>{doctor.nom} {doctor.prenom}</Text>
+                <Text style={styles.title_text}>{patient.nom} {patient.prenom}</Text>
               </View>
               <View style={styles.description_container}>
-                <Text style={styles.description_text}>{doctor.speciality}</Text>
+                <Text style={styles.description_text}>{patient.country}</Text>
               </View>
               <View style={styles.date_container}>
-                <Text style={styles.date_text}>Disponible dans: 5 min</Text>
+                <Text style={styles.date_text}>Nombre de consultation: 1</Text>
               </View>
             </View>
 
@@ -44,7 +44,7 @@ class DoctorItem extends React.Component {
               <TouchableOpacity
                 underlayColor="#93eafe"
                 style={styles.button}
-                onPress={() => displayDoctorDetails(doctor.uid)}>
+                onPress={() => displayPatientDetails(patient.uid)}>
                 <Icon name="rightcircleo"
                   size={SCREEN_WIDTH * 0.055}
                   color="white" />
@@ -164,4 +164,4 @@ const styles = StyleSheet.create({
   }
 })
 
-export default DoctorItem
+export default PatientItem

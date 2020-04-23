@@ -4,14 +4,10 @@
  */
 
 import React, { Component, Children } from 'react';
-import { StyleSheet, Text, TouchableHighlight, View, Dimensions, SafeAreaView, Slider, Picker } from 'react-native';
+import { StyleSheet, Text, TouchableHighlight, View, Dimensions, SafeAreaView, Slider } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import CountryPicker, { getAllCountries, getCallingCode } from 'react-native-country-picker-modal';
 import RNPickerSelect from 'react-native-picker-select';
-import DatePicker from 'react-native-datepicker'
-
-import firebase from 'react-native-firebase'
-import * as REFS from '../DB/CollectionsRefs'
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -19,53 +15,9 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 import LinearGradient from 'react-native-linear-gradient';
 import Modal from "react-native-modal";
 
-export default class RightSideMenu2 extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            doctorNames: [],
-            doctorSpecialities: []
-        }
-    } 
-
-    async  componentDidMount() {
-        console.log('componentdidMount')
-        await REFS.users.doc(firebase.auth().currentUser.uid).get().then(function (docUser) {
-            let doctorsId = docUser.data().myDoctors
-            //let doctorNames = []
-
-            for (let i = 0; i < doctorsId.length; i++) {
-                REFS.doctors.doc(doctorsId[i]).get().then(function (doc) {
-                    //  this.doctorNames.push(doc.data().nom)
-
-                    this.setState({
-                        ...this.state,
-                        doctorNames: this.state.doctorNames.concat(doc.data().nom + ' ' + doc.data().prenom)
-                    });
-                    this.setState({
-                        ...this.state,
-                        doctorSpecialities: this.state.doctorSpecialities.concat(doc.data().speciality)
-                    });
-
-                    // this.setState({ doctorNames: this.doctorNames}) 
-                }.bind(this))
-
-            }
-        }.bind(this))
-
-    }
+export default class RightSideMenu extends Component {
 
     render({ onPress } = this.props) {
-        let TodayDay = new Date().getDate()
-        let TodayMonth = new Date().getMonth() + 1
-        let TodayYear = new Date().getFullYear()
-        let Today = TodayYear + '-' + TodayMonth + '-' + TodayDay
-
-
-        console.log(this.state.doctorNames)
-
-        //  console.log(this.state.doctorNames)
 
         return (
             <Modal
@@ -83,71 +35,47 @@ export default class RightSideMenu2 extends Component {
             >
                 <SafeAreaView style={styles.safeAreaView}>
                     <View style={styles.header_container}>
-                        <Text style={styles.header_text}>Filter par</Text>
+                        <Text style={styles.header_text}>Filtrer par</Text>
                         <TouchableHighlight style={styles.filter_button}
-                            onPress={this.props.toggleSideMenu}>
+                            onPress={this.toggleSideMenu}>
                             <Icon name="filter" size={25} color="#93eafe" />
                         </TouchableHighlight>
                     </View>
 
-                    <View style={styles.doctor_container}>
+                    <View style={styles.patient_container}>
                         <Text style={styles.title_text}>Médecin</Text>
-
-                        <Picker selectedValue={this.props.doctor}
-                                onValueChange={(doctor) => this.props.onSelectDoctor(doctor)}>
-                            <Picker.Item value='' label='Choisissez votre médecin' />
-                            {this.state.doctorNames.map((doctorName, key) => {
-                                return (<Picker.Item key={key} value={doctorName} label={doctorName} />);
-                            })}
-                        </Picker>
-
+                        <RNPickerSelect
+                            onValueChange={(patient) => this.props.onSelectPatient(patient)}
+                            style={pickerSelectStyles}
+                            useNativeAndroidPickerStyle={false}
+                            items={[
+                                { label: 'Tony Chopper', value: 'Tony Chopper' },
+                                { label: 'qwer ty', value: 'qwer ty' },
+                                { label: 'poi lu', value: 'poi lu' },
+                                { label: 'misu kage', value: 'misu kage' },
+                                { label: 'naru to', value: 'naru to' },
+                                { label: 'kiyuu bi', value: 'kiyuu bi' },
+                                { label: 'kiri to', value: 'kiri to' }
+                            ]}
+                            placeholder={{
+                                label: 'Choisissez votre médecin',
+                                value: null
+                            }}
+                        />
                     </View>
 
-                    <View style={styles.speciality_container}>
-                        <Text style={styles.title_text}>Spécialité</Text>
-                        <Picker selectedValue={this.props.speciality}
-                                onValueChange={(speciality) => this.props.onSelectSpeciality(speciality)}>
-                            <Picker.Item value='' label='Choisissez une spécialité' />
-                            {this.state.doctorSpecialities.map((doctorSpeciality, key) => {
-                                return (<Picker.Item key={key} value={doctorSpeciality} label={doctorSpeciality} />);
-                            })}
-                        </Picker>
-                    </View>
-
-                    <View style={styles.date_container}>
-                        <Text style={styles.title_text}>Date</Text>
-                        <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', marginBottom: SCREEN_HEIGHT * 0.02 }}>
-                            <Text style={[styles.title_text, { color: 'gray' }]}>Du</Text>
-                            <DatePicker
-                                style={{ width: SCREEN_WIDTH * 0.5, marginTop: SCREEN_WIDTH * 0.03, marginLeft: SCREEN_WIDTH * 0.03 }}
-                                date={this.props.dateFrom}
-                                mode="date"
-                                placeholder="Jour - Mois - Année"
-                                format="DD-MM-YYYY"
-                                //minDate="1920-01-01"
-                                //maxDate= {Today}
-                                confirmBtnText="Confirm"
-                                cancelBtnText="Cancel"
-                                onDateChange={(date) => this.props.onSelectDateFrom(date)}
-                            />
-                        </View>
-
-                        <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
-                            <Text style={[styles.title_text, { color: 'gray' }]}>Au</Text>
-                            <DatePicker
-                                style={{ width: SCREEN_WIDTH * 0.5, marginTop: SCREEN_WIDTH * 0.03, marginLeft: SCREEN_WIDTH * 0.03 }}
-                                date={this.props.dateTo}
-                                mode="date"
-                                placeholder="Jour - Mois - Année"
-                                format="DD-MM-YYYY"
-                                //minDate="1920-01-01"
-                                maxDate={Today}
-                                confirmBtnText="Confirm"
-                                cancelBtnText="Cancel"
-                                onDateChange={(date) => this.props.onSelectDateTo(date)}
-                            />
-                        </View>
-
+                    <View style={styles.pays_container}>
+                        <Text style={styles.title_text}>Pays</Text>
+                        <CountryPicker
+                            withFilter
+                            withEmoji
+                            withCountryNameButton
+                            withAlphaFilter
+                            translation="fra"
+                            placeholder={this.props.countryPlaceHolder}  
+                            containerButtonStyle= {{width: SCREEN_WIDTH *0.6, height: SCREEN_HEIGHT*0.065, borderRadius: 50, marginTop: SCREEN_HEIGHT*0.02 }} 
+                            onSelect={country => this.props.onSelectCountry(country)}   
+                        />
                     </View>
 
                     <View style={styles.buttons_container}>
@@ -175,20 +103,7 @@ export default class RightSideMenu2 extends Component {
 }
 
 const styles = StyleSheet.create({
-    pageLink_button: {
-        height: SCREEN_HEIGHT * 0.045,
-        width: SCREEN_WIDTH * 0.7,
-        //alignItems: 'flex-end',
-        //justifyContent: 'center',
-        //paddingRight: SCREEN_WIDTH*0.05,
-        //backgroundColor: 'green',
-        // backgroundColor: 'white',
-        backgroundColor: '#ffffff',
-        //backgroundColor: '#93eafe',
-        borderTopRightRadius: 25,
-        borderBottomRightRadius: 25,
-        marginBottom: SCREEN_WIDTH * 0.08
-    },
+   
     sideMenuStyle: {
         flex: 1,
         margin: 0,
@@ -209,7 +124,7 @@ const styles = StyleSheet.create({
         backgroundColor: "white"
     },
     header_container: {
-        flex: 0.15,
+        flex: 0.1,
         flexDirection: 'row',
         justifyContent: 'space-between',
         paddingLeft: SCREEN_WIDTH * 0.13,
@@ -236,8 +151,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
-    doctor_container: {
+    patient_container: {
         flex: 0.2,
+        paddingLeft: SCREEN_WIDTH * 0.1,
+        //backgroundColor: 'blue'
+    },
+    pays_container: {
+        flex: 0.15,
         paddingLeft: SCREEN_WIDTH * 0.1,
         //backgroundColor: 'blue'
     },
@@ -246,23 +166,8 @@ const styles = StyleSheet.create({
         fontSize: 17,
         //fontWeight: "bold"
     },
-
-    speciality_container: {
-        flex: 0.2,
-        paddingLeft: SCREEN_WIDTH * 0.1,
-        //backgroundColor: 'brown'
-    },
-    date_container: {
-        flex: 0.25,
-        paddingLeft: SCREEN_WIDTH * 0.1,
-        // backgroundColor: 'purple'
-    },
-    slider: {
-        marginTop: SCREEN_HEIGHT * 0.07,
-        //marginRight: SCREEN_HEIGHT*0.07
-    },
     buttons_container: {
-        flex: 0.2,
+        flex: 0.25,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -365,17 +270,20 @@ const pickerSelectStyles = StyleSheet.create({
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
         elevation: 9,
-        marginTop: SCREEN_WIDTH * 0.03,
-        fontSize: 16,
+        //margin: 15,
+        marginTop: 15,
+        marginBottom: 15,
+        fontSize: 11,
     },
     inputAndroid: {
         textAlignVertical: 'top',
-        textAlign: 'center',
+        paddingLeft: SCREEN_WIDTH*0.06,
+        textAlign: 'left',
         backgroundColor: '#ffffff',
         borderRadius: 50,
         paddingTop: SCREEN_WIDTH * 0.05,
         paddingRight: SCREEN_WIDTH * 0.07,
-        width: SCREEN_WIDTH * 0.5,
+        width: SCREEN_WIDTH *0.6, height: SCREEN_HEIGHT*0.065,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
@@ -385,8 +293,75 @@ const pickerSelectStyles = StyleSheet.create({
         marginTop: SCREEN_WIDTH * 0.03,
         //marginBottom: 15,
         fontSize: 11,
-        color: '#93eafe',
+        color: '#333',
         //justifyContent: 'center',
         // alignItems: 'center'
     },
 });
+
+
+
+
+
+
+
+
+//100: change users to admins
+//121: remove line
+/*
+137:       add    let userName = doc.data().userName
+147: add   userName: userName,
+
+  handleConfirmAppointment(appId) {
+    this.setState({ appId: null })
+
+    //Add state of the appointment: Confirmed By Admin
+    const state = ['CBP', 'CBA']
+    REFS.appointments.doc(appId).update("state", state)
+      .then(() => {
+
+        REFS.appointments.doc(appId).get().then((appDoc) => {
+
+          REFS.users.doc(appDoc.data().user_id).get().then((userdoc) => {
+            let myDoctors = []
+
+            //Check if there is at Least one doctor assigned to to patient
+            if (userdoc.data().myDoctors) {
+              myDoctors = userdoc.data().myDoctors
+            }
+
+            //Check if the doctor exists: Add him if not..
+            if (!myDoctors.includes(appDoc.data().doctor_id)) {
+              myDoctors.push(appDoc.data().doctor_id)
+              REFS.users.doc(appDoc.data().user_id).update("myDoctors", myDoctors)
+            }
+
+          }).catch((err) => console.error('1'+err))
+
+        }).catch((err) => console.error('2'+err))
+
+      }).catch((err) => console.error('3'+err))
+  }
+
+  displayDetails = (appId) => {
+    this.props.navigation.navigate('AppointmentDetails', { appId: appId })
+    //console.log(appId)
+  }
+
+
+
+
+
+  
+                    {this.state.appId === appointment.id && !appointment.state.includes('CBA') ?
+                      <View style={itemStyle.confirmButton_container}>
+                        <Button
+                          width={SCREEN_WIDTH * 0.35}
+                          paddingTop={0}
+                          paddingBottom={0}
+                          text="Confirmer"
+                          onPress={() => this.handleConfirmAppointment(appointment.id)} />
+                      </View>
+                      : null}
+
+*/

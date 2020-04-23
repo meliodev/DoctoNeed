@@ -2,16 +2,12 @@
 //TEST
 
 import React from 'react'
-import LinearGradient from 'react-native-linear-gradient';
 import { View, Button, Text, Image, TouchableOpacity, Dimensions, Slider, StyleSheet } from 'react-native'
 import Modal from 'react-native-modal';
-
-import { withNavigation } from 'react-navigation';
 
 import Icon from 'react-native-vector-icons/FontAwesome';
 import firebase from 'react-native-firebase';
 import { ScrollView } from 'react-native-gesture-handler';
-
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -25,7 +21,7 @@ const LOGO_WIDTH = SCREEN_WIDTH * 0.25 * ratioLogo;
 export default class MedicalFolder extends React.Component {
   constructor(props) {
     super(props);
-    this.openModalSex = this.openModalSex.bind(this);
+    this.renderForm = this.renderForm.bind(this);
 
     this.state = {
       currentUser: null,
@@ -34,13 +30,12 @@ export default class MedicalFolder extends React.Component {
       dateNaissance: "00-00-0000",
       age: "",
 
-      ismodalSexVisible: false,
+      ismodalVisible: false,
+      isSexe: false,
+      isPoids: false,
       sexe: '',
-      ismodalPoidsVisible: false,
       poids: 0,
-      ismodalTailleVisible: false,
       taille: 0,
-      ismodalGSVisible: false,
       GS: ''
     }
   }
@@ -55,73 +50,126 @@ export default class MedicalFolder extends React.Component {
     })
   }
 
-  componentDidMount() {
-    this.UserAuthStatus()
+
+  //Modal (data modification interfaces)
+  openModal() {
+    this.setState({ ismodalVisible: true })
   }
 
-  UserAuthStatus = () => {
-    firebase
-      .auth()
-      .onAuthStateChanged(user => {
-        if (user) {
-          this.setState({ isUser: true })
-        } else {
-          this.setState({ isUser: false })
-        }
-      })
-  };
-
-  signOutUser = async () => {
-    try {
-      await firebase.auth().signOut();
-      this.props.navigation.navigate('LandingScreen');
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  //Modals for edit
-  //Modal
-  openModalSex() {
-    this.setState({ ismodalSexVisible: true })
-  }
-
-  toggleModalSex = () => {
+  /*toggleModal = () => {
     this.setState({
-      ismodalSexVisible: !this.state.ismodalSexVisible
+      ismodalVisible: !this.state.ismodalVisible
+    })
+  }*/
+
+  closeModal = () => {
+    this.setState({
+      ismodalVisible: false,
+      isSexe: false,
+      isPoids: false,
+      isTaille: false
     })
   }
 
-  closeModalSex = () => {
-    this.setState({
-      ismodalSexVisible: false
-    })
-  }
+  renderForm() {
+    if (this.state.isSexe)
+      return (
+        <View>
+          <View style={{ flex: 1, justifyContent: 'center' }}>
+            <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.1 }}>Quel est votre sexe</Text>
+            <View style={{ flexDirection: 'row', marginBottom: SCREEN_HEIGHT * 0.07, }}>
+              {this.state.sexe === 'female' || this.state.sexe === '' ? <TouchableOpacity onPress={() => {
+                if (this.state.sexe === 'female' || this.state.sexe === '') this.setState({ sexe: 'male' })
+              }}
+                style={modalStyles.item_inactive}><Text style={modalStyles.item_text}>Homme</Text></TouchableOpacity>
+                : <View style={modalStyles.item_active}><Text style={modalStyles.item_text}>Homme</Text></View>}
 
-  //Poids
-  openModalPoids() {
-    this.setState({ ismodalPoidsVisible: true })
-  }
+              {this.state.sexe === 'male' || this.state.sexe === '' ? <TouchableOpacity onPress={() => {
+                if (this.state.sexe === 'male' || this.state.sexe === '') this.setState({ sexe: 'female' })
+              }}
+                style={modalStyles.item_inactive}><Text style={modalStyles.item_text}>Femme</Text></TouchableOpacity>
+                : <View style={modalStyles.item_active}><Text style={modalStyles.item_text}>Femme</Text></View>}
+            </View>
+          </View>
 
-  toggleModalPoids = () => {
-    this.setState({
-      ismodalPoidsVisible: !this.state.ismodalPoidsVisible
-    })
-  }
+          <View style={{ flex: 1, justifyContent: 'center', position: 'absolute', bottom: 0 }}>
+            <View style={{ flexDirection: 'row', }}>
+              <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
+                <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModal()}>
+                <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      );
 
-  closeModalPoids = () => {
-    this.setState({
-      ismodalPoidsVisible: false
-    })
+    else if (this.state.isPoids)
+      return (
+        <View>
+          <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT * 0.1 }}>
+            <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 28, marginBottom: SCREEN_HEIGHT * 0.04 }}>Quel est votre Poids?</Text>
+            <Text style={{ fontWeight: 'bold', fontSize: 30, textAlign: 'center', marginBottom: SCREEN_HEIGHT * 0.07 }}>{this.state.poids} Kg</Text>
+            <Slider
+              value={this.state.poids}
+              onValueChange={value => this.setState({ poids: value })}
+              minimumValue={0}
+              maximumValue={200}
+              step={1}
+              minimumTrackTintColor='#93eafe'
+              thumbTintColor='#93eafe'
+              style={{ width: SCREEN_WIDTH * 0.7 }}
+            />
+          </View>
+
+          <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center'}}>
+              <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
+                <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModal()}>
+                <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      );
+
+    else if (this.state.isTaille)
+      return (
+        <View>
+          <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT * 0.1 }}>
+            <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 28, marginBottom: SCREEN_HEIGHT * 0.04 }}>Quel est votre taille?</Text>
+            <Text style={{ fontWeight: 'bold', fontSize: 30, textAlign: 'center', marginBottom: SCREEN_HEIGHT * 0.07 }}>{this.state.taille} cm</Text>
+            <Slider
+              value={this.state.taille}
+              onValueChange={value => this.setState({ taille: value })}
+              minimumValue={0}
+              maximumValue={300}
+              step={1}
+              minimumTrackTintColor='#93eafe'
+              thumbTintColor='#93eafe'
+              style={{ width: SCREEN_WIDTH * 0.7 }}
+            />
+          </View>
+
+          <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
+            <View style={{ flexDirection: 'row', }}>
+              <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
+                <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModal()}>
+                <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      );
   }
 
   render() {
-    // const currentUser= firebase.auth().currentUser.
-    console.log(this.state.sexe)
 
-    console.log(this.state.nom)
-    console.log(this.state.prenom)
-    console.log(this.state.dateNaissance)
     return (
       <View style={styles.container}>
 
@@ -154,98 +202,39 @@ export default class MedicalFolder extends React.Component {
               </View>
             </View>
 
+            <Modal isVisible={this.state.ismodalVisible}
+              onBackdropPress={() => this.closeModal()}
+              animationIn="slideInLeft"
+              animationOut="slideOutLeft"
+              onSwipeComplete={() => this.closeModal()}
+              swipeDirection="left"
+              style={{ backgroundColor: 'white', maxHeight: SCREEN_HEIGHT / 2, marginTop: SCREEN_HEIGHT * 0.25, alignItems: 'center', }}>
+
+              {this.renderForm()}
+
+            </Modal>
+
             <TouchableOpacity style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}
-              onPress={() => this.openModalSex()}>
+              onPress={() => { this.setState({ isSexe: true }, this.openModal()) }}>
               <Text style={styles.title_text}>Sexe</Text>
               <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>F/H</Text>
             </TouchableOpacity>
 
-            <Modal isVisible={this.state.ismodalSexVisible}
-              onBackdropPress={() => this.closeModalSex()}
-              animationIn="slideInLeft"
-              animationOut="slideOutLeft"
-              onSwipeComplete={() => this.closeModalSex()}
-              swipeDirection="left"
-              style={{ backgroundColor: 'white', maxHeight: SCREEN_HEIGHT / 2, marginTop: SCREEN_HEIGHT * 0.25, alignItems: 'center', }}>
-
-              <View style={{ flex: 1, justifyContent: 'center' }}>
-                <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.1 }}>Votre Sexe</Text>
-                <View style={{ flexDirection: 'row', marginBottom: SCREEN_HEIGHT * 0.07, }}>
-                  {this.state.sexe === 'female' || this.state.sexe === '' ? <TouchableOpacity onPress={() => {
-                    if (this.state.sexe === 'female' || this.state.sexe === '') this.setState({ sexe: 'male' })
-                  }}
-                    style={modalStyles.item_inactive}><Text style={modalStyles.item_text}>Homme</Text></TouchableOpacity>
-                    : <View style={modalStyles.item_active}><Text style={modalStyles.item_text}>Homme</Text></View>}
-
-                  {this.state.sexe === 'male' || this.state.sexe === '' ? <TouchableOpacity onPress={() => {
-                    if (this.state.sexe === 'male' || this.state.sexe === '') this.setState({ sexe: 'female' })
-                  }}
-                    style={modalStyles.item_inactive}><Text style={modalStyles.item_text}>Femme</Text></TouchableOpacity>
-                    : <View style={modalStyles.item_active}><Text style={modalStyles.item_text}>Femme</Text></View>}
-                </View>
-              </View>
-
-              <View style={{ flex: 1, justifyContent: 'center', position: 'absolute', bottom: 0 }}>
-                <View style={{ flexDirection: 'row', }}>
-                  <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
-                    <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModalSex()}>
-                    <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
-
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
 
             <TouchableOpacity style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}
-              onPress={() => this.openModalPoids()}>
+              onPress={() => { this.setState({ isPoids: true }, this.openModal()) }}>
               <Text style={styles.title_text}>Poids</Text>
               <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>68 kgs</Text>
             </TouchableOpacity>
 
-            <Modal isVisible={this.state.ismodalPoidsVisible}
-              onBackdropPress={() => this.closeModalPoids()}
-              animationIn="slideInLeft"
-              animationOut="slideOutLeft"
-              style={{ flex: 1, backgroundColor: 'white', maxHeight: SCREEN_HEIGHT / 2, marginTop: SCREEN_HEIGHT * 0.25, alignItems: 'center', }}>
-
-              <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT*0.1 }}>
-                  <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 28, marginBottom: SCREEN_HEIGHT*0.04  }}>Votre Poids</Text>
-                  <Text style={{ fontWeight: 'bold', fontSize: 40, textAlign: 'center', marginBottom: SCREEN_HEIGHT*0.07 }}>{this.state.poids} Kg</Text>
-                  <Slider
-                    value={this.state.poids}
-                    onValueChange={value => this.setState({ poids: value })}
-                    minimumValue={0}
-                    maximumValue={200}
-                    step={1}
-                    minimumTrackTintColor='#93eafe'
-                    thumbTintColor='#93eafe'
-                    style={{ width: SCREEN_WIDTH * 0.7 }}
-                  />               
-              </View>
- 
-              <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
-                <View style={{ flexDirection: 'row', }}>
-                  <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
-                    <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModalPoids()}>
-                    <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-             
-
-            </Modal>
-
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
 
-            <View style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
+            <TouchableOpacity style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}
+              onPress={() => { this.setState({ isTaille: true }, this.openModal()) }}>
               <Text style={styles.title_text}>Taille</Text>
               <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>175 cm</Text>
-            </View>
+            </TouchableOpacity>
 
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
 
@@ -256,9 +245,7 @@ export default class MedicalFolder extends React.Component {
 
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth, marginBottom: SCREEN_HEIGHT * 0.04 }} />
 
-            <View
-              style={styles.edit_button}
-              onPress={() => displayDetailForDoctor(doctor.uid)}>
+            <View style={styles.edit_button}>
               <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' }}>
                 <Text style={{ color: 'black', fontWeight: 'bold' }}>Informations suplémentaires</Text>
                 <Icon name="pencil"

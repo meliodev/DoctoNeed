@@ -1,14 +1,14 @@
 import React from 'react'
-import { StyleSheet, View, Text, TouchableOpacity, Dimensions } from 'react-native'
+import { StyleSheet, View, Text, TouchableHighlight, Dimensions } from 'react-native'
 import Icon from 'react-native-vector-icons/AntDesign';
 
 const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
 
-class PreviousAppointmentItem extends React.Component {
-
+class NextAppointmentItem extends React.Component {
 
   render() {
+    const { appointment } = this.props
     return (
 
       <View style={styles.main_container}>
@@ -18,7 +18,7 @@ class PreviousAppointmentItem extends React.Component {
         </View>
 
         <View style={styles.date_container}>
-          <Text style={styles.date_day}>{this.props.appointment.day}</Text>
+          <Text style={styles.date_day}>{appointment.day}</Text>
         </View>
 
         <View style={styles.titles_container}>
@@ -28,23 +28,23 @@ class PreviousAppointmentItem extends React.Component {
         </View>
 
         <View style={styles.data_container}>
-          <Text style={styles.data_text}>{this.props.appointment.doctorName}</Text>
-          <Text style={styles.data_text}>{this.props.appointment.doctorSpeciality}</Text>
+          <Text style={styles.data_text}>{appointment.doctorName}</Text>
+          <Text style={styles.data_text}>{appointment.doctorSpeciality}</Text>
           <Text style={styles.data_text}>30 minutes</Text>
         </View>
 
         <View style={styles.buttons_container}>
-          <TouchableOpacity
+          <TouchableHighlight
             style={styles.button}
-            onPress={(doctor) => this.props.displayDetails(doctor)}>
+            onPress={() => displayDetailForDoctor(doctor.uid)}>
             <View style={styles.button_elements}>
-              <Text style={{ fontSize: SCREEN_HEIGHT * 0.015, color: 'white', marginRight: SCREEN_WIDTH * 0.01 }}>Voir le rapport</Text>
+              <Text style={{ fontSize: SCREEN_HEIGHT * 0.015, color: 'white', marginRight: SCREEN_WIDTH * 0.01 }}>Voir les détails</Text>
               <Icon name="rightcircleo"
                 size={SCREEN_WIDTH * 0.03}
                 color="white" />
             </View>
 
-          </TouchableOpacity>
+          </TouchableHighlight>
         </View>
 
       </View>
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingLeft: SCREEN_WIDTH * 0.03,
     backgroundColor: '#93eafe',
-    borderTopLeftRadius: 25,
+    borderTopLeftRadius: 25, 
     borderBottomLeftRadius: 25,
   },
   button_elements: {
@@ -143,4 +143,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default PreviousAppointmentItem
+export default NextAppointmentItem

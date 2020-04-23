@@ -18,7 +18,7 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 const ratioLogo = 420/244;
 const LOGO_WIDTH = SCREEN_WIDTH * 0.2 * ratioLogo ;
 
-export default class SignUp3 extends ValidationComponent {
+export default class SignUpPW extends ValidationComponent {
   constructor(props) {
     super(props);
     this.state = {
@@ -93,9 +93,6 @@ else {
       country: pays,
       nom: nom,
       prenom: prenom,
-      price: 15,
-      speciality: speciality,
-      urgences: 'false',
       dateNaissance: date,
     }
 

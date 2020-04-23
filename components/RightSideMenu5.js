@@ -10,7 +10,7 @@ import CountryPicker, { getAllCountries, getCallingCode } from 'react-native-cou
 import RNPickerSelect from 'react-native-picker-select';
 import DatePicker from 'react-native-datepicker'
 
-import firebase from 'react-native-firebase'
+import firebase from 'react-native-firebase' 
 import * as REFS from '../DB/CollectionsRefs'
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -19,42 +19,87 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 import LinearGradient from 'react-native-linear-gradient';
 import Modal from "react-native-modal";
 
-export default class RightSideMenu2 extends Component {
+export default class RightSideMenu5 extends Component {
     constructor(props) {
         super(props);
+        this.patientNames = []
 
         this.state = {
             doctorNames: [],
-            doctorSpecialities: []
+            doctorSpecialities: [],
+            patientNames: [],
+            patientsCountries: [],
         }
-    } 
-
-    async  componentDidMount() {
-        console.log('componentdidMount')
-        await REFS.users.doc(firebase.auth().currentUser.uid).get().then(function (docUser) {
-            let doctorsId = docUser.data().myDoctors
-            //let doctorNames = []
-
-            for (let i = 0; i < doctorsId.length; i++) {
-                REFS.doctors.doc(doctorsId[i]).get().then(function (doc) {
-                    //  this.doctorNames.push(doc.data().nom)
-
-                    this.setState({
-                        ...this.state,
-                        doctorNames: this.state.doctorNames.concat(doc.data().nom + ' ' + doc.data().prenom)
-                    });
-                    this.setState({
-                        ...this.state,
-                        doctorSpecialities: this.state.doctorSpecialities.concat(doc.data().speciality)
-                    });
-
-                    // this.setState({ doctorNames: this.doctorNames}) 
-                }.bind(this))
-
-            }
-        }.bind(this))
-
     }
+
+    componentDidMount() {
+        this._loadPatients()
+        this._loadDoctors()
+    }
+
+    _loadPatients() {
+        const patientNames = []
+        const patientsCountries = []
+        let patientName = ''
+        let patientCountry = ''
+
+        var query = REFS.users
+
+        query.get()
+            .then(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    console.log(doc.data().nom)
+                    patientName = doc.data().nom + ' ' + doc.data().prenom
+                    patientCountry = doc.data().country
+
+                    patientNames.push(patientName)
+                    patientsCountries.push(patientCountry)
+
+                })
+
+                this.setState({
+                    patientNames: patientNames,
+                    patientsCountries: patientsCountries
+                })
+
+            })
+            .catch(error => console.log('Error getting documents:' + error))
+    }
+
+    _loadDoctors() {
+        const doctorNames = []
+        const doctorSpecialities = []
+        let doctorName = ''
+        let doctorSpeciality = ''
+
+        var query = REFS.doctors
+
+        query.get()
+             .then(querySnapshot => {
+                querySnapshot.forEach(doc => {
+
+                    doctorName = doc.data().nom + ' ' + doc.data().prenom
+                    doctorSpeciality = doc.data().speciality
+
+                    doctorNames.push(doctorName)
+
+                    if(!doctorSpecialities.includes(doc.data().speciality)) {
+                        doctorSpecialities.push(doctorSpeciality)
+                    }
+
+                })
+
+                this.setState({
+                    doctorNames: doctorNames,
+                    doctorSpecialities: doctorSpecialities
+                })
+
+            })
+            .catch(error => console.log('Error getting documents:' + error))
+    }
+
+
+
 
     render({ onPress } = this.props) {
         let TodayDay = new Date().getDate()
@@ -63,10 +108,13 @@ export default class RightSideMenu2 extends Component {
         let Today = TodayYear + '-' + TodayMonth + '-' + TodayDay
 
 
-        console.log(this.state.doctorNames)
-
+        console.log('1'+this.state.doctorSpecialities)
+        console.log('2'+this.state.patientNames)
+        console.log('3'+this.state.patientsCountries)
+        console.log('4'+this.state.doctorNames)
+ 
         //  console.log(this.state.doctorNames)
-
+        const bool = true
         return (
             <Modal
                 isVisible={this.props.isSideMenuVisible}
@@ -95,7 +143,7 @@ export default class RightSideMenu2 extends Component {
 
                         <Picker selectedValue={this.props.doctor}
                                 onValueChange={(doctor) => this.props.onSelectDoctor(doctor)}>
-                            <Picker.Item value='' label='Choisissez votre médecin' />
+                            <Picker.Item value='' label='Choisissez un médecin' />
                             {this.state.doctorNames.map((doctorName, key) => {
                                 return (<Picker.Item key={key} value={doctorName} label={doctorName} />);
                             })}
@@ -114,7 +162,45 @@ export default class RightSideMenu2 extends Component {
                         </Picker>
                     </View>
 
-                    <View style={styles.date_container}>
+                    <View style={styles.patient_container}>
+                        <Text style={styles.title_text}>Patient</Text>
+
+                        <Picker selectedValue={this.props.patient}
+                            onValueChange={(patient) => this.props.onSelectPatient(patient)}>
+                            <Picker.Item value='' label='Choisissez un patient' />
+                            {this.state.patientNames.map((patientName, key) => {
+                                return (<Picker.Item key={key} value={patientName} label={patientName} />);
+                            })}
+                        </Picker>
+                    </View>
+
+                    <View style={styles.speciality_container}>
+                        <Text style={styles.title_text}>Pays</Text>
+                        <Picker selectedValue={this.props.country}
+                            onValueChange={(country) => this.props.onSelectCountry(country)}>
+                            <Picker.Item value='' label='Pays des patients' />
+                            {this.state.patientsCountries.map((patientsCountry, key) => {
+                                return (<Picker.Item key={key} value={patientsCountry} label={patientsCountry} />);
+                            })}
+                        </Picker>
+                    </View>
+                    
+                    
+                    {this.props.isNextAppointments ?
+                        <View style={styles.speciality_container}>
+                            <Text style={styles.title_text}>Etat</Text>
+                            <Picker selectedValue={this.props.appointmentState}
+                                onValueChange={(state) => this.props.onSelectState(state)}>
+                                <Picker.Item value='' label='Choisissez un état' />
+                                <Picker.Item value='pending' label='En attente' />
+                                <Picker.Item value='CBA' label='Confirmé' />
+                            </Picker>
+                        </View>
+                        : null} 
+
+
+
+                {/*    <View style={styles.date_container}>
                         <Text style={styles.title_text}>Date</Text>
                         <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', marginBottom: SCREEN_HEIGHT * 0.02 }}>
                             <Text style={[styles.title_text, { color: 'gray' }]}>Du</Text>
@@ -148,7 +234,7 @@ export default class RightSideMenu2 extends Component {
                             />
                         </View>
 
-                    </View>
+                    </View> */}
 
                     <View style={styles.buttons_container}>
                         <TouchableHighlight onPress={this.props.clearAllFilters} style={styles.CancelButton}>
@@ -236,7 +322,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
-    doctor_container: {
+    patient_container: {
         flex: 0.2,
         paddingLeft: SCREEN_WIDTH * 0.1,
         //backgroundColor: 'blue'

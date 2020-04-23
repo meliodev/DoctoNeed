@@ -22,6 +22,7 @@ import {
   Image,
 } from 'react-native';
 //import { Actions } from 'react-native-router-flux';
+import Icon1 from 'react-native-vector-icons/Entypo';
 import Icon from 'react-native-vector-icons/FontAwesome';
 //import UploadFile from './UploadFile';
 import ImagePicker from 'react-native-image-picker';
@@ -30,6 +31,8 @@ import firebase from 'react-native-firebase';
 import LinearGradient from 'react-native-linear-gradient';
 
 const db = firebase.firestore()
+import * as REFS from '../../DB/CollectionsRefs'
+
 const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
 
@@ -51,10 +54,12 @@ export default class Upload extends React.Component {
     this.comment = this.props.navigation.getParam('comment', 'nothing sent')
 
     this.state = {
+      currentUser: null,
       ImageURI: null,
       ImageObjects: [], // Array to store URLs of selected images
       VideoSource: null,  //  object to store URL of choosen video
       VideoStorageRef: null, //
+      userName: ''
     }
 
     //this.uploadImages = this.uploadImages.bind(this); 
@@ -65,6 +70,13 @@ export default class Upload extends React.Component {
 
   }
 
+  componentDidMount() {
+    const { currentUser } = firebase.auth()
+    this.setState({ currentUser })
+    REFS.users.doc(currentUser.uid).get().then(doc => {
+      this.setState({ userName: doc.data().nom + ' ' + doc.data().prenom, userCountry: doc.data().country })
+    })
+  }
 
   getVideo = () => {
     ImagePicker.launchCamera(options2, imagePickerResponse => {
@@ -72,13 +84,14 @@ export default class Upload extends React.Component {
       if (didCancel) { console.log('Post canceled') }
       else if (error) { alert('An error occurred: ', error); }
       else {
-        this.VideoSource = imagePickerResponse.path
-        this.VideoStorageRef = firebase.storage().ref('/Medecin/Patient/VideoExplicative')
+        console.log(imagePickerResponse)
+        this.VideoSource = getFileLocalPath((imagePickerResponse))
+        this.VideoStorageRef = firebase.storage().ref('/' + this.state.currentUser.uid + '/Videos/' + this.doctor.nom + this.doctor.prenom + this.fullDate + this.timeSelected)
 
         this.setState({
           VideoSource: this.VideoSource,
-          VideoStorageRef: firebase.storage().ref('/Medecin/Patient/VideoExplicative')
-        }, console.log(this.state.VideoStorageRef))
+          VideoStorageRef: this.VideoStorageRef
+        })
       }
     }
     );
@@ -97,16 +110,17 @@ export default class Upload extends React.Component {
       else if (error) { alert('An error occurred: ', error); }
       else {
         this.fileSrce = getFileLocalPath((imagePickerResponse))
-        this.stgRef = createStorageReferenceToFile(imagePickerResponse)
+        this.stgRef = firebase.storage().ref('/' + this.state.currentUser.uid + '/Documents/' + this.doctor.nom + this.doctor.prenom + this.fullDate + this.timeSelected + imagePickerResponse.fileName)
         this.ImageObjects = this.state.ImageObjects
         this.ImageObjects.push({ fileSource: this.fileSrce, storageRef: this.stgRef })
         this.setState({
           ImageURI: imagePickerResponse.uri,
           ImageObjects: this.ImageObjects
-        }, console.log(this.state.ImageObjects[0].storageRef))
+        })
       }
     }
     );
+
   };
 
   removeImage(index) {
@@ -129,27 +143,60 @@ export default class Upload extends React.Component {
   }
 }*/
 
-  uploadFiles() {
+  uploadFiles(docId) {
     //Promise.resolve(this.state.storageRef.putFile(this.state.fileSource))
-    const ImageObjects = this.state.ImageObjects
+    let ImageObjects = this.state.ImageObjects
+    let DocumentsRefs = []
 
+    console.log('Appointment id: ' + docId)
+
+    //Initialize DocumentsRefs Array: []
+    REFS.appointments.doc(docId).update({ DocumentsRefs: [] }).then(() => console.log('DocumentsRefs added'))
+      .catch((err) => console.error(err))
+
+    //Uploading Documents
     console.log('uploading images...')
     for (let i = 0; i < ImageObjects.length; i++) {
 
       Promise.resolve(ImageObjects[i].storageRef.putFile(ImageObjects[i].fileSource)).then((URLObject) => {
-        db.collection('Images').doc().set({ downloadURL: URLObject.downloadURL })
-          .then(() => { console.log('Image URL persisted to FireStore') })
-          .catch(err => console.log(err))
+        REFS.appointments.doc(docId).get().then((doc) => {
+          DocumentsRefs = doc.data().DocumentsRefs
+          return URLObject
+          //console.log(DocumentsRefs)
+        })
+          .catch((err) => console.error(err))
+          .then((URLObject) => {
+            console.log(URLObject.downloadURL)
+            DocumentsRefs.push(URLObject.downloadURL)
+            console.log('image ' + i)
+            console.log(DocumentsRefs)
+            REFS.appointments.doc(docId).update({ DocumentsRefs: DocumentsRefs })
+              .then(() => { console.log('Image URL ' + i + ' persisted to FireStore') })
+              .catch(err => console.log(err))
+          })
+
       })
         .catch((error) => console.log(error))
     }
+
+    //Upload Video
     console.log('uploading video...')
     Promise.resolve(this.state.VideoStorageRef.putFile(this.state.VideoSource)).then((URLObject) => {
-      db.collection('Videos').doc().set({ downloadURL: URLObject.downloadURL })
+      REFS.appointments.doc(docId).update({ Video: URLObject.downloadURL })
+        //db.collection('Videos').doc().set({ downloadURL: URLObject.downloadURL })
         .then(() => { console.log('Video URL persisted to FireStore') })
         .catch(err => console.log(err))
     })
       .catch((error) => console.log(error))
+      .then(() => {
+        
+        this.props.navigation.navigate('BookingConfirmed', {
+        doctor: this.doctor, fullDate: this.fullDate, daySelected: this.daySelected,
+        monthSelected: this.monthSelected, yearSelected: this.yearSelected,
+        timeSelected: this.timeSelected, symptomes: this.symptomes,
+        comment: this.comment
+      })
+      })
   }
 
   skip() {
@@ -159,25 +206,42 @@ export default class Upload extends React.Component {
 
   onConfirm() {
 
-    firebase.firestore().collection("users").doc(firebase.auth().currentUser.uid).collection("appointments").doc().set({
+    //  let ImageRefs = []
+
+    /*for (let i=0; i<this.state.ImageObjects; i++) {
+      ImageRefs.push(this.state.ImageObjects[i].storageRef)
+    }*/
+
+    // REFS.users.doc(firebase.auth().currentUser.uid).collection("appointments").doc().set({
+    REFS.appointments.add({
+      //doctor ref
       doctor_id: this.doctor.uid,
-      doctorName: this.doctor.name,
+      doctorName: this.doctor.nom + ' ' + this.doctor.prenom,
       doctorSpeciality: this.doctor.speciality,
+      //patient ref
+      user_id: firebase.auth().currentUser.uid,
+      userName: this.state.userName,
+      userCountry: this.state.userCountry,
+      //date & hour
       fullDate: this.fullDate,
       day: Number(this.daySelected),
       month: this.monthSelected,
       year: Number(this.yearSelected),
       timeslot: this.timeSelected,
+      //appointment data
       symptomes: this.symptomes,
-      comment: this.comment
-    }).then(() => {
-      this.props.navigation.navigate('BookingConfirmed', {
-        doctor: this.doctor, fullDate: this.fullDate, daySelected: this.daySelected,
-        monthSelected: this.monthSelected, yearSelected: this.yearSelected,
-        timeSelected: this.timeSelected, symptomes: this.symptomes,
-        comment: this.comment
-      })
-    }).catch(err => console.log(err))
+      comment: this.comment,
+      //Documents & Video -- storage references
+      //Documents: ImageRefs,
+      //Video: this.state.VideoStorageRef,
+      //appointment state  ; CBP: Confirmed By Patient
+      state: ['CBP'],
+      finished: false
+    })
+      .then((doc) => {
+        this.uploadFiles(doc.id)
+        console.log(doc.id)
+      }).catch(err => console.log(err))
 
     /* this.props.navigation.navigate('BookingConfirmed', {doctor: this.doctor, daySelected: this.daySelected, fullDate: this.fullDate,
        monthSelected: this.monthSelected, yearSelected: this.yearSelected, 
@@ -187,13 +251,17 @@ export default class Upload extends React.Component {
   }
 
   render() {
-    console.log(this.doctor)
-    console.log(this.daySelected)
-    console.log(this.monthSelected)
-    console.log(this.yearSelected)
-    console.log(this.timeSelected)
-    console.log(this.symptomes)
-    console.log(this.comment)
+    /* console.log(this.doctor)
+     console.log(this.daySelected)
+     console.log(this.monthSelected)
+     console.log(this.yearSelected)
+     console.log(this.timeSelected)
+     console.log(this.symptomes)
+     console.log(this.comment)*/
+    console.log(this.state.ImageObjects)
+    console.log(this.state.VideoSource)
+    console.log(this.state.VideoStorageRef)
+
     const ImageObjectList = this.state.ImageObjects.map((ImageObject, index) => {
       return (
         <View key={index} style={styles.ImageListElement}>
@@ -213,7 +281,7 @@ export default class Upload extends React.Component {
     })
 
     return (
-      <View style={styles.container}>
+      <View style={styles.container} >
         <View style={styles.bar_progression}>
           <View style={[styles.bar, styles.activeBar]} />
           <View style={[styles.bar, styles.activeBar]} />
@@ -260,9 +328,9 @@ export default class Upload extends React.Component {
 
         <View style={styles.video_container}>
           <TouchableHighlight onPress={this.getVideo} style={styles.buttonAddVideo}>
-            <Icon name="camera"
+            <Icon1 name="video-camera"
               size={SCREEN_WIDTH * 0.05}
-              color="#93eafe" />
+              color="#93eafe" /> 
           </TouchableHighlight>
 
           {this.state.VideoSource ? <View style={styles.VideoElement}>

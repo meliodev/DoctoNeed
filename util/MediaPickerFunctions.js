@@ -10,7 +10,7 @@ export const imagePickerOptions = {
 
 
 export const options2 = {
-  title: 'Select video',
+  title: 'Selectionner une video',
   mediaType: 'video',
   path:'video',
   quality: 1
@@ -24,7 +24,7 @@ export const options2 = {
   export const createStorageReferenceToFile = response => {
     const { fileName } = response;
     return FireBaseStorage.ref(fileName);
-  };
+  }; 
 
   export const uploadFileToFireBase = imagePickerResponse => {
     const fileSource = getFileLocalPath(imagePickerResponse);

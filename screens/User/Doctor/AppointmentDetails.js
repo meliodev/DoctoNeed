@@ -9,6 +9,9 @@ import { ScrollView } from 'react-native-gesture-handler'
 
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
+import LeftSideMenu from '../../../components/LeftSideMenu'
+
+
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
@@ -67,6 +70,33 @@ export default class AppointmentDetails extends React.Component {
               )
           })
       }*/
+
+      
+  //LeftSideMenu functions
+  toggleLeftSideMenu = () => {
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible });
+  }
+
+  navigateToProfile() {
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
+      () => this.props.navigation.navigate('Profile'));
+    //console.log(this.props)
+  }
+  navigateToDispoConfig() {
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
+      () => this.props.navigation.navigate('DispoConfig'));
+    //console.log(this.props)
+  }
+
+  navigateToAppointments() {
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
+      () => this.props.navigation.navigate('TabScreen'));
+  }
+
+  signOutUserandToggle() {
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
+      this.signOutUser())
+  }
 
     render() {
         const appId = this.props.navigation.getParam('appId', 'nothing sent')

@@ -102,38 +102,80 @@ export default class RightSideMenu4 extends Component {
 
                     <View style={styles.patient_container}>
                         <Text style={styles.title_text}>Patient</Text>
-
-                        <Picker selectedValue={this.props.patient}
+                <View style={{ borderRadius: 30,
+                                borderWidth: 0,
+                                borderColor: '#bdc3c7',
+                                overflow: 'hidden',
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 5 },
+                                shadowOpacity: 0.32,
+                                shadowRadius: 5.46,
+                                elevation: 9,
+                                backgroundColor: 'white', 
+                                marginHorizontal: SCREEN_WIDTH * 0.02,
+                                 marginTop: 10,
+                                 paddingVertical: 0,
+                                  width: SCREEN_WIDTH * 0.55}}>
+                        <Picker selectedValue={this.props.patient} 
                             onValueChange={(patient) => this.props.onSelectPatient(patient)}>
                             <Picker.Item value='' label='Choisissez votre patient' />
                             {this.state.patientNames.map((patientName, key) => {
                                 return (<Picker.Item key={key} value={patientName} label={patientName} />);
                             })}
                         </Picker>
+                        </View>
                     </View>
 
                     <View style={styles.speciality_container}>
                         <Text style={styles.title_text}>Pays</Text>
+                        <View style={{ borderRadius: 30,
+                                borderWidth: 0,
+                                borderColor: '#bdc3c7',
+                                overflow: 'hidden',
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 5 },
+                                shadowOpacity: 0.32,
+                                shadowRadius: 5.46,
+                                elevation: 9,
+                                backgroundColor: 'white', 
+                                marginHorizontal: SCREEN_WIDTH * 0.02,
+                                 marginTop: 10,
+                                 paddingVertical: 0,
+                                  width: SCREEN_WIDTH * 0.55}}>
                         <Picker selectedValue={this.props.country}
                             onValueChange={(country) => this.props.onSelectCountry(country)}>
                             <Picker.Item value='' label='Pays de vos patients' />
                             {this.state.patientsCountries.map((patientsCountry, key) => {
                                 return (<Picker.Item key={key} value={patientsCountry} label={patientsCountry} />);
                             })}
-                        </Picker>
+                        </Picker></View>
                     </View>
 
-                    {this.props.isNextAppointments ?
+                  {/*   {this.props.isNextAppointments ? */}
                         <View style={styles.speciality_container}>
                             <Text style={styles.title_text}>Etat</Text>
+                            <View style={{ borderRadius: 30,
+                                borderWidth: 0,
+                                borderColor: '#bdc3c7',
+                                overflow: 'hidden',
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 5 },
+                                shadowOpacity: 0.32,
+                                shadowRadius: 5.46,
+                                elevation: 9,
+                                backgroundColor: 'white', 
+                                marginHorizontal: SCREEN_WIDTH * 0.02,
+                                 marginTop: 10,
+                                 paddingVertical: 0,
+                                  width: SCREEN_WIDTH * 0.55}}>
                             <Picker selectedValue={this.props.appointmentState}
                                 onValueChange={(state) => this.props.onSelectState(state)}>
                                 <Picker.Item value='' label='Choisissez un état' />
                                 <Picker.Item value='pending' label='En attente' />
                                 <Picker.Item value='CBD' label='Confirmé' />
-                            </Picker>
+                            </Picker></View>
                         </View>
-                        : null}
+                    {/*    : null} */}
 
 
 

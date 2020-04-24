@@ -44,7 +44,6 @@ export default class AppointmentDetails extends React.Component {
                 this.setState({ day: doc.data().day })
                 this.setState({ month: doc.data().month })
                 this.setState({ year: doc.data().year })
-
                 this.setState({ doctorName: doc.data().doctorName })
                 this.setState({ doctorSpeciality: doc.data().doctorSpeciality })
             })

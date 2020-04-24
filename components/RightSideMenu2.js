@@ -92,7 +92,20 @@ export default class RightSideMenu2 extends Component {
 
                     <View style={styles.doctor_container}>
                         <Text style={styles.title_text}>Médecin</Text>
-
+                        <View style={{ borderRadius: 30,
+                                borderWidth: 0,
+                                borderColor: '#bdc3c7',
+                                overflow: 'hidden',
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 5 },
+                                shadowOpacity: 0.32,
+                                shadowRadius: 5.46,
+                                elevation: 9,
+                                backgroundColor: 'white', 
+                                marginHorizontal: SCREEN_WIDTH * 0.02,
+                                 marginTop: 10,
+                                 paddingVertical: 0,
+                                  width: SCREEN_WIDTH * 0.55}}>
                         <Picker selectedValue={this.props.doctor}
                                 onValueChange={(doctor) => this.props.onSelectDoctor(doctor)}>
                             <Picker.Item value='' label='Choisissez votre médecin' />
@@ -100,11 +113,25 @@ export default class RightSideMenu2 extends Component {
                                 return (<Picker.Item key={key} value={doctorName} label={doctorName} />);
                             })}
                         </Picker>
-
+</View>
                     </View>
 
                     <View style={styles.speciality_container}>
                         <Text style={styles.title_text}>Spécialité</Text>
+                        <View style={{ borderRadius: 30,
+                                borderWidth: 0,
+                                borderColor: '#bdc3c7',
+                                overflow: 'hidden',
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 5 },
+                                shadowOpacity: 0.32,
+                                shadowRadius: 5.46,
+                                elevation: 9,
+                                backgroundColor: 'white', 
+                                marginHorizontal: SCREEN_WIDTH * 0.02,
+                                 marginTop: 10,
+                                 paddingVertical: 0,
+                                  width: SCREEN_WIDTH * 0.55}}>
                         <Picker selectedValue={this.props.speciality}
                                 onValueChange={(speciality) => this.props.onSelectSpeciality(speciality)}>
                             <Picker.Item value='' label='Choisissez une spécialité' />
@@ -112,6 +139,7 @@ export default class RightSideMenu2 extends Component {
                                 return (<Picker.Item key={key} value={doctorSpeciality} label={doctorSpeciality} />);
                             })}
                         </Picker>
+                        </View>
                     </View>
 
                     <View style={styles.date_container}>

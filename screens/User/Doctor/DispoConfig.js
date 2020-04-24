@@ -15,6 +15,10 @@ import firebase from 'react-native-firebase';
 import { ScrollView, TextInput } from 'react-native-gesture-handler';
 import { Picker, CheckBox } from 'native-base';
 
+import LeftSideMenu from '../../../components/LeftSideMenu'
+import Icon1 from 'react-native-vector-icons/FontAwesome';
+
+
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -34,8 +38,17 @@ export default class DispoConfig extends React.Component {
       nom: "",
       prenom: "",
       speciality: "00-00-0000",
-      age: ""
+      age: "",
+      isLeftSideMenuVisible: false,
     }
+
+        //Menu
+        this.navigateToProfile = this.navigateToProfile.bind(this);
+        this.navigateToDispoConfig = this.navigateToDispoConfig.bind(this);
+        this.navigateToAppointments = this.navigateToAppointments.bind(this);
+        this.navigateToMyPatients = this.navigateToMyPatients.bind(this);
+        this.signOutUserandToggle = this.signOutUserandToggle.bind(this);
+        
   }
 /*
   componentWillMount() {
@@ -47,6 +60,43 @@ export default class DispoConfig extends React.Component {
     })
   }
 */
+
+
+
+  //LeftSideMenu functions
+  toggleLeftSideMenu = () => {
+    this.month = ''
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible, appId: null });
+  }
+
+  navigateToProfile() {
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
+      () => this.props.navigation.navigate('Profile'));
+  }
+
+  navigateToDispoConfig() {
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
+      () => this.props.navigation.navigate('DispoConfig'));
+  }
+
+  navigateToAppointments() {
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
+      () => this.props.navigation.navigate('TabScreenDoctor'));
+  }
+
+  navigateToMyPatients() {
+    console.log('pressed')
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
+      () => this.props.navigation.navigate('MyPatients'));
+  }
+
+
+  signOutUserandToggle() {
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
+      this.signOutUser())
+  }
+
+
   componentDidMount() {
     this.UserAuthStatus()
   }
@@ -102,6 +152,43 @@ export default class DispoConfig extends React.Component {
         <View style={styles.header_container}>
           <Image source={require('../../../assets/header-image.png')} style={styles.headerIcon} />
         </View>
+
+
+        <LeftSideMenu
+          isSideMenuVisible={this.state.isLeftSideMenuVisible}
+          toggleSideMenu={this.toggleLeftSideMenu}
+          nom={this.state.nom}
+          prenom={this.state.prenom}
+          email={this.state.email}
+          navigateToProfile={this.navigateToProfile}
+          navigateToDispoConfig={this.navigateToDispoConfig}
+          navigateToAppointments={this.navigateToAppointments}
+          navigateToMyPatients={this.navigateToMyPatients}
+          signOutUser={this.signOutUserandToggle}
+          navigate={this.props.navigation} />
+
+<View style={{ height: SCREEN_HEIGHT * 0.01, flexDirection: 'row', paddingTop: SCREEN_HEIGHT * 0.00, justifyContent: 'space-between', alignItems: 'flex-start',position:'relative', bottom:80,
+         }}>
+
+
+          <TouchableHighlight 
+          style={{ 
+                  width: SCREEN_WIDTH * 0.12,
+                  height: SCREEN_WIDTH * 0.12,
+                  borderRadius: 25,
+                  backgroundColor: '#ffffff',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  position: 'relative',
+                  left: SCREEN_WIDTH * 0.05
+                }}
+
+            onPress={this.toggleLeftSideMenu}>
+            <Icon1 name="bars" size={25} color="#93eafe" />
+          </TouchableHighlight>
+
+         
+         </View>
 
         <View style={styles.metadata_container}>
           <View style={styles.Avatar_box}>

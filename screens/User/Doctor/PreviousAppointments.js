@@ -26,6 +26,7 @@ import Button from '../../../components/Button';
 import Button2 from '../../../components/Button2';
 import AppointmentItem from '../../../components/Admin/NextAppointmentItem'
 
+
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 

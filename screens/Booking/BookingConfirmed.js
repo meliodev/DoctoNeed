@@ -5,6 +5,10 @@ import React from 'react'
 import { StyleSheet, Platform, Image, Text, View, Button, SafeAreaView, FlatList, Dimensions, TouchableOpacity, ScrollView } from 'react-native'
 import LinearGradient from 'react-native-linear-gradient';
 
+import moment from 'moment'
+import 'moment/locale/fr'  // without this line it didn't work
+moment.locale('fr')
+
 import firebase from 'react-native-firebase'
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -16,10 +20,7 @@ export default class Main extends React.Component {
   constructor(props) {
     super(props);
     this.doctor = this.props.navigation.getParam('doctor', 'nothing sent')
-    this.daySelected = this.props.navigation.getParam('daySelected', 'nothing sent')
-    this.monthSelected = this.props.navigation.getParam('monthSelected', 'nothing sent')
-    this.yearSelected = this.props.navigation.getParam('yearSelected', 'nothing sent')
-    this.timeSelected = this.props.navigation.getParam('timeSelected', 'nothing sent')
+    this.date = this.props.navigation.getParam('date', 'nothing sent') 
     this.symptomes = this.props.navigation.getParam('symptomes', 'nothing sent')
     this.comment = this.props.navigation.getParam('comment', 'nothing sent')
 
@@ -111,13 +112,13 @@ export default class Main extends React.Component {
             Votre rendez-vous avec Dr. {this.doctor.nom} {this.doctor.prenom} est fixé
             </Text>
           <Text style={styles.paragraph}>
-            pour le {this.daySelected} {this.monthSelected} {this.yearSelected} à {this.timeSelected}
+            pour le {moment(this.date).format("Do MMMM YYYY")} à {moment(this.date).format('HH:mm')}
           </Text>
           <Text style={styles.text_details1}>
             Une notification de rappel vous sera envoyée
             </Text>
           <Text style={styles.text_details2}>
-            30min avant la consultation.
+            30 min avant la consultation.
             </Text>
         </ScrollView>
 

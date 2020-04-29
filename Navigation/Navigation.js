@@ -45,15 +45,15 @@ const SearchStackNavigator = createStackNavigator({
       headerShown: false
     }
   },*/
-  Test1: {
-    screen: Test1,
+  RootComponent: {
+    screen: RootComponent,
     navigationOptions: {
       title: 'Accueil',
       headerShown: false
     }
   },
-  RootComponent: {
-    screen: RootComponent,
+  Test1: {
+    screen: Test1,
     navigationOptions: {
       title: 'Accueil',
       headerShown: false

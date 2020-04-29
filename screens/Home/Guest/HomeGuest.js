@@ -26,7 +26,25 @@ const ratioLogo = 420 / 244;
 const LOGO_WIDTH = SCREEN_WIDTH * 0.25 * ratioLogo;
 
 class LandingScreen extends React.Component {
+  constructor(props) {
+    super(props);
 
+    this.state = {
+      timeslots: []
+    }
+  }
+
+  componentDidMount() {
+    let o = {
+      a: 1,
+      b: 2
+    }
+
+    let timeslots = []
+    timeslots.push(o)
+
+    this.setState({ timeslots: timeslots }, () => console.log(this.state.timeslots))
+  }
 
   render() {
 

@@ -4,11 +4,15 @@
 //2. Add a swiper (slides)
 //issues: we can not navigate to stack nav screens cause we are wrapped in tabs nav
 import React from 'react'
-import { View, TextInput, Text, Image, Dimensions, TouchableHighlight, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
-import SearchInput, { createFilter } from 'react-native-search-filter';
+import { View, Text, Image, Dimensions, TouchableHighlight, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
+import { createFilter } from 'react-native-search-filter';
 
 import LeftSideMenu from '../../../components/LeftSideMenu'
 import RightSideMenu from '../../../components/RightSideMenu2'
+
+import moment from 'moment'
+import 'moment/locale/fr'  // without this line it didn't work
+moment.locale('fr')
 
 import firebase from 'react-native-firebase'
 import { signOutUser } from '../../../DB/CRUD'
@@ -20,11 +24,9 @@ import Modal from "react-native-modal";
 
 const KEYS_TO_FILTERS_DOCTOR = ['doctorName'];
 const KEYS_TO_FILTERS_SPECIALITY = ['doctorSpeciality'];
-const KEYS_TO_FILTERS_DATE = ['date'];
 
 import Button from '../../../components/Button';
 import Button2 from '../../../components/Button2';
-import AppointmentItem from '../../../components/Admin/NextAppointmentItem'
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -40,6 +42,7 @@ export default class NextAppointments extends React.Component {
     this.year = 0
     this.itemHeight = SCREEN_HEIGHT * 0.13
     this.signOutUser = this.signOutUser.bind(this);
+
     //Menu
     this.signOutUserandToggle = this.signOutUserandToggle.bind(this);
     this.navigateToAppointments = this.navigateToAppointments.bind(this);
@@ -49,10 +52,11 @@ export default class NextAppointments extends React.Component {
     //Filters
     this.onSelectDoctor = this.onSelectDoctor.bind(this);
     this.onSelectSpeciality = this.onSelectSpeciality.bind(this);
+    this.onSelectDateFrom = this.onSelectDateFrom.bind(this);
+    this.onSelectDateTo = this.onSelectDateTo.bind(this);
 
-    this.toggleAppointment = this.toggleAppointment.bind(this); 
+    this.toggleAppointment = this.toggleAppointment.bind(this);
     this.defineItemStyle = this.defineItemStyle.bind(this);
-    this.renderAppointmentDetails = this.renderAppointmentDetails.bind(this);
     this.loadAppointments = this.loadAppointments.bind(this);
     this.displayDetails = this.displayDetails.bind(this);
 
@@ -70,8 +74,12 @@ export default class NextAppointments extends React.Component {
 
       doctor: null,
       speciality: null,
+      dateFrom: '',
+      dateTo: '',
       isDoctorSelected: false,
       isSpecialitySelected: false,
+      isDateFromSelected: false,
+      isDateFromToSelected: false,
 
       //Appointment dynamic style: open & close
       itemHeight: SCREEN_HEIGHT * 0.13,
@@ -88,12 +96,10 @@ export default class NextAppointments extends React.Component {
   }
 
   componentWillMount() {
-    console.log('componentWillMount')
-
     const { navigation } = this.props;
     navigation.addListener('willFocus', async () => {
-    await this.setState({ appId: null })
-    this.month = ''
+      await this.setState({ appId: null })
+      this.month = ''
     });
   }
 
@@ -113,7 +119,7 @@ export default class NextAppointments extends React.Component {
         .then(() => {
           const { navigation } = this.props;
           //navigation.addListener('willFocus', () =>
-            this.loadAppointments()
+          this.loadAppointments()
           //);
         })
     }
@@ -127,7 +133,8 @@ export default class NextAppointments extends React.Component {
     var query = REFS.appointments
     query = query.where('user_id', '==', this.state.uid)
     query = query.where('finished', '==', false)
-    query = query.orderBy('fullDate', 'desc')
+    query = query.where('cancelBP', '==', false)
+    query = query.orderBy('date', 'desc')
 
     query
       .onSnapshot(function (querySnapshot) {
@@ -135,23 +142,21 @@ export default class NextAppointments extends React.Component {
         let appointments = []
         querySnapshot.forEach(doc => {
           let id = doc.id
-          let day = doc.data().day
-          let month = doc.data().month
-          let year = doc.data().year
-          let timeslot = doc.data().timeslot
+          let date = doc.data().date
           let doctorName = doc.data().doctorName
           let doctorSpeciality = doc.data().doctorSpeciality
           let state = doc.data().state
+          let postponeBP = doc.data().postponeBP
+          let postponing = doc.data().postponing
 
           let app = {
             id: id,
-            day: day,
-            month: month,
-            year: year,
-            timeslot: timeslot,
+            date: date,
             doctorName: doctorName,
             doctorSpeciality: doctorSpeciality,
-            state: state
+            state: state,
+            postponeBP: postponeBP,
+            postponing: postponing
           }
 
           appointments.push(app)
@@ -172,6 +177,13 @@ export default class NextAppointments extends React.Component {
     this.setState({ isRightSideMenuVisible: !this.state.isRightSideMenuVisible, appId: null });
   }
 
+  clearAllFilters = () => {
+    this.setState({
+      doctor: '', speciality: '', dateFrom: '', dateTo: '',
+      isDoctorSelected: false, isSpecialitySelected: false, isDateFromSelected: false, isDateToSelected: false,
+      isRightSideMenuVisible: false
+    })
+  }
   //Get data from filters
   onSelectDoctor = (doctor) => {
     if (doctor === "")
@@ -187,12 +199,18 @@ export default class NextAppointments extends React.Component {
       this.setState({ speciality: speciality, isSpecialitySelected: true })
   }
 
-  clearAllFilters = () => {
-    this.setState({
-      doctor: '', speciality: '',
-      isDoctorSelected: false, isSpecialitySelected: false,
-      isRightSideMenuVisible: false
-    })
+  onSelectDateFrom = (dateFrom) => {
+    if (dateFrom === "")
+      this.setState({ dateFrom: dateFrom, isDateFromSelected: false })
+    else
+      this.setState({ dateFrom: dateFrom, isDateFromSelected: true })
+  }
+
+  onSelectDateTo = (dateTo) => {
+    if (dateTo === "")
+      this.setState({ dateTo: dateTo, isDateToSelected: false })
+    else
+      this.setState({ dateTo: dateTo, isDateToSelected: true })
   }
 
   //LeftSideMenu functions
@@ -296,29 +314,15 @@ export default class NextAppointments extends React.Component {
     }
   }
 
-  renderAppointmentDetails() {
-    /*  REFS.appointments.doc(appId)
-        .get().then((doc) => {
-          this.setState({ symptomes: doc.data().symptomes })
-          console.log(doc.data().symptomes)
-        })*/
-
-
-
-
-    return (<Text> {appId} </Text>);
-
+  handlePostponeAppointment(appId) {
+    this.props.navigation.navigate('Booking', { appId: appId })
   }
 
-  handleEditAppointment(appId) {
-    /*this.setState({ appId: null })
-
-    const state = ['CBP', 'CBA']
-    REFS.appointments.doc(appId).update("state", state).then(() => console.log('Appointment confirmed by ADMIN succesfuly'))
-      .catch((err) => console.error(err))*/
-    this.props.navigation.navigate('AppointmentDetails', { appId: appId, noinput: false })
-
-    console.log('Redirection vers la page détail pour modifier la consultation')
+  handleCancelAppointment(appId) {
+    REFS.appointments.doc(appId).update({ cancelBP: true }).then(() => {
+      this.setState({ appId: null })
+      alert('Votre rendez-vous est annulé.')
+    })
   }
 
   displayDetails = (appId) => {
@@ -332,12 +336,24 @@ export default class NextAppointments extends React.Component {
   render() {
     this.filteredAppointments = this.state.appointments
     this.month = ''
-    console.log('month : ' + this.month)
+    //console.log('month : ' + this.month)
     //console.log(this.filteredAppointments)
     //        firebase.auth().signOut()
     // console.log(this.state.documents)
     //console.log('rr' + this.state.documents)
 
+    if (this.state.dateFrom) {
+      this.filteredAppointments = this.filteredAppointments.filter((appointment) => {
+        //console.log('appointment date: '+ moment(appointment.date).format('YYYY-MM-DD'))
+        //console.log('selected date: '+ moment(this.state.dateFrom).format('YYYY-MM-DD'))
+        return moment(moment(appointment.date).format('YYYY-MM-DD')).isAfter(this.state.dateFrom) || moment(moment(appointment.date).format('YYYY-MM-DD')).isSame(this.state.dateFrom)
+      })
+    }
+    if (this.state.dateTo) {
+      this.filteredAppointments = this.filteredAppointments.filter((appointment) => {
+        return moment(moment(appointment.date).format('YYYY-MM-DD')).isBefore(this.state.dateTo) || moment(moment(appointment.date).format('YYYY-MM-DD')).isSame(this.state.dateTo)
+      })
+    }
     if (this.state.doctor) {
       this.filteredAppointments = this.filteredAppointments.filter(createFilter(this.state.doctor, KEYS_TO_FILTERS_DOCTOR))
       // console.log(this.filteredAppointments)
@@ -348,6 +364,17 @@ export default class NextAppointments extends React.Component {
     /*if (this.state.date) {
       this.filteredAppointments = this.filteredAppointments.filter(createFilter(this.state.date, KEYS_TO_FILTERS_SPECIALITY))
     }*/
+
+    console.log(this.filteredAppointments)
+
+
+    if (this.filteredAppointments) {
+      // console.log(this.filteredAppointments[0])
+      //console.log(moment(this.filteredAppointments[0].date).format('DD-MM-YYYY') )
+      //console.log(moment(this.filteredAppointments[1].date).format('DD-MM-YYYY') )
+    }
+
+
 
     //console.log(this.state.appointments)
     //console.log(this.state.doctor)
@@ -369,11 +396,15 @@ export default class NextAppointments extends React.Component {
         <RightSideMenu
           isSideMenuVisible={this.state.isRightSideMenuVisible}
           toggleSideMenu={this.toggleRightSideMenu}
-          doctor= {this.state.doctor}
-          speciality= {this.state.speciality}
+          doctor={this.state.doctor}
+          speciality={this.state.speciality}
+          dateFrom={this.state.dateFrom}
+          dateTo={this.state.dateTo}
           onSelectDoctor={this.onSelectDoctor}
           onSelectSpeciality={this.onSelectSpeciality}
-          clearAllFilters={this.clearAllFilters}/>
+          onSelectDateFrom={this.onSelectDateFrom}
+          onSelectDateTo={this.onSelectDateTo}
+          clearAllFilters={this.clearAllFilters} />
 
         <Modal isVisible={this.state.isModalImageVisible}
           onBackdropPress={() => this.setState({ isModalImageVisible: false })}
@@ -423,10 +454,10 @@ export default class NextAppointments extends React.Component {
 
             let dateComponent = null
 
-            if (appointment.month !== this.month || this.month === '') {
-              this.month = appointment.month
-              this.year = appointment.year
-              dateComponent = <Text style={{ fontWeight: 'bold', paddingLeft: SCREEN_WIDTH * 0.07, marginBottom: SCREEN_HEIGHT * 0.01, marginTop: SCREEN_HEIGHT * 0.015, color: 'gray' }}> {appointment.month} {appointment.year} </Text>
+            if (moment(appointment.date).format("MMMM") !== this.month || this.month === '') {
+              this.month = moment(appointment.date).format("MMMM")
+              this.year = moment(appointment.date).format("YYYY")
+              dateComponent = <Text style={{ fontWeight: 'bold', paddingLeft: SCREEN_WIDTH * 0.07, marginBottom: SCREEN_HEIGHT * 0.01, marginTop: SCREEN_HEIGHT * 0.015, color: 'gray' }}> {moment(appointment.date).format("MMMM")} {moment(appointment.date).format("YYYY")} </Text>
             }
 
             return (
@@ -439,7 +470,7 @@ export default class NextAppointments extends React.Component {
                     </View>
 
                     <View style={itemStyle.date_container}>
-                      <Text style={itemStyle.date_day}>{appointment.day}</Text>
+                      <Text style={itemStyle.date_day}>{moment(appointment.date).format("Do")}</Text>
                     </View>
 
                     <View style={itemStyle.titles_container}>
@@ -451,7 +482,7 @@ export default class NextAppointments extends React.Component {
                     <View style={itemStyle.data_container}>
                       <Text style={itemStyle.data_text}>{appointment.doctorName}</Text>
                       <Text style={itemStyle.data_text}>{appointment.doctorSpeciality}</Text>
-                      <Text style={itemStyle.data_text}>{appointment.timeslot}</Text>
+                      <Text style={itemStyle.data_text}>{moment(appointment.date).format("HH:mm")}</Text>
                     </View>
 
                     <View style={itemStyle.buttons_container}>
@@ -484,8 +515,8 @@ export default class NextAppointments extends React.Component {
                     <View style={{ flexDirection: 'row', width: SCREEN_WIDTH * 0.95, alignItems: 'flex-start', justifyContent: 'space-evenly' }}>
 
                       <View style={{ marginBottom: SCREEN_HEIGHT * 0.02 }}>
-                      <Text style={{ marginBottom: SCREEN_HEIGHT * 0.01 }}>Durée</Text>
-                      <Text style={{ fontWeight: 'bold' }}>30 min</Text>
+                        <Text style={{ marginBottom: SCREEN_HEIGHT * 0.01 }}>Durée</Text>
+                        <Text style={{ fontWeight: 'bold' }}>30 min</Text>
                       </View>
 
                       <View style={{}}>
@@ -510,14 +541,26 @@ export default class NextAppointments extends React.Component {
                     </View>
                     : null}
 
-                  {this.state.appId === appointment.id ?  //&& !appointment.state.includes('CBA')
+                  {this.state.appId === appointment.id && appointment.postponing === false ?  //&& !appointment.state.includes('CBA')
                     <View style={itemStyle.confirmButton_container}>
                       <Button
                         width={SCREEN_WIDTH * 0.35}
                         paddingTop={0}
                         paddingBottom={0}
-                        text="Modifier"
-                        onPress={() => this.handleEditAppointment(appointment.id)} />
+                        text="Annuler"
+                        onPress={() => this.handleCancelAppointment(appointment.id)} />
+                      <Button
+                        width={SCREEN_WIDTH * 0.35}
+                        paddingTop={0}
+                        paddingBottom={0}
+                        text="Reporter"
+                        onPress={() => this.handlePostponeAppointment(appointment.id)} />
+                    </View>
+                    : null}
+
+                  {this.state.appId === appointment.id && appointment.postponing === true ?  //&& !appointment.state.includes('CBA')
+                    <View style={itemStyle.confirmButton_container}>
+                        <Text>Cette consultation est en cours de modification.</Text>
                     </View>
                     : null}
 
@@ -668,6 +711,8 @@ const itemStyle = StyleSheet.create({
     //backgroundColor: 'blue'
   },
   confirmButton_container: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
     position: 'absolute',
     bottom: SCREEN_HEIGHT * 0.06,
     //backgroundColor: 'yellow'

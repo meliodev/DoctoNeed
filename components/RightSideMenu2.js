@@ -123,7 +123,7 @@ export default class RightSideMenu2 extends Component {
                                 date={this.props.dateFrom}
                                 mode="date"
                                 placeholder="Jour - Mois - Année"
-                                format="DD-MM-YYYY"
+                                format="YYYY-MM-DD"
                                 //minDate="1920-01-01"
                                 //maxDate= {Today}
                                 confirmBtnText="Confirm"
@@ -139,9 +139,9 @@ export default class RightSideMenu2 extends Component {
                                 date={this.props.dateTo}
                                 mode="date"
                                 placeholder="Jour - Mois - Année"
-                                format="DD-MM-YYYY"
+                                format="YYYY-MM-DD"
                                 //minDate="1920-01-01"
-                                maxDate={Today}
+                                //maxDate={Today}
                                 confirmBtnText="Confirm"
                                 cancelBtnText="Cancel"
                                 onDateChange={(date) => this.props.onSelectDateTo(date)}

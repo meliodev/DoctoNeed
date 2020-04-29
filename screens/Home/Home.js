@@ -12,9 +12,9 @@ import Navigation from '../../Navigation/Navigation'
 
 import HomeGuest from './Guest/HomeGuest';
 
-import Search from '../../screens/Booking/Search'
+import Search from '../Booking/Search'
 import DoctorFile from '../../screens/Booking/DoctorFile'
-import Booking from '../../screens/Booking/Booking'
+import Booking from '../Booking/Booking'
 import Symptomes from '../../screens/Booking/Symptomes'
 import Upload from '../../screens/Booking/Upload'
 import BookingConfirmed from '../../screens/Booking/BookingConfirmed'

@@ -7,6 +7,10 @@ import React from 'react'
 import { View, TextInput, Text, Image, Dimensions, TouchableHighlight, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
 import SearchInput, { createFilter } from 'react-native-search-filter';
 
+import moment from 'moment'
+import 'moment/locale/fr'  // without this line it didn't work
+moment.locale('fr')
+
 import LeftSideMenu from '../../../components/LeftSideMenu'
 import RightSideMenu from '../../../components/RightSideMenu4'
 
@@ -24,7 +28,6 @@ const KEYS_TO_FILTERS_DATE = ['date'];
 
 import Button from '../../../components/Button';
 import Button2 from '../../../components/Button2';
-import AppointmentItem from '../../../components/Admin/NextAppointmentItem'
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -40,9 +43,10 @@ export default class PreviousAppointments extends React.Component {
     this.year = 0
     this.itemHeight = SCREEN_HEIGHT * 0.13
     this.signOutUser = this.signOutUser.bind(this);
-    this.signOutUserandToggle = this.signOutUserandToggle.bind(this);
 
     //Menu
+    this.signOutUserandToggle = this.signOutUserandToggle.bind(this);
+
     this.navigateToProfile = this.navigateToProfile.bind(this);
     this.navigateToDispoConfig = this.navigateToDispoConfig.bind(this);
     this.navigateToAppointments = this.navigateToAppointments.bind(this);
@@ -52,10 +56,11 @@ export default class PreviousAppointments extends React.Component {
     //Filters
     this.onSelectPatient = this.onSelectPatient.bind(this);
     this.onSelectCountry = this.onSelectCountry.bind(this);
+    this.onSelectDateFrom = this.onSelectDateFrom.bind(this);
+    this.onSelectDateTo = this.onSelectDateTo.bind(this);
 
     this.toggleAppointment = this.toggleAppointment.bind(this);
     this.defineItemStyle = this.defineItemStyle.bind(this);
-    this.renderAppointmentDetails = this.renderAppointmentDetails.bind(this);
     this.loadAppointments = this.loadAppointments.bind(this);
     this.displayDetails = this.displayDetails.bind(this);
 
@@ -73,8 +78,13 @@ export default class PreviousAppointments extends React.Component {
 
       patient: null,
       country: null,
+      dateFrom: '',
+      dateTo: '',
       isPatientSelected: false,
       isCountrySelected: false,
+      isDateFromSelected: false,
+      isDateFromToSelected: false,
+
 
       //Appointment dynamic style: open & close
       itemHeight: SCREEN_HEIGHT * 0.13,
@@ -91,7 +101,6 @@ export default class PreviousAppointments extends React.Component {
   }
 
   componentWillMount() {
-    console.log('componentWillMount')
 
     const { navigation } = this.props;
     navigation.addListener('willFocus', async () => {
@@ -130,7 +139,7 @@ export default class PreviousAppointments extends React.Component {
     var query = REFS.appointments
     query = query.where('doctor_id', '==', firebase.auth().currentUser.uid)
     query = query.where('finished', '==', true)
-    query = query.orderBy('fullDate', 'desc')
+    query = query.orderBy('date', 'desc')
 
     query
       .onSnapshot(function (querySnapshot) {
@@ -138,24 +147,14 @@ export default class PreviousAppointments extends React.Component {
         let appointments = []
         querySnapshot.forEach(doc => {
           let id = doc.id
-          let day = doc.data().day
-          let month = doc.data().month
-          let year = doc.data().year
-          let timeslot = doc.data().timeslot
-          let doctorName = doc.data().doctorName
-          let doctorSpeciality = doc.data().doctorSpeciality
+          let date = doc.data().date
           let userName = doc.data().userName
           let userCountry = doc.data().userCountry
           let state = doc.data().state
 
           let app = {
             id: id,
-            day: day,
-            month: month,
-            year: year,
-            timeslot: timeslot,
-            doctorName: doctorName,
-            doctorSpeciality: doctorSpeciality,
+            date: date,
             userName: userName,
             userCountry: userCountry,
             state: state
@@ -181,8 +180,8 @@ export default class PreviousAppointments extends React.Component {
 
   clearAllFilters = () => {
     this.setState({
-      patient: '', country: '', doctor: '', speciality: '',
-      isPatientSelected: false, isCountrySelected: false,
+      patient: '', country: '', doctor: '', speciality: '', dateFrom: '', dateTo: '',
+      isPatientSelected: false, isCountrySelected: false, isDateFromSelected: false, isDateToSelected: false,
       isRightSideMenuVisible: false
     })
   }
@@ -200,6 +199,20 @@ export default class PreviousAppointments extends React.Component {
       this.setState({ country: country, isCountrySelected: false })
     else
       this.setState({ country: country, isCountrySelected: true })
+  }
+
+  onSelectDateFrom = (dateFrom) => {
+    if (dateFrom === "")
+      this.setState({ dateFrom: dateFrom, isDateFromSelected: false })
+    else
+      this.setState({ dateFrom: dateFrom, isDateFromSelected: true })
+  }
+
+  onSelectDateTo = (dateTo) => {
+    if (dateTo === "")
+      this.setState({ dateTo: dateTo, isDateToSelected: false })
+    else
+      this.setState({ dateTo: dateTo, isDateToSelected: true })
   }
 
   //LeftSideMenu functions
@@ -309,19 +322,6 @@ export default class PreviousAppointments extends React.Component {
     }
   }
 
-  renderAppointmentDetails() {
-    /*  REFS.appointments.doc(appId)
-        .get().then((doc) => {
-          this.setState({ symptomes: doc.data().symptomes })
-          console.log(doc.data().symptomes)
-        })*/
-
-
-
-
-    return (<Text> {appId} </Text>);
-
-  }
 
 
   displayDetails = (appId) => {
@@ -335,6 +335,19 @@ export default class PreviousAppointments extends React.Component {
   render() {
     this.filteredAppointments = this.state.appointments
     this.month = ''
+
+    if (this.state.dateFrom) {
+      this.filteredAppointments = this.filteredAppointments.filter((appointment) => {
+          //console.log('appointment date: '+ moment(appointment.date).format('YYYY-MM-DD'))
+          //console.log('selected date: '+ moment(this.state.dateFrom).format('YYYY-MM-DD'))
+        return moment(moment(appointment.date).format('YYYY-MM-DD')).isAfter(this.state.dateFrom) || moment(moment(appointment.date).format('YYYY-MM-DD')).isSame(this.state.dateFrom) 
+      })
+    }
+    if (this.state.dateTo) {
+      this.filteredAppointments = this.filteredAppointments.filter((appointment) => {
+        return moment(moment(appointment.date).format('YYYY-MM-DD')).isBefore(this.state.dateTo) || moment(moment(appointment.date).format('YYYY-MM-DD')).isSame(this.state.dateTo) 
+      })
+    }
 
     if (this.state.patient) {
       this.filteredAppointments = this.filteredAppointments.filter(createFilter(this.state.patient, KEYS_TO_FILTERS_PATIENT))
@@ -370,8 +383,12 @@ export default class PreviousAppointments extends React.Component {
           toggleSideMenu={this.toggleRightSideMenu}
           patient={this.state.patient}
           country={this.state.country}
+          dateFrom={this.state.dateFrom}
+          dateTo={this.state.dateTo}
           onSelectPatient={this.onSelectPatient}
           onSelectCountry={this.onSelectCountry} 
+          onSelectDateFrom={this.onSelectDateFrom}
+          onSelectDateTo={this.onSelectDateTo}
           clearAllFilters={this.clearAllFilters}/>
 
         <Modal isVisible={this.state.isModalImageVisible}
@@ -422,10 +439,10 @@ export default class PreviousAppointments extends React.Component {
 
             let dateComponent = null
 
-            if (appointment.month !== this.month || this.month === '') {
-              this.month = appointment.month
-              this.year = appointment.year
-              dateComponent = <Text style={{ fontWeight: 'bold', paddingLeft: SCREEN_WIDTH * 0.07, marginBottom: SCREEN_HEIGHT * 0.01, marginTop: SCREEN_HEIGHT * 0.015, color: 'gray' }}> {appointment.month} {appointment.year} </Text>
+            if (moment(appointment.date).format("MMMM") !== this.month || this.month === '') {
+              this.month = moment(appointment.date).format("MMMM")
+              this.year = moment(appointment.date).format("YYYY")
+              dateComponent = <Text style={{ fontWeight: 'bold', paddingLeft: SCREEN_WIDTH * 0.07, marginBottom: SCREEN_HEIGHT * 0.01, marginTop: SCREEN_HEIGHT * 0.015, color: 'gray' }}> {moment(appointment.date).format("MMMM")} {moment(appointment.date).format("YYYY")} </Text>
             }
 
             return (
@@ -438,7 +455,7 @@ export default class PreviousAppointments extends React.Component {
                     </View>
 
                     <View style={itemStyle.date_container}>
-                      <Text style={itemStyle.date_day}>{appointment.day}</Text>
+                    <Text style={itemStyle.date_day}>{moment(appointment.date).format("Do")}</Text>
                     </View>
 
                     <View style={itemStyle.titles_container}>
@@ -450,7 +467,7 @@ export default class PreviousAppointments extends React.Component {
                     <View style={itemStyle.data_container}>
                       <Text style={itemStyle.data_text}>{appointment.userName}</Text>
                       <Text style={itemStyle.data_text}>{appointment.userCountry}</Text>
-                      <Text style={itemStyle.data_text}>{appointment.timeslot}</Text>
+                      <Text style={itemStyle.data_text}>{moment(appointment.date).format("HH:mm")}</Text>
                     </View>
 
                     <View style={itemStyle.buttons_container}>

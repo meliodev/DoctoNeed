@@ -44,12 +44,9 @@ export default class Upload extends React.Component {
     this.VideoSource = null
     this.VideoStorageRef = null
     this.ImageObjects = []
-    this.doctor = this.props.navigation.getParam('doctor', 'nothing sent')
-    this.fullDate = this.props.navigation.getParam('fullDate', 'nothing sent')
-    this.daySelected = this.props.navigation.getParam('daySelected', 'nothing sent')
-    this.monthSelected = this.props.navigation.getParam('monthSelected', 'nothing sent')
-    this.yearSelected = this.props.navigation.getParam('yearSelected', 'nothing sent')
-    this.timeSelected = this.props.navigation.getParam('timeSelected', 'nothing sent')
+    this.doctor = null
+    this.doctorId = this.props.navigation.getParam('doctorId', 'nothing sent')
+    this.date = this.props.navigation.getParam('date', 'nothing sent') 
     this.symptomes = this.props.navigation.getParam('symptomes', 'nothing sent')
     this.comment = this.props.navigation.getParam('comment', 'nothing sent')
 
@@ -75,6 +72,17 @@ export default class Upload extends React.Component {
     this.setState({ currentUser })
     REFS.users.doc(currentUser.uid).get().then(doc => {
       this.setState({ userName: doc.data().nom + ' ' + doc.data().prenom, userCountry: doc.data().country })
+    })
+
+    REFS.doctors.doc(this.doctorId).get().then((doc) => {
+         let doctor = {
+           uid: doc.id,
+           nom: doc.data().nom,
+           prenom: doc.data().prenom,
+           speciality: doc.data().speciality
+         }
+
+         this.doctor = doctor
     })
   }
 
@@ -191,9 +199,9 @@ export default class Upload extends React.Component {
       .then(() => {
         
         this.props.navigation.navigate('BookingConfirmed', {
-        doctor: this.doctor, fullDate: this.fullDate, daySelected: this.daySelected,
-        monthSelected: this.monthSelected, yearSelected: this.yearSelected,
-        timeSelected: this.timeSelected, symptomes: this.symptomes,
+        doctor: this.doctor, 
+        date: this.date, 
+        symptomes: this.symptomes,
         comment: this.comment
       })
       })
@@ -222,12 +230,13 @@ export default class Upload extends React.Component {
       user_id: firebase.auth().currentUser.uid,
       userName: this.state.userName,
       userCountry: this.state.userCountry,
+      date: this.date,
       //date & hour
-      fullDate: this.fullDate,
-      day: Number(this.daySelected),
-      month: this.monthSelected,
-      year: Number(this.yearSelected),
-      timeslot: this.timeSelected,
+      //fullDate: this.fullDate,
+      //day: Number(this.daySelected),
+      //month: this.monthSelected,
+      //year: Number(this.yearSelected),
+      //timeslot: this.timeSelected,
       //appointment data
       symptomes: this.symptomes,
       comment: this.comment,
@@ -236,7 +245,13 @@ export default class Upload extends React.Component {
       //Video: this.state.VideoStorageRef,
       //appointment state  ; CBP: Confirmed By Patient
       state: ['CBP'],
-      finished: false
+      finished: false,
+      cancelBP: false,
+
+      postponing: false,
+      postponeBP: false,
+      postponeBA: false,
+      postponeBD: false,
     })
       .then((doc) => {
         this.uploadFiles(doc.id)

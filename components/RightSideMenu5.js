@@ -200,7 +200,7 @@ export default class RightSideMenu5 extends Component {
 
 
 
-                {/*    <View style={styles.date_container}>
+<View style={styles.date_container}>
                         <Text style={styles.title_text}>Date</Text>
                         <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', marginBottom: SCREEN_HEIGHT * 0.02 }}>
                             <Text style={[styles.title_text, { color: 'gray' }]}>Du</Text>
@@ -209,7 +209,7 @@ export default class RightSideMenu5 extends Component {
                                 date={this.props.dateFrom}
                                 mode="date"
                                 placeholder="Jour - Mois - Année"
-                                format="DD-MM-YYYY"
+                                format="YYYY-MM-DD"
                                 //minDate="1920-01-01"
                                 //maxDate= {Today}
                                 confirmBtnText="Confirm"
@@ -225,16 +225,16 @@ export default class RightSideMenu5 extends Component {
                                 date={this.props.dateTo}
                                 mode="date"
                                 placeholder="Jour - Mois - Année"
-                                format="DD-MM-YYYY"
+                                format="YYYY-MM-DD"
                                 //minDate="1920-01-01"
-                                maxDate={Today}
+                                //maxDate={Today}
                                 confirmBtnText="Confirm"
                                 cancelBtnText="Cancel"
                                 onDateChange={(date) => this.props.onSelectDateTo(date)}
                             />
                         </View>
 
-                    </View> */}
+                    </View> 
 
                     <View style={styles.buttons_container}>
                         <TouchableHighlight onPress={this.props.clearAllFilters} style={styles.CancelButton}>

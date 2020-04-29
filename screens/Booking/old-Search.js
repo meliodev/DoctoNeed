@@ -98,7 +98,64 @@ class Search extends React.Component {
 
   //handle doctor click
   onDoctorClick(doctor) {
-        this.props.navigation.navigate('Booking', { doctorId: doctor.uid})
+    let ts0800 = {
+      id: null,
+      time: '',
+      status: ''
+    }
+    let ts0815 = {
+      id: null,
+      time: '',
+      status: ''
+    }
+    let ts0830 = {
+      id: null,
+      time: '',
+      status: ''
+    }
+    let timeslots = []
+    let doctorSchedule = []
+    let dayMonth = []
+
+    REFS.doctors.doc(doctor.uid).collection('DoctorSchedule').orderBy('fullDate', 'asc').limit(56)
+      .get().then(querySnapshot => {
+        querySnapshot.forEach(doc => {
+
+          let day = doc.data().day
+          let month = doc.data().month
+          let year = doc.data().year
+          let fullDate = doc.data().fullDate
+          let status = doc.data().status
+
+          let dayandMonth = {
+            id: day + month + year,
+            day: day,
+            month: month,
+            year: year,
+            fullDate: fullDate,
+            status: status
+          }
+
+          timeslots.push(doc.data().timeslots.ts0800)
+          timeslots.push(doc.data().timeslots.ts0900)
+          timeslots.push(doc.data().timeslots.ts1000)
+          timeslots.push(doc.data().timeslots.ts1100)
+          timeslots.push(doc.data().timeslots.ts1200)
+          timeslots.push(doc.data().timeslots.ts1300)
+          timeslots.push(doc.data().timeslots.ts1400)
+          timeslots.push(doc.data().timeslots.ts1500)
+          timeslots.push(doc.data().timeslots.ts1600)
+          timeslots.push(doc.data().timeslots.ts1700)
+          timeslots.push(doc.data().timeslots.ts1800)
+          timeslots.push(doc.data().timeslots.ts1900)
+          doctorSchedule.push(timeslots)
+          dayMonth.push(dayandMonth)
+          timeslots = []
+
+        })
+      }).then(() => {
+        this.props.navigation.navigate('Booking', { doctor: doctor, doctorSchedule: doctorSchedule, dayMonth: dayMonth })
+      })
   }
 
   displayDoctorDetails(doctor) {

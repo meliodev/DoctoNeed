@@ -10,6 +10,10 @@ import SearchInput, { createFilter } from 'react-native-search-filter';
 import LeftSideMenu from '../../../components/LeftSideMenu2'
 import RightSideMenu from '../../../components/RightSideMenu5'
 
+import moment from 'moment'
+import 'moment/locale/fr'  // without this line it didn't work
+moment.locale('fr')
+
 import firebase from 'react-native-firebase'
 import { signOutUser } from '../../../DB/CRUD'
 import * as REFS from '../../../DB/CollectionsRefs'
@@ -26,7 +30,6 @@ const KEYS_TO_FILTERS_DATE = ['date'];
 
 import Button from '../../../components/Button';
 import Button2 from '../../../components/Button2';
-import AppointmentItem from '../../../components/Admin/NextAppointmentItem'
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -56,11 +59,12 @@ export default class NextAppointments extends React.Component {
     this.onSelectPatient = this.onSelectPatient.bind(this);
     this.onSelectCountry = this.onSelectCountry.bind(this);
     this.onSelectState = this.onSelectState.bind(this);
+    this.onSelectDateFrom = this.onSelectDateFrom.bind(this);
+    this.onSelectDateTo = this.onSelectDateTo.bind(this);
 
 
     this.toggleAppointment = this.toggleAppointment.bind(this);
     this.defineItemStyle = this.defineItemStyle.bind(this);
-    this.renderAppointmentDetails = this.renderAppointmentDetails.bind(this);
     this.loadAppointments = this.loadAppointments.bind(this);
     this.displayDetails = this.displayDetails.bind(this);
 
@@ -81,11 +85,15 @@ export default class NextAppointments extends React.Component {
       patient: null,
       country: null,
       appointmentState: '',
+      dateFrom: '',
+      dateTo: '',
       isDoctorSelected: false,
       isSpecialitySelected: false,
       isPatientSelected: false,
       isCountrySelected: false,
       isAppointmentStateSelected: false,
+      isDateFromSelected: false,
+      isDateFromToSelected: false,
 
 
       //Appointment dynamic style: open & close
@@ -103,7 +111,6 @@ export default class NextAppointments extends React.Component {
   }
 
   componentWillMount() {
-    console.log('componentWillMount')
 
     const { navigation } = this.props;
     navigation.addListener('willFocus', async () => {
@@ -140,8 +147,9 @@ export default class NextAppointments extends React.Component {
     this.appointments = []
 
     var query = REFS.appointments
+
     query = query.where('finished', '==', false)
-    query = query.orderBy('fullDate', 'desc')
+    query = query.orderBy('date', 'desc')
 
     query
       .onSnapshot(function (querySnapshot) {
@@ -149,27 +157,36 @@ export default class NextAppointments extends React.Component {
         let appointments = []
         querySnapshot.forEach(doc => {
           let id = doc.id
-          let day = doc.data().day
-          let month = doc.data().month
-          let year = doc.data().year
-          let timeslot = doc.data().timeslot
+          let date = ''
+
+          if (doc.data().postponeBP) {
+            date = doc.data().postponedBPto
+          }
+
+          else date = doc.data().date
+
+          let state = doc.data().state
           let doctorName = doc.data().doctorName
           let doctorSpeciality = doc.data().doctorSpeciality
-          let state = doc.data().state
           let userName = doc.data().userName
           let userCountry = doc.data().userCountry
+          let postponing = doc.data().postponing
+          let postponeBP = doc.data().postponeBP
+          let postponeBA = doc.data().postponeBA
+          let postponedBPto = doc.data().postponedBPto
 
           let app = {
             id: id,
-            day: day,
-            month: month,
-            year: year,
-            timeslot: timeslot,
+            date: date,
             doctorName: doctorName,
             doctorSpeciality: doctorSpeciality,
             userName: userName,
             userCountry: userCountry,
             state: state,
+            postponing: postponing,
+            postponeBP: postponeBP,
+            postponeBA: postponeBA,
+            postponedBPto: postponedBPto
           }
 
           appointments.push(app)
@@ -192,8 +209,8 @@ export default class NextAppointments extends React.Component {
 
   clearAllFilters = () => {
     this.setState({
-      doctor: '', speciality: '', patient: '', country: '', appointmentState: '',
-      isDoctorSelected: false, isSpecialitySelected: false, isPatientSelected: false, isCountrySelected: false, isAppointmentStateSelected: false,
+      doctor: '', speciality: '', patient: '', country: '', appointmentState: '', dateFrom: '', dateTo: '',
+      isDoctorSelected: false, isSpecialitySelected: false, isPatientSelected: false, isCountrySelected: false, isAppointmentStateSelected: false, isDateFromSelected: false, isDateToSelected: false,
       isRightSideMenuVisible: false
     })
   }
@@ -232,6 +249,20 @@ export default class NextAppointments extends React.Component {
       this.setState({ appointmentState: appointmentState, isAppointmentStateSelected: false })
     else
       this.setState({ appointmentState: appointmentState, isAppointmentStateSelected: true })
+  }
+
+  onSelectDateFrom = (dateFrom) => {
+    if (dateFrom === "")
+      this.setState({ dateFrom: dateFrom, isDateFromSelected: false })
+    else
+      this.setState({ dateFrom: dateFrom, isDateFromSelected: true })
+  }
+
+  onSelectDateTo = (dateTo) => {
+    if (dateTo === "")
+      this.setState({ dateTo: dateTo, isDateToSelected: false })
+    else
+      this.setState({ dateTo: dateTo, isDateToSelected: true })
   }
 
   //LeftSideMenu functions
@@ -342,49 +373,45 @@ export default class NextAppointments extends React.Component {
     }
   }
 
-  renderAppointmentDetails() {
-    /*  REFS.appointments.doc(appId)
-        .get().then((doc) => {
-          this.setState({ symptomes: doc.data().symptomes })
-          console.log(doc.data().symptomes)
-        })*/
-
-
-
-
-    return (<Text> {appId} </Text>);
-
-  }
-
-  handleConfirmAppointment(appId) {
+  handleConfirmAppointment(appId, postponeBP, postponedBPto) {
     this.setState({ appId: null })
 
-    //Add state of the appointment: Confirmed By Admin
-    const state = ['CBP', 'CBA']
-    REFS.appointments.doc(appId).update("state", state)
-      .then(() => {
+    if (postponeBP) {
+      console.log('postponing')
+      REFS.appointments.doc(appId).update({ postponeBA: true })
+    }
 
-        REFS.appointments.doc(appId).get().then((appDoc) => {
+    else {
+      console.log('confirming normal')
 
-          REFS.users.doc(appDoc.data().user_id).get().then((userdoc) => {
-            let myDoctors = []
+      //Add state of the appointment: Confirmed By Admin
+      const state = ['CBP', 'CBA']
+      REFS.appointments.doc(appId).update("state", state)
+        .then(() => {
 
-            //Check if there is at Least one doctor assigned to to patient
-            if (userdoc.data().myDoctors) {
-              myDoctors = userdoc.data().myDoctors
-            }
+          REFS.appointments.doc(appId).get().then((appDoc) => {
 
-            //Check if the doctor exists: Add him if not..
-            if (!myDoctors.includes(appDoc.data().doctor_id)) {
-              myDoctors.push(appDoc.data().doctor_id)
-              REFS.users.doc(appDoc.data().user_id).update("myDoctors", myDoctors)
-            }
+            REFS.users.doc(appDoc.data().user_id).get().then((userdoc) => {
+              let myDoctors = []
 
-          }).catch((err) => console.error('1' + err))
+              //Check if there is at Least one doctor assigned to to patient
+              if (userdoc.data().myDoctors) {
+                myDoctors = userdoc.data().myDoctors
+              }
 
-        }).catch((err) => console.error('2' + err))
+              //Check if the doctor exists: Add him if not..
+              if (!myDoctors.includes(appDoc.data().doctor_id)) {
+                myDoctors.push(appDoc.data().doctor_id)
+                REFS.users.doc(appDoc.data().user_id).update("myDoctors", myDoctors)
+              }
 
-      }).catch((err) => console.error('3' + err))
+            }).catch((err) => console.error('1' + err))
+
+          }).catch((err) => console.error('2' + err))
+
+        }).catch((err) => console.error('3' + err))
+    }
+
   }
 
   displayDetails = (appId) => {
@@ -399,12 +426,24 @@ export default class NextAppointments extends React.Component {
   render() {
     this.filteredAppointments = this.state.appointments
     this.month = ''
-    console.log('month : ' + this.month)
+    //console.log('month : ' + this.month)
     //console.log(this.filteredAppointments)
     //      firebase.auth().signOut()
     // console.log(this.state.documents)
     //console.log('rr' + this.state.documents)
 
+    if (this.state.dateFrom) {
+      this.filteredAppointments = this.filteredAppointments.filter((appointment) => {
+        //console.log('appointment date: '+ moment(appointment.date).format('YYYY-MM-DD'))
+        //console.log('selected date: '+ moment(this.state.dateFrom).format('YYYY-MM-DD'))
+        return moment(moment(appointment.date).format('YYYY-MM-DD')).isAfter(this.state.dateFrom) || moment(moment(appointment.date).format('YYYY-MM-DD')).isSame(this.state.dateFrom)
+      })
+    }
+    if (this.state.dateTo) {
+      this.filteredAppointments = this.filteredAppointments.filter((appointment) => {
+        return moment(moment(appointment.date).format('YYYY-MM-DD')).isBefore(this.state.dateTo) || moment(moment(appointment.date).format('YYYY-MM-DD')).isSame(this.state.dateTo)
+      })
+    }
     if (this.state.doctor) {
       this.filteredAppointments = this.filteredAppointments.filter(createFilter(this.state.doctor, KEYS_TO_FILTERS_DOCTOR))
       // console.log(this.filteredAppointments)
@@ -412,7 +451,7 @@ export default class NextAppointments extends React.Component {
     if (this.state.speciality) {
       this.filteredAppointments = this.filteredAppointments.filter(createFilter(this.state.speciality, KEYS_TO_FILTERS_SPECIALITY))
     }
-    
+
     if (this.state.patient) {
       this.filteredAppointments = this.filteredAppointments.filter(createFilter(this.state.patient, KEYS_TO_FILTERS_PATIENT))
       // console.log(this.filteredAppointments)
@@ -461,6 +500,8 @@ export default class NextAppointments extends React.Component {
           isNextAppointments={true}
           doctor={this.state.doctor}
           speciality={this.state.speciality}
+          dateFrom={this.state.dateFrom}
+          dateTo={this.state.dateTo}
           patient={this.state.patient}
           country={this.state.country}
           appointmentState={this.state.appointmentState}
@@ -469,6 +510,8 @@ export default class NextAppointments extends React.Component {
           onSelectPatient={this.onSelectPatient}
           onSelectCountry={this.onSelectCountry}
           onSelectState={this.onSelectState}
+          onSelectDateFrom={this.onSelectDateFrom}
+          onSelectDateTo={this.onSelectDateTo}
           clearAllFilters={this.clearAllFilters} />
 
         <Modal isVisible={this.state.isModalImageVisible}
@@ -519,10 +562,10 @@ export default class NextAppointments extends React.Component {
 
             let dateComponent = null
 
-            if (appointment.month !== this.month || this.month === '') {
-              this.month = appointment.month
-              this.year = appointment.year
-              dateComponent = <Text style={{ fontWeight: 'bold', paddingLeft: SCREEN_WIDTH * 0.07, marginBottom: SCREEN_HEIGHT * 0.01, marginTop: SCREEN_HEIGHT * 0.015, color: 'gray' }}> {appointment.month} {appointment.year} </Text>
+            if (moment(appointment.date).format("MMMM") !== this.month || this.month === '') {
+              this.month = moment(appointment.date).format("MMMM")
+              this.year = moment(appointment.date).format("YYYY")
+              dateComponent = <Text style={{ fontWeight: 'bold', paddingLeft: SCREEN_WIDTH * 0.07, marginBottom: SCREEN_HEIGHT * 0.01, marginTop: SCREEN_HEIGHT * 0.015, color: 'gray' }}> {moment(appointment.date).format("MMMM")} {moment(appointment.date).format("YYYY")} </Text>
             }
 
             return (
@@ -535,7 +578,12 @@ export default class NextAppointments extends React.Component {
                     </View>
 
                     <View style={itemStyle.date_container}>
-                      <Text style={itemStyle.date_day}>{appointment.day}</Text>
+                      {appointment.postponeBP ?
+                        <Text style={itemStyle.date_day}>{moment(appointment.postponedBPto).format("Do")}</Text>
+
+                        :
+                        <Text style={itemStyle.date_day}>{moment(appointment.date).format("Do")}</Text>
+                      }
                     </View>
 
                     <View style={itemStyle.titles_container}>
@@ -547,7 +595,11 @@ export default class NextAppointments extends React.Component {
                     <View style={itemStyle.data_container}>
                       <Text style={itemStyle.data_text}>{appointment.doctorName}</Text>
                       <Text style={itemStyle.data_text}>{appointment.doctorSpeciality}</Text>
-                      <Text style={itemStyle.data_text}>{appointment.timeslot}</Text>
+                      {appointment.postponeBP ?
+                        <Text style={itemStyle.data_text}>{moment(appointment.postponedBPto).format("HH:mm")}</Text>
+                        :
+                        <Text style={itemStyle.data_text}>{moment(appointment.date).format("HH:mm")}</Text>
+                      }
                     </View>
 
                     <View style={itemStyle.buttons_container}>
@@ -577,47 +629,47 @@ export default class NextAppointments extends React.Component {
                   </View>
 
                   {this.state.appId === appointment.id ?
-                    <View style={{ flexDirection: 'row', width: SCREEN_WIDTH * 0.95, alignItems: 'flex-start', justifyContent: 'space-evenly' }}>
+                    <View style={{ flexDirection: 'row', width: SCREEN_WIDTH * 0.95, paddingLeft: SCREEN_WIDTH * 0.08, paddingRight: SCREEN_WIDTH * 0.08, alignItems: 'flex-start', justifyContent: 'space-evenly' }}>
 
-                      <View style={{ marginBottom: SCREEN_HEIGHT * 0.02 }}>
-                        <Text style={{ marginBottom: SCREEN_HEIGHT * 0.01 }}>Durée</Text>
-                        <Text style={{ fontWeight: 'bold' }}>30 min</Text>
+                      <View style={{ width: SCREEN_WIDTH * 0.2 }}>
+                        <Text style={{ marginBottom: SCREEN_HEIGHT * 0.01, fontSize: SCREEN_HEIGHT * 0.014 }}>Durée</Text>
+                        <Text style={{ fontWeight: 'bold', fontSize: SCREEN_HEIGHT * 0.014 }}>30 min</Text>
                       </View>
 
-                      <View style={{}}>
-                        <Text style={{ marginBottom: SCREEN_HEIGHT * 0.01 }}>Documents médicaux</Text>
+                      <View style={{ width: SCREEN_WIDTH * 0.4, paddingLeft: SCREEN_WIDTH * 0.02, marginLeft: SCREEN_WIDTH * 0.02 }}>
+                        <Text style={{ marginBottom: SCREEN_HEIGHT * 0.01, fontSize: SCREEN_HEIGHT * 0.014 }}>Documents médicaux</Text>
                         {this.state.documents.map(function (doc, key) {
                           return (
                             <View>
-                              <Text style={{ color: '#333', fontWeight: 'bold', textDecorationLine: 'underline', marginBottom: SCREEN_HEIGHT * 0.01 }}
+                              <Text style={{ color: '#333', fontSize: SCREEN_HEIGHT * 0.014, fontWeight: 'bold', textDecorationLine: 'underline', marginBottom: SCREEN_HEIGHT * 0.01 }}
                                 onPress={() => this.toggleModalImage(doc)} >Document {key + 1}</Text>
                             </View>)
                         }.bind(this))}
 
                       </View>
 
-                      <View >
-                        <Text style={{ marginBottom: SCREEN_HEIGHT * 0.01 }}>Symptômes</Text>
+                      <View style={{ width: SCREEN_WIDTH * 0.35, marginLeft: SCREEN_WIDTH * 0.1 }}>
+                        <Text style={{ marginBottom: SCREEN_HEIGHT * 0.01, fontSize: SCREEN_HEIGHT * 0.014 }}>Symptômes</Text>
                         {this.state.symptomes.map(symptom => {
-                          return (<Text style={{ fontWeight: 'bold' }}>{symptom}</Text>)
+                          return (<Text style={{ flexWrap: 'wrap', fontWeight: 'bold', fontSize: SCREEN_HEIGHT * 0.014 }}>{symptom}</Text>)
                         })}
                       </View>
 
                     </View>
                     : null}
 
-                  {this.state.appId === appointment.id && !appointment.state.includes('CBA') ?
+                  {this.state.appId === appointment.id && !appointment.state.includes('CBA') || this.state.appId === appointment.id && appointment.postponing === true && appointment.postponeBA === false ?
                     <View style={itemStyle.confirmButton_container}>
                       <Button
                         width={SCREEN_WIDTH * 0.35}
                         paddingTop={0}
                         paddingBottom={0}
                         text="Confirmer"
-                        onPress={() => this.handleConfirmAppointment(appointment.id)} />
+                        onPress={() => this.handleConfirmAppointment(appointment.id, appointment.postponeBP, appointment.postponedBPto)} />
                     </View>
                     : null}
 
-                  {this.state.appId === appointment.id && appointment.state.includes('CBA') ?
+                  {this.state.appId === appointment.id && appointment.state.includes('CBA') && appointment.postponing === false || this.state.appId === appointment.id && appointment.postponing === true && appointment.postponeBA === true ?
                     <View style={itemStyle.confirmButton_container}>
                       <View style={{ backgroundColor: '#b2b2b2', borderRadius: 20, width: SCREEN_WIDTH * 0.3, height: SCREEN_HEIGHT * 0.05, justifyContent: 'center', alignItems: 'center' }}>
                         <Text style={{ color: '#ffffff' }}>Confirmé</Text>

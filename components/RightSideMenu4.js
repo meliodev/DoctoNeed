@@ -116,7 +116,7 @@ export default class RightSideMenu4 extends Component {
                         <Text style={styles.title_text}>Pays</Text>
                         <Picker selectedValue={this.props.country}
                             onValueChange={(country) => this.props.onSelectCountry(country)}>
-                            <Picker.Item value='' label='Pays de vos patients' />
+                            <Picker.Item value='' label='Choisissez un pays' />
                             {this.state.patientsCountries.map((patientsCountry, key) => {
                                 return (<Picker.Item key={key} value={patientsCountry} label={patientsCountry} />);
                             })}
@@ -146,7 +146,7 @@ export default class RightSideMenu4 extends Component {
                                 date={this.props.dateFrom}
                                 mode="date"
                                 placeholder="Jour - Mois - Année"
-                                format="DD-MM-YYYY"
+                                format="YYYY-MM-DD"
                                 //minDate="1920-01-01"
                                 //maxDate= {Today}
                                 confirmBtnText="Confirm"
@@ -162,9 +162,9 @@ export default class RightSideMenu4 extends Component {
                                 date={this.props.dateTo}
                                 mode="date"
                                 placeholder="Jour - Mois - Année"
-                                format="DD-MM-YYYY"
+                                format="YYYY-MM-DD"
                                 //minDate="1920-01-01"
-                                maxDate={Today}
+                                //maxDate={Today}
                                 confirmBtnText="Confirm"
                                 cancelBtnText="Cancel"
                                 onDateChange={(date) => this.props.onSelectDateTo(date)}

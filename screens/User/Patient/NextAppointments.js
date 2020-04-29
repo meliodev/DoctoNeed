@@ -126,8 +126,8 @@ export default class NextAppointments extends React.Component {
 
     var query = REFS.appointments
     query = query.where('user_id', '==', this.state.uid)
-    query = query.where('finished', '==', false)
-    query = query.orderBy('fullDate', 'desc')
+    //query = query.where('finished', '==', false)
+    //query = query.orderBy('fullDate', 'desc')
 
     query
       .onSnapshot(function (querySnapshot) {

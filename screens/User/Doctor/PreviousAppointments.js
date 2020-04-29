@@ -130,8 +130,8 @@ export default class PreviousAppointments extends React.Component {
 
     var query = REFS.appointments
     query = query.where('doctor_id', '==', firebase.auth().currentUser.uid)
-    query = query.where('finished', '==', true)
-    query = query.orderBy('fullDate', 'desc')
+    //query = query.where('finished', '==', true)
+   // query = query.orderBy('fullDate', 'desc')
 
     query
       .onSnapshot(function (querySnapshot) {

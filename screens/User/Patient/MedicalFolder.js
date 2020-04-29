@@ -71,6 +71,7 @@ export default class MedicalFolder extends React.Component {
       Taille: 0,
       ismodalGSVisible: false,
       GS: '',
+      ismodalNomPrenomVisible: false,
 
       oui: false,
       non: false
@@ -257,6 +258,25 @@ export default class MedicalFolder extends React.Component {
     })
   }
 
+  //NomPrenom
+
+  openModalNomPrenom() {
+    this.setState({ ismodalNomPrenomVisible: true })
+  }
+
+  toggleModalNomPrenom = () => {
+    this.setState({
+      ismodalNomPrenomVisible: !this.state.ismodalNomPrenomVisible
+    })
+  }
+
+  closeModalNomPrenom = () => {
+    this.setState({
+      ismodalNomPrenomVisible: false
+    })
+  }
+
+
 
 
   //LeftSideMenu functions
@@ -362,6 +382,28 @@ export default class MedicalFolder extends React.Component {
     }
     );
   };
+  myImagefunction=()=>{
+
+    ImagePicker.showImagePicker(options, (response) => {
+      console.log('Response = ', response);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      }
+      else if (response.error) {
+        console.log('Image Picker Error: ', response.error);
+      }
+      else {
+        let source = { uri: response.uri };
+        // You can also display the image using data:
+        // let source = { uri: 'data:image/jpeg;base64,' + response.data };
+        this.setState({
+          avatarSourceProfile: source,
+          pic:response.data
+        });
+      }
+    });
+    console.log('clicked');
+  }
 
   render() {
     // const currentUser= firebase.auth().currentUser.
@@ -414,16 +456,59 @@ export default class MedicalFolder extends React.Component {
          
          
          
-          <View style={styles.metadata_container}>
+         <View style={styles.metadata_container}>
+              <TouchableOpacity onPress={this.myImagefunction}>
+
           <View style={styles.Avatar_box}>
-            <Icon name="user"
-              size={SCREEN_WIDTH * 0.05}
-              color="#93eafe" />
+          {this.avatarSourceProfile != null  ?
+    
+    <Icon name="user"
+    size={SCREEN_WIDTH * 0.05}
+    color="#93eafe" />
+    : 
+    
+    <Image source={this.state.avatarSourceProfile} style={{width:30,height:30,margin:0}}/>
+
+        }
           </View>
+
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => this.openModalNomPrenom()}>
+
           <View style={styles.metadata_box}>
             <Text style={styles.metadata_text1}>{this.state.nom} {this.state.prenom}</Text>
-            <Text style={styles.metadata_text2}>{this.state.dateNaissance} (28 ans)</Text>
+            <Text style={styles.metadata_text2}>{this.state.dateNaissance} (25 ans)</Text>
           </View>
+        </TouchableOpacity>
+
+        <Modal isVisible={this.state.ismodalNomPrenomVisible}
+              onBackdropPress={() => this.closeModalNomPrenom()}
+              animationIn="slideInLeft"
+              animationOut="slideOutLeft"
+              style={{ flex: 1, backgroundColor: 'white', maxHeight: SCREEN_HEIGHT / 2, marginTop: SCREEN_HEIGHT * 0.25, alignItems: 'center', }}>
+
+              <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT * 0.1 }}>
+             
+              </View>
+
+              <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
+                <View style={{ flexDirection: 'row', }}>
+                  <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
+                    <Text style={{ color: 'white', textAlign: 'center', padding: 10 }} onPress={() => {
+                             REFS.users.doc(firebase.auth().currentUser.uid).update({'Taille': this.state.Taille})
+                             .then(()=> this.closeModalTaille())
+                             .catch((err)=> console.error(err)) }}>Confirmer</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModalNomPrenom()}>
+                    <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+
+            </Modal>
+
         </View>
 
         <ScrollView style={styles.infos_container}>
@@ -693,7 +778,7 @@ export default class MedicalFolder extends React.Component {
 
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth, marginBottom: SCREEN_HEIGHT * 0.04 }} />
 
-
+{/* This Section need a function that update the database valus*/}
 
             <View
               style={styles.edit_button}
@@ -767,6 +852,9 @@ export default class MedicalFolder extends React.Component {
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
 
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth, marginBottom: SCREEN_HEIGHT * 0.04 }} />
+
+{/* This Section need a function that update the database valus*/}
+
 
             <View
               style={styles.edit_button}
@@ -907,6 +995,8 @@ export default class MedicalFolder extends React.Component {
 
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
 
+            {/* This Section need a function that update the database valus*/}
+
             <TouchableOpacity style={styles.uploadButton} onPress={this.myImagefunction_vital}>
             <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
               <Text style={styles.title_text}>Carte Vitale</Text>
@@ -940,6 +1030,8 @@ export default class MedicalFolder extends React.Component {
 
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
             
+            {/* This Section need a function that update the database valus*/}
+
             <TouchableOpacity style={styles.uploadButton} onPress={this.myImagefunction_mutuel}>
             <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
               <Text style={styles.title_text}>Mutuel</Text>

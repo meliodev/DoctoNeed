@@ -151,7 +151,7 @@ export default class RightSideMenu4 extends Component {
                         </Picker></View>
                     </View>
 
-                  {/*   {this.props.isNextAppointments ? */}
+                     {this.props.isNextAppointments ? 
                         <View style={styles.speciality_container}>
                             <Text style={styles.title_text}>Etat</Text>
                             <View style={{ borderRadius: 30,
@@ -175,7 +175,7 @@ export default class RightSideMenu4 extends Component {
                                 <Picker.Item value='CBD' label='Confirmé' />
                             </Picker></View>
                         </View>
-                    {/*    : null} */}
+                     : null} 
 
 
 

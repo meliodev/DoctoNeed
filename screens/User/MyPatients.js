@@ -8,7 +8,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import SearchInput, { createFilter } from 'react-native-search-filter';
 
 import PatientItem from '../../components/PatientItem'
-import RightSideMenu from '../../components/RightSideMenu3'
+import RightSideMenu from '../../components/RightSideMenu4'
 
 import firebase from 'react-native-firebase'
 import * as REFS from '../../DB/CollectionsRefs'

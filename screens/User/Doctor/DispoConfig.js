@@ -3,7 +3,7 @@
 
 import React from 'react'
 import LinearGradient from 'react-native-linear-gradient';
-import { View, Button, Text, Image, TouchableHighlight, Dimensions, FlatList, Animated, StyleSheet } from 'react-native'
+import { AppRegistry,TouchableOpacity, View, Image, LayoutAnimation, Button, Text, TouchableHighlight, Dimensions, FlatList, Animated, StyleSheet } from 'react-native'
 import RNPickerSelect from 'react-native-picker-select'
 import DeviceInfo from 'react-native-device-info';
 import {timezones} from '../../../util/helpers/timezones'
@@ -17,6 +17,8 @@ import { Picker, CheckBox } from 'native-base';
 
 import LeftSideMenu from '../../../components/LeftSideMenu'
 import Icon1 from 'react-native-vector-icons/FontAwesome';
+
+import Item from '../../../components/DispoItem'
 
 
 
@@ -40,7 +42,12 @@ export default class DispoConfig extends React.Component {
       speciality: "00-00-0000",
       age: "",
       isLeftSideMenuVisible: false,
+      selectedtimezone: null,
     }
+    // Dispo Item states
+    this.state = { valueArray: [], disabled: false }
+    this.addNewEle = false;
+    this.index = 0;
 
         //Menu
         this.navigateToProfile = this.navigateToProfile.bind(this);
@@ -49,6 +56,38 @@ export default class DispoConfig extends React.Component {
         this.navigateToMyPatients = this.navigateToMyPatients.bind(this);
         this.signOutUserandToggle = this.signOutUserandToggle.bind(this);
         
+  }
+
+
+  // DispoItem Functions 
+
+  afterAnimationComplete = () => {
+    this.index += 1;
+    this.setState({ disabled: false });
+  }
+
+  addMore = () => {
+    this.addNewEle = true;
+    const newlyAddedValue = { id: "id_" + this.index, text: this.index + 1 };
+
+    this.setState({
+      disabled: true,
+      valueArray: [...this.state.valueArray, newlyAddedValue]
+    });
+  }
+
+  remove(id) {
+    this.addNewEle = false;
+    const newArray = [...this.state.valueArray];
+    newArray.splice(newArray.findIndex(ele => ele.id === id), 1);
+
+    this.setState(() => {
+      return {
+        valueArray: newArray
+      }
+    }, () => {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    });
   }
 /*
   componentWillMount() {
@@ -217,13 +256,20 @@ export default class DispoConfig extends React.Component {
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: 'white',marginHorizontal:SCREEN_WIDTH * 0.02}}>
-          <Picker  mode="dropdown" selectedValue={this.state.selected} style={{ 
+
+          <Picker  mode="dropdown" selectedValue={this.state.selectedtimezone} onValueChange={ (value) => ( this.setState({selectedtimezone : value}) )} style={{ 
             flex: 1,
             color: '#445870' ,
             marginHorizontal:SCREEN_WIDTH * 0.01,
             width:SCREEN_WIDTH * 0.85
             }}>
-            <Picker.Item value='' label='UTC + 01:00 - France , Paris' />
+            {
+                 timezones.map((items)=>{
+                   return(
+                   <Picker.Item  label={items.label} value={items.value} />
+                   );
+                 })
+               }
           </Picker>
           </View>
           <View style={{flexDirection:'row', flexWrap:'wrap',paddingVertical:SCREEN_HEIGHT*0.02}}>
@@ -232,6 +278,31 @@ export default class DispoConfig extends React.Component {
           </View>
           <Text style={{paddingHorizontal: SCREEN_WIDTH*0.08,paddingVertical: SCREEN_HEIGHT*0.01,fontSize:SCREEN_WIDTH* 0.04}} > Horaires disponibles </Text>
           
+          <View style={styles.container} >
+        <ScrollView
+          ref={scrollView => this.scrollView = scrollView}
+          onContentSizeChange={() => {
+            this.addNewEle && this.scrollView.scrollToEnd();
+          }}
+        >
+          <View style={{ flex: 1, padding: 4 }}>
+            {this.state.valueArray.map(ele => {
+              return (
+                <Item
+                  key={ele.id}
+                  item={ele}
+                  removeItem={(id) => this.remove(id)}
+                  afterAnimationComplete={this.afterAnimationComplete}
+                />
+              )
+            })}
+          </View>
+        </ScrollView>
+
+      </View>
+
+{/* 
+
           <View style={{flexDirection:'row', flexWrap:'wrap'}}>
           <View style={{
             borderRadius: 30,
@@ -247,7 +318,7 @@ export default class DispoConfig extends React.Component {
             alignItems: 'center',
             backgroundColor: 'white',
             marginHorizontal:SCREEN_WIDTH * 0.02,marginVertical:0,paddingVertical:0,marginHorizontal:SCREEN_WIDTH * 0.02}}>
-          <Picker  mode="dropdown" selectedValue={this.state.selected} style={{ flex: 1, color: '#445870' ,  width:SCREEN_WIDTH * 0.33 ,textAlign:"center" }}>
+          <Picker  mode="dropdown" selectedValue={this.state.selected} style={{ flex: 1, color: '#445870' ,  width:SCREEN_WIDTH * 0.30 ,textAlign:"center" }}>
           <Picker.Item value='Lundi' label='Lundi'  />
           <Picker.Item value='Mardi' label='Mardi' />
           <Picker.Item value='Mercredi' label='Mercredi' />
@@ -258,22 +329,56 @@ export default class DispoConfig extends React.Component {
           </Picker>
           </View>
           <Text style={{textAlignVertical:'center', paddingHorizontal:5}}>De</Text>
-          <TextInput  style={{ flex: 1,marginTop:10,height: 40, borderColor: '#000', borderWidth: 0 , width:SCREEN_WIDTH * 0.15 , borderRadius:30,textAlign:'center',            shadowColor: "#000",
+         {/* <TextInput  style={{ flex: 1,marginTop:10,height: 40, borderColor: '#000', borderWidth: 0 , width:SCREEN_WIDTH * 0.15 , borderRadius:30,textAlign:'center',            shadowColor: "#000",
                     shadowColor: "#000",
                     shadowOffset: { width: 0, height: 5 },
                     shadowOpacity: 0.32,
                     shadowRadius: 5.46,
                     elevation: 9,
-                    backgroundColor:'#fff' }} placeholder={'8:00'}/>
+          backgroundColor:'#fff' }} placeholder={'8:00'}/> */}{/*
+          <View  style={{ flex: 1,marginTop:10,height: 40, borderColor: '#000', borderWidth: 0 , width:SCREEN_WIDTH * 0.15 , borderRadius:30,textAlign:'center',            shadowColor: "#000",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 5 },
+                    shadowOpacity: 0.32,
+                    shadowRadius: 5.46,
+                    elevation: 9,
+                    backgroundColor:'#fff' }} >
+          <Picker  mode="dropdown" selectedValue={this.state.selected} style={{ flex: 1, color: '#445870' ,  width:SCREEN_WIDTH * 0.33 ,textAlign:"center" }}>
+          <Picker.Item value='8:00' label='8:00'  />
+          <Picker.Item value='9:00' label='9:00' />
+          <Picker.Item value='10:00' label='10:00' />
+          <Picker.Item value='11:00' label='11:00' />
+          <Picker.Item value='12:00' label='12:00' />
+          <Picker.Item value='13:00' label='13:00' />
+          <Picker.Item value='14:00' label='14:00' />
+          <Picker.Item value='15:00' label='15:00'  />
+          <Picker.Item value='16:00' label='16:00' />
+          <Picker.Item value='17:00' label='17:00' />
+          <Picker.Item value='18:00' label='18:00' />
+          </Picker>
+                      </View>
           <Text style={{textAlignVertical:'center', paddingHorizontal:5}}>à</Text>
-          <TextInput style={{ flex: 1,marginTop:10,height: 40, borderColor: '#000', borderWidth: 0 , width:SCREEN_WIDTH * 0.15,  borderRadius:30,textAlign:'center',
+          <View  style={{ flex: 1,marginTop:10,height: 40, borderColor: '#000', borderWidth: 0 , width:SCREEN_WIDTH * 0.15 , borderRadius:30,textAlign:'center',
                     shadowColor: "#000",
                     shadowOffset: { width: 0, height: 5 },
                     shadowOpacity: 0.32,
                     shadowRadius: 5.46,
                     elevation: 9,
-                    backgroundColor:'#fff'
-                  }} placeholder={'12:30'}/>
+                    backgroundColor:'#fff' }} >
+          <Picker  mode="dropdown" selectedValue={this.state.selected} style={{ flex: 1, color: '#445870' ,  width:SCREEN_WIDTH * 0.33 ,textAlign:"center",backgroundColor:"transparent" }}>
+          <Picker.Item value='8:00' label='8:00'  />
+          <Picker.Item value='9:00' label='9:00' />
+          <Picker.Item value='10:00' label='10:00' />
+          <Picker.Item value='11:00' label='11:00' />
+          <Picker.Item value='12:00' label='12:00' />
+          <Picker.Item value='13:00' label='13:00' />
+          <Picker.Item value='14:00' label='14:00' />
+          <Picker.Item value='15:00' label='15:00'  />
+          <Picker.Item value='16:00' label='16:00' />
+          <Picker.Item value='17:00' label='17:00' />
+          <Picker.Item value='18:00' label='18:00' />
+          </Picker>
+                      </View>
           <Icon name="trash" size={SCREEN_WIDTH * 0.07} color="#93E7FF" style={{textAlign:'center',flex: 1,textAlignVertical:'center',paddingTop:15 }} />
       </View>
       <View style={{flexDirection:'row', flexWrap:'wrap', paddingVertical:15}}>
@@ -293,7 +398,7 @@ export default class DispoConfig extends React.Component {
             marginHorizontal:SCREEN_WIDTH * 0.02,marginVertical:0,paddingVertical:0
         }}>
 
-      <Picker  mode="dropdown" selectedValue={this.state.days} onValueChange = {this.updateDays} style={{ flex: 1, color: '#445870' , width:SCREEN_WIDTH * 0.33 ,textAlign:"center"}}>
+      <Picker  mode="dropdown" selectedValue={this.state.days} onValueChange = {this.updateDays} style={{ flex: 1, color: '#445870' , width:SCREEN_WIDTH * 0.30 ,textAlign:"center"}}>
           <Picker.Item value='Lundi' label='Lundi'  />
           <Picker.Item value='Mardi' label='Mardi' />
           <Picker.Item value='Mercredi' label='Mercredi' />
@@ -305,25 +410,62 @@ export default class DispoConfig extends React.Component {
 
       </View>
           <Text style={{textAlignVertical:'center', paddingHorizontal:5}}>De</Text>
-          <TextInput  style={{ flex: 1,marginTop:10,height: 40, borderColor: '#000', borderWidth: 0 , width:SCREEN_WIDTH * 0.15 , borderRadius:30,textAlign:'center',
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 5 },
-                            shadowOpacity: 0.32,
-                            shadowRadius: 5.46,
-                            elevation: 9,
-                            backgroundColor:'#fff' }} placeholder={'14:00'}/>
+          <View  style={{ flex: 1,marginTop:10,height: 40, borderColor: '#000', borderWidth: 0 , width:SCREEN_WIDTH * 0.15 , borderRadius:30,textAlign:'center',
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 5 },
+                    shadowOpacity: 0.32,
+                    shadowRadius: 5.46,
+                    elevation: 9,
+                    backgroundColor:'#fff' }} >
+          <Picker  mode="dropdown" selectedValue={this.state.selected} style={{ flex: 1, color: '#445870' ,  width:SCREEN_WIDTH * 0.33 ,textAlign:"center" }}>
+          <Picker.Item value='8:00' label='8:00'  />
+          <Picker.Item value='9:00' label='9:00' />
+          <Picker.Item value='10:00' label='10:00' />
+          <Picker.Item value='11:00' label='11:00' />
+          <Picker.Item value='12:00' label='12:00' />
+          <Picker.Item value='13:00' label='13:00' />
+          <Picker.Item value='14:00' label='14:00' />
+          <Picker.Item value='15:00' label='15:00'  />
+          <Picker.Item value='16:00' label='16:00' />
+          <Picker.Item value='17:00' label='17:00' />
+          <Picker.Item value='18:00' label='18:00' />
+          </Picker>
+                      </View>
           <Text style={{textAlignVertical:'center', paddingHorizontal:5}}>à</Text>
-          <TextInput style={{ flex: 1,marginTop:10,height: 40, borderColor: '#000', borderWidth: 0 , width:SCREEN_WIDTH * 0.15 , borderRadius:30,textAlign:'center' ,
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: 5 },
-                            shadowOpacity: 0.32,
-                            shadowRadius: 5.46,
-                            elevation: 9,
-                            backgroundColor:'#fff'}} placeholder={'18:30'}/>
+          <View  style={{ flex: 1,marginTop:10,height: 40, borderColor: '#000', borderWidth: 0 , width:SCREEN_WIDTH * 0.15 , borderRadius:30,textAlign:'center',
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 5 },
+                    shadowOpacity: 0.32,
+                    shadowRadius: 5.46,
+                    elevation: 9,
+                    backgroundColor:'#fff' }} >
+          <Picker  mode="dropdown" selectedValue={this.state.selected} style={{ flex: 1, color: '#445870' ,  width:SCREEN_WIDTH * 0.33 ,textAlign:"center",backgroundColor:"transparent" }}>
+          <Picker.Item value='8:00' label='8:00'  />
+          <Picker.Item value='9:00' label='9:00' />
+          <Picker.Item value='10:00' label='10:00' />
+          <Picker.Item value='11:00' label='11:00' />
+          <Picker.Item value='12:00' label='12:00' />
+          <Picker.Item value='13:00' label='13:00' />
+          <Picker.Item value='14:00' label='14:00' />
+          <Picker.Item value='15:00' label='15:00'  />
+          <Picker.Item value='16:00' label='16:00' />
+          <Picker.Item value='17:00' label='17:00' />
+          <Picker.Item value='18:00' label='18:00' />
+          </Picker>
+                      </View>
           <Icon name="trash" size={SCREEN_WIDTH * 0.07} color="#93E7FF" style={{textAlign:'center',flex: 1,textAlignVertical:'center',paddingTop:15 }} />
       
       </View>
+
+    */}
+
       <View style={{flexDirection:'row', flexWrap:'wrap', paddingVertical:15 , marginLeft:15}}>
+      <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.addBtn}
+          disabled={this.state.disabled}
+          onPress={this.addMore}
+        >
       <View style={{ borderRadius: 30,
             borderWidth: 0,
             borderColor: '#bdc3c7',
@@ -342,8 +484,11 @@ export default class DispoConfig extends React.Component {
               color="#93E7FF" />
               
               </View>
-      
+              </TouchableOpacity>
+
       </View>
+
+
 
       </ScrollView>
 
@@ -367,8 +512,8 @@ const styles = StyleSheet.create({
     //backgroundColor: 'brown',
   },
   headerIcon: {
-    width: SCREEN_WIDTH,
-    height: HEADER_ICON_HEIGHT,
+    width: SCREEN_WIDTH * 1,
+    height: HEADER_ICON_HEIGHT * 1,
   },
   metadata_container: {
     flex: 0.2,

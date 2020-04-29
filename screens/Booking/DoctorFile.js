@@ -5,7 +5,7 @@
 //       -> Ajouter la saisie des données ci-dessus dans le form d'inscription
 
 import React from 'react'
-import { View, Text, Image, Dimensions, ActivityIndicator, StyleSheet, ImageBackground } from 'react-native'
+import { View, Text, Image, Dimensions, ActivityIndicator, StyleSheet, ImageBackground , ScrollView} from 'react-native'
 
 import firebase from 'react-native-firebase'
 import Button from '../../components/Button';
@@ -26,6 +26,8 @@ export default class DoctorFile extends React.Component {
     const doctor =  this.props.navigation.getParam('doctor', 'nothing sent')
 
     return (
+      <ScrollView>
+
       <View style={styles.container}>
 
         <View style={styles.logo_container}>
@@ -49,15 +51,24 @@ export default class DoctorFile extends React.Component {
           <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#333' }}>Diplômes</Text>
           <Text>{'\u2022'} Diplomes Université en l'année 0000. </Text>
           <Text>{'\u2022'} Diplomes Université en l'année 0000. </Text>
+
+          <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#333' }}>Code Finesse</Text>
+          <Text>{'\u2022'} 0000 0000 0000 0000. </Text>
         </View>
 
         <View style={styles.button_container}>
-          <Button text="Prendre un rendez-vous en urgence"/* onPress={ this.handleLogin } */ />
+          <Button text="Prendre un rendez-vous en urgence" style={{ width:"100%" }} /* onPress={ this.handleLogin } */ />
           <Button2 style={{ backgroundColor: "#ffffff", color: "#000000" }} text="Planifier une consultation" onPress={ () =>     this.props.navigation.navigate('DoctorFile') } />
+          
+          {// This  Button is not yet working ,  when i use onPress navigation to Booking it shows errors}
+  }
+          <Button text="Configurer la disponibilité "  style={{ width: 10 }}       /*onPress={() => displayDoctorCalendar(doctor.uid)}>/* onPress={ this.handleLogin } */ onPress={ () =>     this.props.navigation.navigate('Booking') } />
+          
+
         </View>
 
       </View>
-
+      </ScrollView>
     );
   }
 }
@@ -118,8 +129,11 @@ const styles = StyleSheet.create({
     flex: 0.22,
     justifyContent: 'center',
     alignItems: 'center',
+    width:SCREEN_WIDTH,
+    paddingHorizontal:0,
+    marginHorizontal:0,
     //backgroundColor: 'yellow',
-    paddingBottom: SCREEN_HEIGHT * 0.01
+    paddingBottom: SCREEN_HEIGHT * 0.01,
   },
   loading_container: {
     position: 'absolute',

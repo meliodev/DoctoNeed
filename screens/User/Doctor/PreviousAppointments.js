@@ -29,6 +29,7 @@ const KEYS_TO_FILTERS_DATE = ['date'];
 import Button from '../../../components/Button';
 import Button2 from '../../../components/Button2';
 
+
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 

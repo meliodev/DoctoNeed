@@ -1,1 +1,879 @@
-// Take from Abdesalam Medical folder, duplicate it, adapt it to doctor
+
+import React from 'react'
+import LinearGradient from 'react-native-linear-gradient';
+import { View, Button, Text, Image, TouchableOpacity, TouchableHighlight, Dimensions, Slider, StyleSheet } from 'react-native'
+import Modal from 'react-native-modal';
+
+import { withNavigation } from 'react-navigation';
+
+import * as REFS from '../../../DB/CollectionsRefs'
+import { signOutUser } from '../../../DB/CRUD'
+
+import Icon from 'react-native-vector-icons/FontAwesome';
+import firebase from 'react-native-firebase';
+import { ScrollView, TextInput } from 'react-native-gesture-handler';
+import { Picker, CheckBox, Content, Card, CardItem } from 'native-base';
+import DatePicker from 'react-native-datepicker'
+import { imagePickerOptions, options2, getFileLocalPath, createStorageReferenceToFile, uploadFileToFireBase } from '../../../util/MediaPickerFunctions'
+
+
+//import { RadioButton } from 'react-native-paper';
+//import RadioForm, {RadioButton, RadioButtonInput, RadioButtonLabel} from 'react-native-simple-radio-button';
+
+import ImagePicker from 'react-native-image-picker';
+
+import LeftSideMenu from '../../../components/LeftSideMenu'
+import Icon1 from 'react-native-vector-icons/FontAwesome';
+
+const SCREEN_WIDTH = Dimensions.get("window").width;
+const SCREEN_HEIGHT = Dimensions.get("window").height;
+
+const ratioHeader = 267 / 666; // The actaul icon headet size is 254 * 668
+const HEADER_ICON_HEIGHT = Dimensions.get("window").width * ratioHeader; // This is to keep the same ratio in all screen sizes (proportion between the image  width and height)
+
+const ratioLogo = 420 / 244;
+const LOGO_WIDTH = SCREEN_WIDTH * 0.25 * ratioLogo;
+
+const options = {
+  title: 'Select Image',
+
+  takePhotoButtonTitle: 'Take photo with your camera',
+  chooseFromLibraryButtonTitle: 'Choose photo from library',
+
+  // customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
+  storageOptions: {
+    skipBackup: true,
+    path: 'images',
+  },
+};
+
+export default class Profile extends React.Component {
+  constructor(props) {
+    super(props);
+    this.renderForm = this.renderForm.bind(this);
+
+
+    this.state = {
+      currentUser: null,
+      nom: "",
+      prenom: "",
+      dateNaissance: "",
+      age: "",
+      Sexe: "",
+      date: "1990-01-01",
+      ismodalSexVisible: false,
+
+      ismodalPoidsVisible: false,
+      Poids: 0,
+      ismodalTailleVisible: false,
+      Taille: 0,
+      ismodalGSVisible: false,
+      GS: '',
+    
+
+    }
+   /* this.signOutUser = this.signOutUser.bind(this);
+    this.signOutUserandToggle = this.signOutUserandToggle.bind(this);
+    this.navigateToAppointments = this.navigateToAppointments.bind(this);
+    this.navigateToProfile = this.navigateToProfile.bind(this);
+    this.navigateToDispoConfig = this.navigateToDispoConfig.bind(this);*/
+
+//Menu
+    this.navigateToProfile = this.navigateToProfile.bind(this);
+    this.navigateToDispoConfig = this.navigateToDispoConfig.bind(this);
+    this.navigateToAppointments = this.navigateToAppointments.bind(this);
+    this.navigateToMyPatients = this.navigateToMyPatients.bind(this);
+    this.signOutUserandToggle = this.signOutUserandToggle.bind(this);
+
+   /* ImagePicker.showImagePicker(options, (response) => {
+      console.log('Response = ', response);
+
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+    } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+      } else {
+        const source = { uri: response.uri };
+
+        // You can also display the image using data:
+        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+
+        this.setState({
+          avatarSource: source,
+        });
+      }
+    });*/
+
+  }
+
+  componentWillMount() {
+    const { currentUser } = firebase.auth()
+    this.setState({ currentUser })
+    firebase.firestore().collection("Doctors").doc(currentUser.uid).get().then(doc => {
+      this.setState({ Sexe: doc.data().Sexe })
+      this.setState({ Poids: doc.data().Poids })
+      this.setState({ Taille: doc.data().Taille })
+      this.setState({ nom: doc.data().nom })
+      this.setState({ prenom: doc.data().prenom })
+      this.setState({ dateNaissance: doc.data().dateNaissance })
+      this.setState({ speciality: doc.data().speciality })
+      this.setState({ Sanguin: doc.data().Sanguin })
+      this.setState({ date: doc.data().date})
+
+    })
+
+  }
+
+  signOutUser() {
+    signOutUser();
+  }
+
+  //Modal (data modification interfaces)
+  openModal() {
+    this.setState({ ismodalVisible: true })
+  }
+
+  //Modals for edit
+  //Modal Sexe
+  openModalSex() {
+    this.setState({ ismodalSexVisible: true })
+  }
+
+  toggleModalSex = () => {
+    this.setState({
+      ismodalVisible: !this.state.ismodalVisible
+    })
+  }
+
+  closeModal = () => {
+    this.setState({
+      ismodalVisible: false,
+      isSexe: false,
+      isPoids: false,
+      isTaille: false
+    })
+  }
+
+  renderForm() {
+    if (this.state.isSexe)
+      return (
+        <View>
+          <View style={{ flex: 1, justifyContent: 'center' }}>
+            <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.1 }}>Quel est votre sexe</Text>
+            <View style={{ flexDirection: 'row', marginBottom: SCREEN_HEIGHT * 0.07, }}>
+              {this.state.sexe === 'female' || this.state.sexe === '' ? <TouchableOpacity onPress={() => {
+                if (this.state.sexe === 'female' || this.state.sexe === '') this.setState({ sexe: 'male' })
+              }}
+                style={modalStyles.item_inactive}><Text style={modalStyles.item_text}>Homme</Text></TouchableOpacity>
+                : <View style={modalStyles.item_active}><Text style={modalStyles.item_text}>Homme</Text></View>}
+
+              {this.state.sexe === 'male' || this.state.sexe === '' ? <TouchableOpacity onPress={() => {
+                if (this.state.sexe === 'male' || this.state.sexe === '') this.setState({ sexe: 'female' })
+              }}
+                style={modalStyles.item_inactive}><Text style={modalStyles.item_text}>Femme</Text></TouchableOpacity>
+                : <View style={modalStyles.item_active}><Text style={modalStyles.item_text}>Femme</Text></View>}
+            </View>
+          </View>
+
+          <View style={{ flex: 1, justifyContent: 'center', position: 'absolute', bottom: 0 }}>
+            <View style={{ flexDirection: 'row', }}>
+              <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
+                <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModal()}>
+                <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      );
+
+    else if (this.state.isPoids)
+      return (
+        <View>
+          <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT * 0.1 }}>
+            <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 28, marginBottom: SCREEN_HEIGHT * 0.04 }}>Quel est votre Poids?</Text>
+            <Text style={{ fontWeight: 'bold', fontSize: 30, textAlign: 'center', marginBottom: SCREEN_HEIGHT * 0.07 }}>{this.state.poids} Kg</Text>
+            <Slider
+              value={this.state.poids}
+              onValueChange={value => this.setState({ poids: value })}
+              minimumValue={0}
+              maximumValue={200}
+              step={1}
+              minimumTrackTintColor='#93eafe'
+              thumbTintColor='#93eafe'
+              style={{ width: SCREEN_WIDTH * 0.7 }}
+            />
+          </View>
+
+          <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center'}}>
+              <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
+                <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModal()}>
+                <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      );
+
+    else if (this.state.isTaille)
+      return (
+        <View>
+          <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT * 0.1 }}>
+            <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 28, marginBottom: SCREEN_HEIGHT * 0.04 }}>Quel est votre taille?</Text>
+            <Text style={{ fontWeight: 'bold', fontSize: 30, textAlign: 'center', marginBottom: SCREEN_HEIGHT * 0.07 }}>{this.state.taille} cm</Text>
+            <Slider
+              value={this.state.taille}
+              onValueChange={value => this.setState({ taille: value })}
+              minimumValue={0}
+              maximumValue={300}
+              step={1}
+              minimumTrackTintColor='#93eafe'
+              thumbTintColor='#93eafe'
+              style={{ width: SCREEN_WIDTH * 0.7 }}
+            />
+          </View>
+
+          <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
+            <View style={{ flexDirection: 'row', }}>
+              <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
+                <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModal()}>
+                <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      );
+  }
+
+  //Taille
+  openModalTaille() {
+    this.setState({ ismodalTailleVisible: true })
+  }
+
+  toggleModalTaille = () => {
+    this.setState({
+      ismodalTailleVisible: !this.state.ismodalTailleVisible
+    })
+  }
+
+  closeModalTaille = () => {
+    this.setState({
+      ismodalTailleVisible: false
+    })
+  }
+
+  //LeftSideMenu functions
+  toggleLeftSideMenu = () => {
+    this.month = ''
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible, appId: null });
+  }
+
+  navigateToProfile() {
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
+      () => this.props.navigation.navigate('Profile'));
+  }
+
+  navigateToDispoConfig() {
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
+      () => this.props.navigation.navigate('DispoConfig'));
+  }
+
+  navigateToAppointments() {
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
+      () => this.props.navigation.navigate('TabScreenDoctor'));
+  }
+
+  navigateToMyPatients() {
+    console.log('pressed')
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
+      () => this.props.navigation.navigate('MyPatients'));
+  }
+
+
+  signOutUserandToggle() {
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
+      this.signOutUser())
+  }
+
+
+  myImagefunction_Diplomes=()=>{
+
+    ImagePicker.showImagePicker(options, (response) => {
+      console.log('Response = ', response);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      }
+      else if (response.error) {
+        console.log('Image Picker Error: ', response.error);
+      }
+      else {
+        let source = { uri: response.uri };
+        // You can also display the image using data:
+        // let source = { uri: 'data:image/jpeg;base64,' + response.data };
+        this.setState({
+          avatarSource1: source,
+          pic:response.data
+        });
+      }
+    });
+    console.log('clicked');
+  }
+
+  myImagefunction=()=>{
+
+    ImagePicker.showImagePicker(options, (response) => {
+      console.log('Response = ', response);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      }
+      else if (response.error) {
+        console.log('Image Picker Error: ', response.error);
+      }
+      else {
+        let source = { uri: response.uri };
+        // You can also display the image using data:
+        // let source = { uri: 'data:image/jpeg;base64,' + response.data };
+        this.setState({
+          avatarSource2: source,
+          pic:response.data
+        });
+      }
+    });
+    console.log('clicked');
+  }
+
+  render() {
+    // const currentUser= firebase.auth().currentUser.
+    console.log(this.state.Sexe)
+    console.log(this.state.nom)
+    console.log(this.state.prenom)
+    console.log(this.state.dateNaissance)
+    
+
+    return (
+      <View style={styles.container}>
+
+<View style={styles.header_container}><Image source={require('../../../assets/header-image.png')} style={styles.headerIcon} /></View>
+
+<LeftSideMenu
+          isSideMenuVisible={this.state.isLeftSideMenuVisible}
+          toggleSideMenu={this.toggleLeftSideMenu}
+          nom={this.state.nom}
+          prenom={this.state.prenom}
+          email={this.state.email}
+          navigateToProfile={this.navigateToProfile}
+          navigateToDispoConfig={this.navigateToDispoConfig}
+          navigateToAppointments={this.navigateToAppointments}
+          navigateToMyPatients={this.navigateToMyPatients}
+          signOutUser={this.signOutUserandToggle}
+          navigate={this.props.navigation} />
+
+
+<View style={{ height: SCREEN_HEIGHT * 0.01, flexDirection: 'row', paddingTop: SCREEN_HEIGHT * 0.00, justifyContent: 'space-between', alignItems: 'flex-start',position:'relative', bottom:80,
+         }}>
+
+
+          <TouchableHighlight 
+          style={{ 
+                  width: SCREEN_WIDTH * 0.12,
+                  height: SCREEN_WIDTH * 0.12,
+                  borderRadius: 25,
+                  backgroundColor: '#ffffff',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  position: 'relative',
+                  left: SCREEN_WIDTH * 0.05
+                }}
+
+            onPress={this.toggleLeftSideMenu}>
+            <Icon1 name="bars" size={25} color="#93eafe" />
+          </TouchableHighlight>
+         
+         </View>
+        
+          <View style={styles.metadata_container}>
+              <TouchableOpacity onPress={this.myImagefunction}>
+
+          <View style={styles.Avatar_box}>
+          {this.avatarSource2 != null  ?
+    
+    <Icon name="user"
+    size={SCREEN_WIDTH * 0.05}
+    color="#93eafe" />
+    : 
+    
+    <Image source={this.state.avatarSource2} style={{width:30,height:30,margin:0}}/>
+
+        }
+          </View>
+
+          </TouchableOpacity>
+          <View style={styles.metadata_box}>
+            <Text style={styles.metadata_text1}>{this.state.nom} {this.state.prenom}</Text>
+            <Text style={styles.metadata_text2}>{this.state.dateNaissance} (65 ans)</Text>
+          </View>
+        </View>
+
+        <ScrollView style={styles.infos_container}>
+          <View style={styles.info_container}>
+            <View
+              style={styles.edit_button}
+              onPress={() => displayDetailForDoctor(doctor.uid)}>
+              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' }}>
+                <Text style={{ color: 'black', fontWeight: 'bold' }}>Informations personnelles</Text>
+                <Icon name="pencil"
+                  size={SCREEN_WIDTH * 0.04}
+                  color="#93eafe" />
+              </View>
+            </View>
+
+            <TouchableOpacity style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}
+              onPress={() => this.openModalSex()}>
+              <Text style={styles.title_text}>Sexe</Text>
+              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>{this.state.Sexe}</Text>
+            </TouchableOpacity>
+
+            <Modal isVisible={this.state.ismodalSexVisible}
+              onBackdropPress={() => this.closeModalSex()}
+              animationIn="slideInLeft"
+              animationOut="slideOutLeft"
+              onSwipeComplete={() => this.closeModal()}
+              swipeDirection="left"
+              style={{ backgroundColor: 'white', maxHeight: SCREEN_HEIGHT / 2, marginTop: SCREEN_HEIGHT * 0.25, alignItems: 'center', }}>
+
+              <View style={{ flex: 1, justifyContent: 'center' }}>
+                <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.1 }}>Votre Sexe</Text>
+                <View style={{ flexDirection: 'row', marginBottom: SCREEN_HEIGHT * 0.07, }}>
+                  {this.state.Sexe === 'Femme' || this.state.Sexe === '' ? <TouchableOpacity onPress={() => {
+                    if (this.state.Sexe === 'Femme' || this.state.Sexe === '') this.setState({ Sexe: 'Homme' })
+                  }}
+                    style={modalStyles.item_inactive}><Text style={modalStyles.item_text}>Homme</Text></TouchableOpacity>
+                    : <View style={modalStyles.item_active}><Text style={modalStyles.item_text}>Homme</Text></View>}
+
+                  {this.state.Sexe === 'Homme' || this.state.Sexe === '' ? <TouchableOpacity onPress={() => {
+                    if (this.state.Sexe === 'Homme' || this.state.Sexe === '') this.setState({ Sexe: 'Femme' })
+                  }}
+                    style={modalStyles.item_inactive}><Text style={modalStyles.item_text}>Femme</Text></TouchableOpacity>
+                    : <View style={modalStyles.item_active}><Text style={modalStyles.item_text}>Femme</Text></View>}
+                </View>
+              </View>
+
+              <View style={{ flex: 1, justifyContent: 'center', position: 'absolute', bottom: 0 }}>
+                <View style={{ flexDirection: 'row', }}>
+                  <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }} onPress={() => {
+                             REFS.users.doc(firebase.auth().currentUser.uid).update({'Sexe': this.state.Sexe})
+                             .then(()=> this.closeModal())
+                             .catch((err)=> console.error(err)) }}>
+                    <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModalSex()}>
+                    <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+
+            <TouchableOpacity style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}
+              onPress={() => { this.setState({ isSexe: true }, this.openModal()) }}>
+              <Text style={styles.title_text}>Sexe</Text>
+              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>F/H</Text>
+            </TouchableOpacity>
+
+            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
+
+
+            <TouchableOpacity style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}
+              onPress={() => { this.setState({ isPoids: true }, this.openModal()) }}>
+              <Text style={styles.title_text}>Poids</Text>
+              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>{this.state.Poids} kgs</Text>
+            </TouchableOpacity>
+
+            <Modal isVisible={this.state.ismodalPoidsVisible}
+              onBackdropPress={() => this.closeModalPoids()}
+              animationIn="slideInLeft"
+              animationOut="slideOutLeft"
+              style={{ flex: 1, backgroundColor: 'white', maxHeight: SCREEN_HEIGHT / 2, marginTop: SCREEN_HEIGHT * 0.25, alignItems: 'center', }}>
+
+              <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT * 0.1 }}>
+                <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 28, marginBottom: SCREEN_HEIGHT * 0.04 }}>Votre Poids</Text>
+                <Text style={{ fontWeight: 'bold', fontSize: 40, textAlign: 'center', marginBottom: SCREEN_HEIGHT * 0.07 }}>{this.state.Poids} Kg</Text>
+                <Slider
+                  value={this.state.Poids}
+                  onValueChange={value => this.setState({ Poids: value })}
+                  minimumValue={0}
+                  maximumValue={400}
+                  step={1}
+                  minimumTrackTintColor='#93eafe'
+                  thumbTintColor='#93eafe'
+                  style={{ width: SCREEN_WIDTH * 0.7 }}
+                />
+              </View>
+
+              <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
+                <View style={{ flexDirection: 'row', }}>
+                  <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}  onPress={() => {
+                             REFS.users.doc(firebase.auth().currentUser.uid).update({'Poids': this.state.Poids})
+                             .then(()=> this.closeModalPoids())
+                             .catch((err)=> console.error(err)) }}>
+                    <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModalPoids()}>
+                    <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+            </Modal>
+
+            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
+
+            <TouchableOpacity style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}
+              onPress={() => this.openModalTaille()}>
+              <Text style={styles.title_text}>Taille</Text>
+              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>{this.state.Taille} cm</Text>
+            </TouchableOpacity>
+
+            <Modal isVisible={this.state.ismodalTailleVisible}
+              onBackdropPress={() => this.closeModalTaille()}
+              animationIn="slideInLeft"
+              animationOut="slideOutLeft"
+              style={{ flex: 1, backgroundColor: 'white', maxHeight: SCREEN_HEIGHT / 2, marginTop: SCREEN_HEIGHT * 0.25, alignItems: 'center', }}>
+
+              <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT * 0.1 }}>
+                <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 28, marginBottom: SCREEN_HEIGHT * 0.04 }}>Votre Taille</Text>
+                <Text style={{ fontWeight: 'bold', fontSize: 40, textAlign: 'center', marginBottom: SCREEN_HEIGHT * 0.07 }}>{this.state.Taille} cm</Text>
+                <Slider
+                  value={this.state.Taille}
+                  onValueChange={value => this.setState({ Taille: value })}
+                  minimumValue={0}
+                  maximumValue={300}
+                  step={1}
+                  minimumTrackTintColor='#93eafe'
+                  thumbTintColor='#93eafe'
+                  style={{ width: SCREEN_WIDTH * 0.7 }}
+                />
+              </View>
+
+              <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
+                <View style={{ flexDirection: 'row', }}>
+                  <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
+                    <Text style={{ color: 'white', textAlign: 'center', padding: 10 }} onPress={() => {
+                             REFS.users.doc(firebase.auth().currentUser.uid).update({'Taille': this.state.Taille})
+                             .then(()=> this.closeModalTaille())
+                             .catch((err)=> console.error(err)) }}>Confirmer</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModalTaille()}>
+                    <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+
+            </Modal>
+
+            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
+
+            <View style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
+              <Text style={styles.title_text}>Date de naissance</Text>
+              {// <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>01.01.1990</Text> 
+              }
+              <DatePicker
+                style={{ width: 200, borderWidth: 0 }}
+                date={this.state.dateNaissance}
+                mode="date"
+                placeholder={this.state.dateNaissance}
+                format="DD-MM-YYYY"
+                minDate="01-01-1990"
+                maxDate="01-01-2030"
+                confirmBtnText="Confirm"
+                cancelBtnText="Cancel"
+                customStyles={{
+                  dateIcon: {
+                    position: 'absolute',
+                    left: 0,
+                    top: 4,
+                    marginLeft: 0
+                  },
+                  dateInput: {
+                    marginLeft: 36
+                  }}}
+                
+                onDateChange={(dateNaissance) => {
+                  REFS.users.doc(firebase.auth().currentUser.uid).update({'dateNaissance': this.state.dateNaissance})
+                  .then(()=> {this.setState({dateNaissance : dateNaissance})})
+                  .catch((err)=> console.error(err)) }}
+              />
+            </View>
+
+            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
+
+            <View style={{ paddingLeft: SCREEN_WIDTH * 0.05, paddingTop: SCREEN_WIDTH * 0.025 }}>
+              <Text style={styles.title_text}>Speciality</Text>
+              <View style={{
+                borderRadius: 30,
+                borderWidth: 0,
+                borderColor: '#bdc3c7',
+                overflow: 'hidden',
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 5 },
+                shadowOpacity: 0.32,
+                shadowRadius: 5.46,
+                elevation: 9,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: 'white',
+                marginHorizontal: SCREEN_WIDTH * 0.02, marginBottom: 10, paddingVertical: 0, width: SCREEN_WIDTH * 0.45
+              }}>
+
+                <Picker mode="dropdown" selectedValue={this.state.speciality}  style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.4, textAlign: "left" }} 
+                onValueChange={(speciality) => {
+                  REFS.users.doc(firebase.auth().currentUser.uid).update({'speciality': this.state.speciality})
+                  .then(()=> {this.setState({speciality : speciality})} ).then(()=> {console.log('updated : ' + this.state.speciality)})
+                  .catch((err)=> console.error(err)) }}
+                >
+                  <Picker.Item value='Psychologue' label='Psychologue' />
+                  <Picker.Item value='Speciality1' label='Speciality1' />
+                  <Picker.Item value='Speciality2' label='Speciality2' />
+                  <Picker.Item value='Speciality3' label='Speciality3' /> 
+
+                </Picker></View>
+            </View>
+
+
+            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
+
+            <View style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
+              <Text style={styles.title_text}>Groupe sanguin</Text>
+
+              <View style={{
+                borderRadius: 30,
+                borderWidth: 0,
+                borderColor: '#bdc3c7',
+                overflow: 'hidden',
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 5 },
+                shadowOpacity: 0.32,
+                shadowRadius: 5.46,
+                elevation: 9,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: 'white',
+                marginHorizontal: SCREEN_WIDTH * 0.02, marginBottom: 10, paddingVertical: 0, width: SCREEN_WIDTH * 0.45
+              }}>
+
+                <Picker mode="dropdown" selectedValue={this.state.Sanguin} onValueChange={this.updateDays} style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.4, textAlign: "left" }}>
+                  <Picker.Item value='O' label='O' />
+                  <Picker.Item value='A' label='A' />
+                  <Picker.Item value='B' label='B' />
+                  <Picker.Item value='AB' label='AB' />
+
+                </Picker></View>
+
+            </View>
+
+            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth, marginBottom: SCREEN_HEIGHT * 0.04 }} />
+            
+            <View
+              style={styles.edit_button}
+              onPress={() => displayDetailForDoctor(doctor.uid)}>
+              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' }}>
+                <Text style={{ color: 'black', fontWeight: 'bold' }}>Informations suplémentaires</Text>
+                <Icon name="pencil"
+                  size={SCREEN_WIDTH * 0.04}
+                  color="#93eafe" />
+              </View>
+            </View>
+
+            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
+              <Text style={styles.title_text}>Numéro de Téléphone</Text>
+              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>06 61 62 63 64</Text>
+            </View>
+
+            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
+
+            <View style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
+              <Text style={styles.title_text}>A propos</Text>
+              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+              Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                 Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+              </Text>
+            </View>
+
+            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
+
+
+
+            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
+              <Text style={styles.title_text}>Documents médicaux</Text>
+              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>-</Text>
+            </View>
+
+            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
+
+            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
+              <Text style={styles.title_text}>Diplomes</Text>
+              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>
+                  - Diplomes Université en l'année 0000.
+              </Text>
+            </View>
+
+            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
+
+            <TouchableOpacity style={styles.uploadButton} onPress={this.myImagefunction_Diplomes}>
+            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
+              <Text style={styles.title_text}>Images de Diplomes</Text>
+             
+              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ color: 'gray' }}> Télécharger un document </Text>
+                <Icon name="upload"
+                  size={SCREEN_WIDTH * 0.04}
+                  color="#BDB7AD" />
+            </View>
+            </View>
+            <Image source={this.state.avatarSource1} style={{width:'99%',height:270,margin:0}}/>
+            </TouchableOpacity>
+
+            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
+
+
+          </View>
+
+        </ScrollView>
+
+      </View >
+
+    );
+  }
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    //justifyContent: 'center',
+    //alignItems: 'center',
+    backgroundColor: '#ffffff',
+  },
+  header_container: {
+    flex: 0.28,
+    //justifyContent: 'flex-end',
+    //alignItems: 'stretch',
+    //backgroundColor: 'brown',
+  },
+  headerIcon: {
+    width: SCREEN_WIDTH,
+    height: HEADER_ICON_HEIGHT,
+  },
+  metadata_container: {
+    flex: 0.12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    //backgroundColor: 'green',
+  },
+  Avatar_box: {
+    width: SCREEN_WIDTH * 0.12,
+    height: SCREEN_WIDTH * 0.12,
+    borderRadius: 25,
+    backgroundColor: '#ffffff',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.32,
+    shadowRadius: 5.46,
+    elevation: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+    //backgroundColor: 'orange'
+  },
+  metadata_box: {
+    height: SCREEN_WIDTH * 0.12,
+    marginLeft: SCREEN_WIDTH * 0.04,
+    justifyContent: 'center',
+    //backgroundColor: 'yellow'
+  },
+  metadata_text1: {
+    fontSize: SCREEN_HEIGHT * 0.015,
+    color: 'gray',
+    fontWeight: 'bold'
+  },
+  metadata_text2: {
+    fontSize: SCREEN_HEIGHT * 0.015,
+    color: 'gray'
+  },
+  infos_container: {
+    flex: 1,
+    //backgroundColor: 'brown',
+  },
+  edit_button: {
+    height: SCREEN_HEIGHT * 0.045,
+    width: SCREEN_WIDTH * 0.75,
+    //alignItems: 'flex-end',
+    //justifyContent: 'center',
+    //paddingRight: SCREEN_WIDTH*0.05,
+    //backgroundColor: 'green',
+    // backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#93eafe',
+    borderTopRightRadius: 25,
+    borderBottomRightRadius: 25,
+  },
+  info_container: {
+    flex: 1,
+    //alignItems: 'center',
+    //justifyContent: 'center',
+    //flexDirection: 'row',
+    //marginLeft: SCREEN_WIDTH * 0.01
+    paddingTop: SCREEN_HEIGHT * 0.03,
+    //backgroundColor: 'brown',
+  },
+  title_text: {
+    color: '#93eafe',
+    marginBottom: SCREEN_HEIGHT * 0.006
+  }
+});
+
+
+const modalStyles = StyleSheet.create({
+  item_inactive: {
+    width: SCREEN_WIDTH * 0.3,
+    height: SCREEN_HEIGHT * 0.07,
+    //borderWidth: 1, 
+    //borderColor: 'blue', 
+    marginLeft: SCREEN_WIDTH * 0.015,
+    marginRight: SCREEN_WIDTH * 0.015,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    //borderRadius: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.32,
+    shadowRadius: 5.46,
+    elevation: 5,
+  },
+  item_active: {
+    width: SCREEN_WIDTH * 0.3,
+    height: SCREEN_HEIGHT * 0.07,
+    borderWidth: 1,
+    borderColor: '#93eafe',
+    marginLeft: SCREEN_WIDTH * 0.015,
+    marginRight: SCREEN_WIDTH * 0.015,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  item_text: {
+    //fontWeight: 'bold',
+    fontSize: SCREEN_HEIGHT * 0.016,
+    textAlign: 'center'
+  },  
+})

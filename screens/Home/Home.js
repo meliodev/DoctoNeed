@@ -28,7 +28,7 @@ import MedicalFolder from '../../screens/User/Patient/MedicalFolder'
 import AppointmentDetails from '../../screens/User/AppointmentDetails'
 import Chat from '../../screens/User/Patient/Chat'
 
-//import DoctorProfile from '../../screens/User/Doctor/Profile'
+import DoctorProfile from '../../screens/User/Doctor/Profile'
 import DispoConfig from '../../screens/User/Doctor/DispoConfig'
 import MyPatients from '../../screens/User/MyPatients'
 import AppointmentDetailsDOC from '../../screens/User/Doctor/AppointmentDetails'
@@ -314,16 +314,18 @@ const StackNavigatorDoctor = createStackNavigator({
     }
   },*/
  
-/*  Profile: {
+  Profile: {
     screen: DoctorProfile,
     navigationOptions: {
-      title: 'Mon profil'
+      title: 'Mon profil',
+            headerShown: false,
     }
-  },*/
+  },
   DispoConfig: {
     screen: DispoConfig,
     navigationOptions: {
-      title: 'Mes horaires'
+      title: 'Mes horaires',
+      headerShown: false,
     }
   },
   MyPatients: {

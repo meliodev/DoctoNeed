@@ -27,15 +27,19 @@ import Home from '../screens/Home/Home'
 import NextAppointments from '../screens/User/NextAppointments'
 
 import DispoConfig from '../screens/User/Doctor/DispoConfig'*/
+
 import DoctorFile from '../screens/Booking/DoctorFile'
 import RootComponent from '../screens/Root/Guest/RootComponent'
-import Test1 from '../screens/Test1'
+//import Test1 from '../screens/Test1'
 import Test2 from '../screens/Test2'
 //import CustomClaims from '../screens/CustomClaims'
 
 //import PhoneVerify  from '../screens/PhoneVerify'
+
 import DispoConfig from '../screens/User/Doctor/DispoConfig'
 import MedicalFolder from '../screens/User/Patient/MedicalFolder'
+import Profile from '../screens/User/Doctor/Profile'
+
 
 const SearchStackNavigator = createStackNavigator({
   /*CustomClaims: {
@@ -64,6 +68,13 @@ const SearchStackNavigator = createStackNavigator({
     navigationOptions: {
       title: 'Mon dossier médical', 
       headerShown: false
+    }
+  },
+  Profile: {
+    screen: Profile,
+    navigationOptions: {
+      title: 'Mon dossier médical', 
+      headerShown: false,
     }
   },
   DispoConfig:{
@@ -98,12 +109,6 @@ const SearchStackNavigator = createStackNavigator({
     screen: PhoneAuth0,
     navigationOptions: {
       title: ''
-    }
-  },
-  Test1: {
-    screen: Test1,
-    navigationOptions: {
-      title: 'Connection'
     }
   },
   Test2: {

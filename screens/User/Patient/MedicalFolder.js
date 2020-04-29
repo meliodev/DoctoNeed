@@ -9,6 +9,7 @@ import Modal from 'react-native-modal';
 import { withNavigation } from 'react-navigation';
 
 import * as REFS from '../../../DB/CollectionsRefs'
+import { signOutUser } from '../../../DB/CRUD'
 
 import Icon from 'react-native-vector-icons/FontAwesome';
 import firebase from 'react-native-firebase';
@@ -24,7 +25,6 @@ import { imagePickerOptions, options2, getFileLocalPath, createStorageReferenceT
 import ImagePicker from 'react-native-image-picker';
 
 import LeftSideMenu from '../../../components/LeftSideMenu'
-import RightSideMenu from '../../../components/RightSideMenu2'
 import Icon1 from 'react-native-vector-icons/FontAwesome';
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -64,47 +64,28 @@ export default class MedicalFolder extends React.Component {
       Sexe: "",
       date: "1990-01-01",
       ismodalSexVisible: false,
-
+      isLeftSideMenuVisible: false,
       ismodalPoidsVisible: false,
       Poids: 0,
       ismodalTailleVisible: false,
       Taille: 0,
       ismodalGSVisible: false,
       GS: '',
+      ismodalNomPrenomVisible: false,
 
       oui: false,
       non: false
     
 
     }
-    this.signOutUser = this.signOutUser.bind(this);
+    //this.navigateToDispoConfig = this.navigateToDispoConfig.bind(this);
+    //Menu
     this.signOutUserandToggle = this.signOutUserandToggle.bind(this);
     this.navigateToAppointments = this.navigateToAppointments.bind(this);
     this.navigateToMedicalFolder = this.navigateToMedicalFolder.bind(this);
-    this.navigateToDispoConfig = this.navigateToDispoConfig.bind(this);
+    this.navigateToSearch = this.navigateToSearch.bind(this);
 
 
-
-   /* ImagePicker.showImagePicker(options, (response) => {
-      console.log('Response = ', response);
-
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error);
-    } else if (response.customButton) {
-        console.log('User tapped custom button: ', response.customButton);
-      } else {
-        const source = { uri: response.uri };
-
-        // You can also display the image using data:
-        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
-
-        this.setState({
-          avatarSource: source,
-        });
-      }
-    });*/
 
     
 
@@ -132,6 +113,10 @@ export default class MedicalFolder extends React.Component {
 
   }
 
+
+  signOutUser() {
+    signOutUser();
+  }
 
   //Modal (data modification interfaces)
   openModal() {
@@ -273,36 +258,31 @@ export default class MedicalFolder extends React.Component {
     })
   }
 
-   //RightSideMenu functions
-  toggleRightSideMenu = () => {
-    this.setState({ isRightSideMenuVisible: !this.state.isRightSideMenuVisible });
+  //NomPrenom
+
+  openModalNomPrenom() {
+    this.setState({ ismodalNomPrenomVisible: true })
   }
 
-  onSelectDoctor = (doctor) => {
-    if (doctor === "")
-      this.setState({ doctor: doctor, isDoctorSelected: false })
-    else
-      this.setState({ doctor: doctor, isDoctorSelected: true })
-  }
-
-  onSelectSpeciality = (speciality) => {
-    if (speciality === "")
-      this.setState({ speciality: speciality, isSpecialitySelected: false })
-    else
-      this.setState({ speciality: speciality, isSpecialitySelected: true })
-  }
-
-  clearAllFilters = () => {
+  toggleModalNomPrenom = () => {
     this.setState({
-      doctor: '', speciality: '',
-      isDoctorSelected: false, isSpecialitySelected: false,
-      isRightSideMenuVisible: false
+      ismodalNomPrenomVisible: !this.state.ismodalNomPrenomVisible
     })
   }
 
+  closeModalNomPrenom = () => {
+    this.setState({
+      ismodalNomPrenomVisible: false
+    })
+  }
+
+
+
+
   //LeftSideMenu functions
   toggleLeftSideMenu = () => {
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible });
+    this.month = ''
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible, appId: null });
   }
 
   navigateToMedicalFolder() {
@@ -310,15 +290,15 @@ export default class MedicalFolder extends React.Component {
       () => this.props.navigation.navigate('MedicalFolder'));
     //console.log(this.props)
   }
-  navigateToDispoConfig() {
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('DispoConfig'));
-    //console.log(this.props)
-  }
 
   navigateToAppointments() {
     this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('TabScreen'));
+      () => this.props.navigation.navigate('TabScreenPatient'));
+  }
+
+  navigateToSearch() {
+    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
+      () => this.props.navigation.navigate('Search'));
   }
 
   signOutUserandToggle() {
@@ -402,6 +382,28 @@ export default class MedicalFolder extends React.Component {
     }
     );
   };
+  myImagefunction=()=>{
+
+    ImagePicker.showImagePicker(options, (response) => {
+      console.log('Response = ', response);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      }
+      else if (response.error) {
+        console.log('Image Picker Error: ', response.error);
+      }
+      else {
+        let source = { uri: response.uri };
+        // You can also display the image using data:
+        // let source = { uri: 'data:image/jpeg;base64,' + response.data };
+        this.setState({
+          avatarSourceProfile: source,
+          pic:response.data
+        });
+      }
+    });
+    console.log('clicked');
+  }
 
   render() {
     // const currentUser= firebase.auth().currentUser.
@@ -422,24 +424,12 @@ export default class MedicalFolder extends React.Component {
           prenom={this.state.prenom}
           email={this.state.email}
           navigateToMedicalFolder={this.navigateToMedicalFolder}
-          navigateToDispoConfig={this.navigateToDispoConfig}
           navigateToAppointments={this.navigateToAppointments}
-          signOutUser={this.signOutUserandToggle}
+          navigateToSearch={this.navigateToSearch}
+          signOutUser={this.signOutUserandToggle} 
           navigate={this.props.navigation} />
 
-        <RightSideMenu
-          isSideMenuVisible={this.state.isRightSideMenuVisible}
-          toggleSideMenu={this.toggleRightSideMenu}
-          onSelectDoctor={this.onSelectDoctor}
-          onSelectSpeciality={this.onSelectSpeciality}
-          clearAllFilters={this.clearAllFilters}
-          /*toggleUrgence={this.toggleUrgence}
-          urgences={this.state.urgences}
-          price={this.state.price}*/
-          clearAllFilters={this.clearAllFilters}
-         /* onSelectCountry={this.onSelectCountry}
-          onSelectSpeciality={this.onSelectSpeciality}
-          onSelectPriceMax={this.onSelectPriceMax} *//>
+
 
 <View style={{ height: SCREEN_HEIGHT * 0.01, flexDirection: 'row', paddingTop: SCREEN_HEIGHT * 0.00, justifyContent: 'space-between', alignItems: 'flex-start',position:'relative', bottom:80,
          }}>
@@ -461,40 +451,64 @@ export default class MedicalFolder extends React.Component {
             <Icon1 name="bars" size={25} color="#93eafe" />
           </TouchableHighlight>
 
-          <TouchableHighlight 
-          style={{
-                width: SCREEN_WIDTH * 0.12,
-                height: SCREEN_WIDTH * 0.12,
-                borderRadius: 25,
-                backgroundColor: '#ffffff',
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.32,
-                shadowRadius: 5.46,
-                elevation: 9,
-                position: 'relative',
-                right: SCREEN_WIDTH * 0.05,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginLeft: SCREEN_WIDTH * 0.02
-          }}
-            onPress={this.toggleRightSideMenu}>
-            <Icon1 name="filter" size={25} color="#93eafe" />
-          </TouchableHighlight>
+
          </View>
          
          
          
-          <View style={styles.metadata_container}>
+         <View style={styles.metadata_container}>
+              <TouchableOpacity onPress={this.myImagefunction}>
+
           <View style={styles.Avatar_box}>
-            <Icon name="user"
-              size={SCREEN_WIDTH * 0.05}
-              color="#93eafe" />
+          {this.avatarSourceProfile != null  ?
+    
+    <Icon name="user"
+    size={SCREEN_WIDTH * 0.05}
+    color="#93eafe" />
+    : 
+    
+    <Image source={this.state.avatarSourceProfile} style={{width:30,height:30,margin:0}}/>
+
+        }
           </View>
+
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => this.openModalNomPrenom()}>
+
           <View style={styles.metadata_box}>
             <Text style={styles.metadata_text1}>{this.state.nom} {this.state.prenom}</Text>
-            <Text style={styles.metadata_text2}>{this.state.dateNaissance} (28 ans)</Text>
+            <Text style={styles.metadata_text2}>{this.state.dateNaissance} (25 ans)</Text>
           </View>
+        </TouchableOpacity>
+
+        <Modal isVisible={this.state.ismodalNomPrenomVisible}
+              onBackdropPress={() => this.closeModalNomPrenom()}
+              animationIn="slideInLeft"
+              animationOut="slideOutLeft"
+              style={{ flex: 1, backgroundColor: 'white', maxHeight: SCREEN_HEIGHT / 2, marginTop: SCREEN_HEIGHT * 0.25, alignItems: 'center', }}>
+
+              <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT * 0.1 }}>
+             
+              </View>
+
+              <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
+                <View style={{ flexDirection: 'row', }}>
+                  <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
+                    <Text style={{ color: 'white', textAlign: 'center', padding: 10 }} onPress={() => {
+                             REFS.users.doc(firebase.auth().currentUser.uid).update({'Taille': this.state.Taille})
+                             .then(()=> this.closeModalTaille())
+                             .catch((err)=> console.error(err)) }}>Confirmer</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModalNomPrenom()}>
+                    <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+
+            </Modal>
+
         </View>
 
         <ScrollView style={styles.infos_container}>
@@ -545,7 +559,7 @@ export default class MedicalFolder extends React.Component {
                 <View style={{ flexDirection: 'row', }}>
                   <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }} onPress={() => {
                              REFS.users.doc(firebase.auth().currentUser.uid).update({'Sexe': this.state.Sexe})
-                             .then(()=> this.closeModalSex())
+                             .then(()=> this.closeModal())
                              .catch((err)=> console.error(err)) }}>
                     <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
                   </TouchableOpacity>
@@ -764,7 +778,7 @@ export default class MedicalFolder extends React.Component {
 
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth, marginBottom: SCREEN_HEIGHT * 0.04 }} />
 
-
+{/* This Section need a function that update the database valus*/}
 
             <View
               style={styles.edit_button}
@@ -838,6 +852,9 @@ export default class MedicalFolder extends React.Component {
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
 
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth, marginBottom: SCREEN_HEIGHT * 0.04 }} />
+
+{/* This Section need a function that update the database valus*/}
+
 
             <View
               style={styles.edit_button}
@@ -978,6 +995,8 @@ export default class MedicalFolder extends React.Component {
 
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
 
+            {/* This Section need a function that update the database valus*/}
+
             <TouchableOpacity style={styles.uploadButton} onPress={this.myImagefunction_vital}>
             <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
               <Text style={styles.title_text}>Carte Vitale</Text>
@@ -987,8 +1006,7 @@ export default class MedicalFolder extends React.Component {
                 <Icon name="upload"
                   size={SCREEN_WIDTH * 0.04}
                   color="#BDB7AD" />
-              </View>
-            
+            </View>
             </View>
             <Image source={this.state.avatarSource1} style={{width:'99%',height:270,margin:0}}/>
             </TouchableOpacity>
@@ -1012,6 +1030,8 @@ export default class MedicalFolder extends React.Component {
 
             <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
             
+            {/* This Section need a function that update the database valus*/}
+
             <TouchableOpacity style={styles.uploadButton} onPress={this.myImagefunction_mutuel}>
             <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
               <Text style={styles.title_text}>Mutuel</Text>

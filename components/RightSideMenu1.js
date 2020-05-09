@@ -44,6 +44,20 @@ export default class RightSideMenu extends Component {
 
                     <View style={styles.pays_container}>
                         <Text style={styles.title_text}>Pays</Text>
+                        <View style={{ borderRadius: 30,
+                                borderWidth: 0,
+                                borderColor: '#bdc3c7',
+                                overflow: 'hidden',
+                                shadowColor: "#000",
+                                shadowOffset: { width: 0, height: 5 },
+                                shadowOpacity: 0.32,
+                                shadowRadius: 5.46,
+                                elevation: 9,
+                                backgroundColor: 'white', 
+                                marginHorizontal: SCREEN_WIDTH * 0.00,
+                                 marginTop: 10,
+                                 paddingVertical: 0,
+                                  width: SCREEN_WIDTH * 0.55}}>
                         <CountryPicker
                             withFilter
                             withEmoji
@@ -51,9 +65,11 @@ export default class RightSideMenu extends Component {
                             withAlphaFilter
                             translation="fra"
                             placeholder={this.props.countryPlaceHolder}  
-                            containerButtonStyle= {{width: SCREEN_WIDTH *0.6, height: SCREEN_HEIGHT*0.065, borderRadius: 50, marginTop: SCREEN_HEIGHT*0.02 }} 
+                            containerButtonStyle= {{width: SCREEN_WIDTH *0.6, height: SCREEN_HEIGHT*0.065, borderRadius: 30, marginTop: SCREEN_HEIGHT*0.00,paddingVertical:SCREEN_HEIGHT * 0.02
+                            , paddingHorizontal: SCREEN_WIDTH * 0.05 }} 
                             onSelect={country => this.props.onSelectCountry(country)}   
                         />
+                        </View>
                     </View>
 
                     <View style={styles.urgence_container1}>
@@ -233,7 +249,7 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     urgence_text: {
-        fontSize: 10,
+        fontSize: 13,
         fontFamily: 'bold',
         marginLeft: SCREEN_WIDTH * 0.05,
         color: 'gray'

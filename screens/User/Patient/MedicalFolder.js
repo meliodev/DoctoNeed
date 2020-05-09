@@ -72,11 +72,8 @@ export default class MedicalFolder extends React.Component {
       ismodalGSVisible: false,
       GS: '',
       ismodalNomPrenomVisible: false,
-
       oui: false,
-      non: false
-    
-
+      non: false,
     }
     //this.navigateToDispoConfig = this.navigateToDispoConfig.bind(this);
     //Menu
@@ -84,11 +81,6 @@ export default class MedicalFolder extends React.Component {
     this.navigateToAppointments = this.navigateToAppointments.bind(this);
     this.navigateToMedicalFolder = this.navigateToMedicalFolder.bind(this);
     this.navigateToSearch = this.navigateToSearch.bind(this);
-
-
-
-    
-
 
   }
 

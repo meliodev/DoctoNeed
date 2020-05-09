@@ -1,11 +1,12 @@
-
-
 import React from 'react'
 import { View, TextInput, Text, Image, Dimensions, ActivityIndicator, StyleSheet } from 'react-native'
 
 import firebase from 'react-native-firebase'
 
 import Button from '../../components/Button';
+
+import Input from '../../components/Input';
+
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -18,10 +19,12 @@ export default class LoginDoctor extends React.Component {
   state = {
     email: '', password: '', errorMessage: null, message: '', confirmResult: null,
     user: null, codeInput: '', phoneNumber: '', isLoading: false,
-    isUser: false, isDoctor: false
+    isUser: false, isDoctor: false,
+    isValid: null,
   }
 
   handleLogin = () => {
+    //task: chech network
     const { email, password } = this.state
 
     if (this.state.email && this.state.password) {
@@ -64,6 +67,9 @@ export default class LoginDoctor extends React.Component {
     const { isLoading } = this.state;
     const isDoctor = this.props.navigation.getParam('isDoctor', 'nothing sent')
 
+  const { isValid } = this.state;
+   console.log('isValid', isValid);
+
     return (
       <View style={styles.container}>
         {isLoading
@@ -82,16 +88,41 @@ export default class LoginDoctor extends React.Component {
             <View style={styles.logo_container}>
               <Image source={require('../../assets/doctoneedLogoIcon.png')} style={styles.logoIcon} />
             </View>
-
+ 
             <View style={styles.header_container}>
               <Text style={styles.header}> Se connecter </Text>
             </View>
 
             <View style={styles.form_container}>
               <TextInput style={styles.search_button} onChangeText={(text) => this.setState({ email: text })} placeholder={'Votre email'} value={this.state.email} />
-              <TextInput secureTextEntry style={styles.search_button} onChangeText={(text) => this.setState({ password: text })} placeholder={'Votre mot de passe'} value={this.state.password} />
             </View>
 
+       <View style={styles.form_container}>
+        <Input secureTextEntry
+          placeholder="Votre mot de passe"
+          onChangeText={(text) => this.setState({ password: text })} 
+          value={this.state.password}
+          style={styles.search_button}
+          pattern={[
+            '^.{7,}$', // min 7 chars
+            '(?=.*\\d)', // number required
+            '(?=.*[A-Z])', // uppercase letter
+          ]}
+          onValidation={isValid => this.setState({ isValid })}
+        />
+        <View>
+          <Text style={{ color: isValid && isValid[0] ? 'green' : 'red' }}>
+          Règle 1 : au moins 7 caractères
+          </Text>
+          <Text style={{ color: isValid && isValid[1] ? 'green' : 'red' }}>
+          Règle 2 : nombre requis
+          </Text>
+          <Text style={{ color: isValid && isValid[2] ? 'green' : 'red' }}>
+          Règle 3 : lettre majuscule
+          </Text>
+            </View>
+            </View>
+ 
             {isDoctor === 'nothing sent' ?
               <View style={styles.button_container}>
                 <Button width= {SCREEN_WIDTH*0.65} text="Se Connecter" onPress={this.handleLogin} />
@@ -165,7 +196,7 @@ const styles = StyleSheet.create({
     marginBottom: SCREEN_HEIGHT * 0.01
   },
   form_container: {
-    flex: 0.37,
+    flex: 0.20,
     alignItems: 'center',
     justifyContent: 'space-evenly',
     //backgroundColor: 'brown',

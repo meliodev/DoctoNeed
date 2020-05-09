@@ -12,6 +12,9 @@ import ValidationComponent from 'react-native-form-validator';
 
 import firebase from 'react-native-firebase'
 
+import Input from '../../components/Input';
+
+
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
@@ -23,7 +26,9 @@ export default class SignUpPW extends ValidationComponent {
     super(props);
     this.state = {
       password: '',
-      isLoading: false
+      isLoading: false,
+          isValid: null,
+
     }
   }
 
@@ -137,6 +142,10 @@ _displayLoading() {
 }
 
   render() {
+
+    const { isValid } = this.state;
+    console.log('isValid', isValid);
+
     const email =  this.props.navigation.getParam('email', 'nothing sent')
     const phoneNumber =  this.props.navigation.getParam('phoneNumber', 'nothing sent')
     const nom =  this.props.navigation.getParam('nom', 'nothing sent')
@@ -184,7 +193,37 @@ _displayLoading() {
 
           <View style={styles.form_container}>
              <TextInput secureTextEntry style={styles.search_button} onChangeText={ (text) => this.setState({password: text}) } placeholder= {'Mot de passe'} value={this.state.password}/>
+
           </View>
+
+          { /* 
+       <View style={styles.form_container}>
+        <Input secureTextEntry
+          placeholder="Votre mot de passe"
+          onChangeText={(text) => this.setState({ password: text })} 
+          value={this.state.password}
+          style={styles.search_button}
+          pattern={[
+            '^.{8,}$', // min 8 chars
+            '(?=.*\\d)', // number required
+            '(?=.*[A-Z])', // uppercase letter
+          ]}
+          onValidation={isValid => this.setState({ isValid })}
+        />
+        <View>
+          <Text style={{ color: isValid && isValid[0] ? 'green' : 'red' }}>
+          Règle 1 : au moins 8 caractères
+          </Text>
+          <Text style={{ color: isValid && isValid[1] ? 'green' : 'red' }}>
+          Règle 2 : nombre requis
+          </Text>
+          <Text style={{ color: isValid && isValid[2] ? 'green' : 'red' }}>
+          Règle 3 : lettre majuscule
+          </Text>
+            </View>
+            </View>
+ */} 
+
 
           <View style={styles.error_container}>
              <Text style={{ color: 'red' }}>

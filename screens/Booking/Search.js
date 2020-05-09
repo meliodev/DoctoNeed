@@ -1,7 +1,7 @@
 
 import React from 'react'
 //import LinearGradient from 'react-native-linear-gradient';
-import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, TextInput } from 'react-native'
+import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, TextInput, ActivityIndicator } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Icon1 from 'react-native-vector-icons/FontAwesome';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -53,6 +53,8 @@ class Search extends React.Component {
       isUrgencesSelected: false,
       isSpecialitySelected: false,
       isPriceSelected: false,
+      isLoading: false,
+
     }
   }
 
@@ -206,6 +208,9 @@ class Search extends React.Component {
   //-----------------------------------------------------------
 
   componentDidMount() {
+
+    this.setState({ isLoading: true })
+
     //this.buildDoctorSchedule()
     this._loadDoctors()
     // this.filterCountry()
@@ -242,9 +247,12 @@ class Search extends React.Component {
         }
           //,console.log(doctorList)
         )
+        this.setState({ isLoading: false })
 
       })
       .catch(error => console.log('Error getting documents:' + error))
+
+
   }
 
   render() {
@@ -359,6 +367,12 @@ class Search extends React.Component {
             : null}
         </View>
 
+        {this.state.isLoading
+          ? <View style={styles.loading_container}>
+            <ActivityIndicator size='large' />
+          </View>
+
+          :
         <ScrollView style={styles.doctorList_container}>
           {this.filteredDoctors1.map(doctor => {
             return (
@@ -372,7 +386,7 @@ class Search extends React.Component {
             )
           })}
         </ScrollView>
-
+  }
       </View>
     );
   }

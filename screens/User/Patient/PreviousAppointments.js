@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, Image, Dimensions, TouchableHighlight, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
+import { View, Text, Image, Dimensions, TouchableHighlight, TouchableOpacity, ScrollView, StyleSheet , ActivityIndicator } from 'react-native'
 import Modal from "react-native-modal";
 import { createFilter } from 'react-native-search-filter';
 import moment from 'moment'
@@ -74,6 +74,7 @@ export default class PreviousAppointments extends React.Component {
       isSpecialitySelected: false,
       isDateFromSelected: false,
       isDateFromToSelected: false,
+      isLoading: false,
 
       //Appointment dynamic style: open & close
       itemHeight: SCREEN_HEIGHT * 0.13,
@@ -100,6 +101,9 @@ export default class PreviousAppointments extends React.Component {
 
   componentDidMount() {
 
+    this.setState({ isLoading: true })
+
+
     const { currentUser } = firebase.auth()
 
     if (currentUser) {
@@ -122,6 +126,8 @@ export default class PreviousAppointments extends React.Component {
 
   // Load appointments
   loadAppointments() {
+
+    
 
     var query = REFS.appointments
     query = query.where('user_id', '==', this.state.uid)
@@ -153,6 +159,9 @@ export default class PreviousAppointments extends React.Component {
         this.setState({ appointments: appointments })
 
       }.bind(this))
+
+      this.setState({ isLoading: false })
+
   }
 
   signOutUser() {
@@ -338,6 +347,8 @@ export default class PreviousAppointments extends React.Component {
     }
 
     return (
+
+      
       <View style={styles.container}>
 
         <LeftSideMenu
@@ -407,6 +418,13 @@ export default class PreviousAppointments extends React.Component {
           <Text style={styles.header}>Mes consultations passées</Text>
           <Text style={{ color: 'gray', fontSize: SCREEN_HEIGHT * 0.0115 }}>( 18 derniers mois )</Text>
         </View> */}
+
+{this.state.isLoading
+          ? <View style={styles.loading_container}>
+            <ActivityIndicator size='large' />
+          </View>
+
+          :
 
         <ScrollView style={styles.appointments_container_scrollview}>
           {this.filteredAppointments.map(appointment => {
@@ -506,7 +524,7 @@ export default class PreviousAppointments extends React.Component {
             )
           })}
         </ScrollView>
-
+  }
         <View style={{ flex: 0.4, alignItems: 'center', justifyContent: 'center' }}>
           <Button width={SCREEN_WIDTH * 0.87} text="Prendre un rendez-vous en urgence"/* onPress={ this.handleLogin } */ />
           <Button2 style={{ backgroundColor: "#ffffff", color: "#000000" }} text="Planifier une consultation" onPress={() => this.props.navigation.navigate('Search')} />

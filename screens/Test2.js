@@ -22,7 +22,7 @@ import firebase, { database } from 'react-native-firebase'
 import { signOutUser } from '../DB/CRUD'
 import * as REFS from '../DB/CollectionsRefs'
 //import DeviceInfo from 'react-native-device-info'
-import * as RNLocalize from "react-native-localize";
+//import * as RNLocalize from "react-native-localize";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;

@@ -55,14 +55,14 @@ const SearchStackNavigator = createStackNavigator({
       title: 'Accueil',
       headerShown: false
     }
-  },
+  },/*
   Test1: {
     screen: Test1,
     navigationOptions: {
       title: 'Accueil',
       headerShown: false
     }
-  },
+  },*/
   MedicalFolder: {
     screen: MedicalFolder,
     navigationOptions: {

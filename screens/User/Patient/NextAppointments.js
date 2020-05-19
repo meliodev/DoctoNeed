@@ -73,6 +73,8 @@ export default class NextAppointments extends React.Component {
       isSpecialitySelected: false,
       isDateFromSelected: false,
       isDateFromToSelected: false,
+      isLoading: false,
+
 
       //Appointment dynamic style: roll/unroll
       itemHeight: SCREEN_HEIGHT * 0.13,
@@ -411,6 +413,13 @@ export default class NextAppointments extends React.Component {
           <Text style={{ color: 'gray', fontSize: SCREEN_HEIGHT * 0.0115 }}>( 18 derniers mois )</Text>
         </View> */}
 
+{this.state.isLoading
+          ? <View style={styles.loading_container}>
+            <ActivityIndicator size='large' />
+          </View>
+
+          :
+
         <ScrollView style={styles.appointments_container_scrollview}>
           {this.filteredAppointments.map(appointment => {
 
@@ -562,7 +571,7 @@ export default class NextAppointments extends React.Component {
             )
           })}
         </ScrollView>
-
+  }
         <View style={{ flex: 0.4, alignItems: 'center', justifyContent: 'center' }}>
           <Button width={SCREEN_WIDTH * 0.87} text="Prendre un rendez-vous en urgence" onPress={() => this.props.navigation.navigate('Search', { isUrgence: true })} />
           <Button2 style={{ backgroundColor: "#ffffff", color: "#000000" }} text="Planifier une consultation" onPress={() => this.props.navigation.navigate('Search')} />

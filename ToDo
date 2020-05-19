@@ -43,3 +43,19 @@ Demande d'inscription: ...
 
 
              
+Consultation:
+
+-Urgence: Disponible dans 30min / Indisponible
+-Normale: Disponible dans 60min / Disponible
+
+
+Fiche Médecin: 
+
+- Style et disposition des éléments de l'écran.
+- Configuration des boutons (Le bouton 'Prendre un rendez vous en urgence n'est affichés que pour les médecins gérant l'urgence')
+
+
+Booking:
+
+-Rendre indisponible les consultations dont le créneau horaire est déjà Passée 
+-(Les consultation déjà confirmé (payées) sont aussi rendues indisponibles)

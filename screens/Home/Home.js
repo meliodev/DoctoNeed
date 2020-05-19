@@ -27,6 +27,7 @@ import NextAppointmentsADMIN from '../User/Admin/NextAppointments'
 import MedicalFolder from '../../screens/User/Patient/MedicalFolder'
 import AppointmentDetails from '../../screens/User/AppointmentDetails'
 import Chat from '../../screens/User/Patient/Chat'
+import SignUpRequests from '../../screens/User/Admin/SignUpRequests'
 
 import DoctorProfile from '../../screens/User/Doctor/Profile'
 import DispoConfig from '../../screens/User/Doctor/DispoConfig'
@@ -132,7 +133,7 @@ const TabScreenPatient = createMaterialTopTabNavigator(
         width: '100%',
         height: SCREEN_HEIGHT * 0.06,
         position: 'absolute',
-        zIndex: 1,
+        zIndex: 1, 
         backgroundColor: '#ffffff',
         marginTop: SCREEN_HEIGHT * 0.15,
         borderTopWidth: 0,
@@ -165,8 +166,10 @@ const StackNavigatorPatient = createStackNavigator({
   Search: {
     screen: Search,
     navigationOptions: {
-      title: 'Recherche médecins',
-      headerShown: false
+      title: '',
+      headerStyle: {
+        elevation: null
+    },     
     }
   },
   DoctorFile: {
@@ -178,13 +181,19 @@ const StackNavigatorPatient = createStackNavigator({
   Booking: {
     screen: Booking,
     navigationOptions: {
-      title: ''
+      title: '',
+      headerStyle: {
+        elevation: null
+      }
     }
   },
   Symptomes: {
     screen: Symptomes,
     navigationOptions: {
-      title: ''
+      title: '',
+      headerStyle: {
+        elevation: null
+      }
     }
   },
   Upload: {
@@ -407,20 +416,28 @@ const StackNavigatorAdmin = createStackNavigator({
   Search: {
     screen: Search,
     navigationOptions: {
-      title: 'Recherche médecins',
-      headerShown: false
-    }
+      title: '',
+      headerStyle: {
+        elevation: null
+      }
+    },   
   },
   Booking: {
     screen: Booking,
     navigationOptions: {
-      title: ''
+      title: '',
+      headerStyle: {
+        elevation: null
+      }
     }
   },
   Symptomes: {
     screen: Symptomes,
     navigationOptions: {
-      title: ''
+      title: '',
+      headerStyle: {
+        elevation: null
+      }
     }
   },
   Upload: {
@@ -459,6 +476,12 @@ const StackNavigatorAdmin = createStackNavigator({
       title: "Chat"
     }
   },
+  SignUpRequests: {
+    screen: SignUpRequests,
+    navigationOptions: {
+      title: "Demandes d'inscription"
+    }
+  }
 })
 
 const AppContainerAdmin = createAppContainer(StackNavigatorAdmin)

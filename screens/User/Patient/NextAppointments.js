@@ -1,36 +1,30 @@
-//Presentation.js
-//Next tasks: 
-//1. Display this screen only on first launch
-//2. Add a swiper (slides)
-//issues: we can not navigate to stack nav screens cause we are wrapped in tabs nav
 import React from 'react'
 import { View, Text, Image, Dimensions, TouchableHighlight, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
+import Modal from "react-native-modal";
 import { createFilter } from 'react-native-search-filter';
-
-import LeftSideMenu from '../../../components/LeftSideMenu'
-import RightSideMenu from '../../../components/RightSideMenu2'
+import Icon1 from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/AntDesign';
 
 import moment from 'moment'
-import 'moment/locale/fr'  // without this line it didn't work
+import 'moment/locale/fr'
 moment.locale('fr')
 
+//Components
+import LeftSideMenu from '../../../components/LeftSideMenu'
+import RightSideMenu from '../../../components/RightSideMenu2'
+import Button from '../../../components/Button';
+import Button2 from '../../../components/Button2';
+
+//Firebase
 import firebase from 'react-native-firebase'
 import { signOutUser } from '../../../DB/CRUD'
 import * as REFS from '../../../DB/CollectionsRefs'
 
-import Icon1 from 'react-native-vector-icons/FontAwesome';
-import Icon from 'react-native-vector-icons/AntDesign';
-import Modal from "react-native-modal";
-
+//Constants
 const KEYS_TO_FILTERS_DOCTOR = ['doctorName'];
 const KEYS_TO_FILTERS_SPECIALITY = ['doctorSpeciality'];
-
-import Button from '../../../components/Button';
-import Button2 from '../../../components/Button2';
-
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
-
 const ratioLogo = 420 / 244;
 const LOGO_WIDTH = SCREEN_WIDTH * 0.14 * ratioLogo;
 
@@ -45,9 +39,7 @@ export default class NextAppointments extends React.Component {
 
     //Menu
     this.signOutUserandToggle = this.signOutUserandToggle.bind(this);
-    this.navigateToAppointments = this.navigateToAppointments.bind(this);
-    this.navigateToMedicalFolder = this.navigateToMedicalFolder.bind(this);
-    this.navigateToSearch = this.navigateToSearch.bind(this);
+    this.navigateToScreen = this.navigateToScreen.bind(this);
 
     //Filters
     this.onSelectDoctor = this.onSelectDoctor.bind(this);
@@ -55,6 +47,7 @@ export default class NextAppointments extends React.Component {
     this.onSelectDateFrom = this.onSelectDateFrom.bind(this);
     this.onSelectDateTo = this.onSelectDateTo.bind(this);
 
+    //Appointment card
     this.toggleAppointment = this.toggleAppointment.bind(this);
     this.defineItemStyle = this.defineItemStyle.bind(this);
     this.loadAppointments = this.loadAppointments.bind(this);
@@ -73,7 +66,7 @@ export default class NextAppointments extends React.Component {
       age: "",
 
       doctor: null,
-      speciality: null,
+      speciality: '',
       dateFrom: '',
       dateTo: '',
       isDoctorSelected: false,
@@ -81,7 +74,7 @@ export default class NextAppointments extends React.Component {
       isDateFromSelected: false,
       isDateFromToSelected: false,
 
-      //Appointment dynamic style: open & close
+      //Appointment dynamic style: roll/unroll
       itemHeight: SCREEN_HEIGHT * 0.13,
       appId: null,
 
@@ -89,24 +82,23 @@ export default class NextAppointments extends React.Component {
       symptomes: [],
       documents: [],
       video: '',
-
       isModalImageVisible: false,
       ImageToShow: ''
     }
   }
 
-  componentWillMount() {
+
+
+  componentDidMount() {
+    //Unroll Cards on tab change
     const { navigation } = this.props;
     navigation.addListener('willFocus', async () => {
       await this.setState({ appId: null })
       this.month = ''
     });
-  }
 
-  componentDidMount() {
-
+    //Get current user metadata
     const { currentUser } = firebase.auth()
-
     if (currentUser) {
       this.setState({ currentUser })
 
@@ -117,10 +109,7 @@ export default class NextAppointments extends React.Component {
         this.setState({ email: currentUser.email })
       })
         .then(() => {
-          const { navigation } = this.props;
-          //navigation.addListener('willFocus', () =>
           this.loadAppointments()
-          //);
         })
     }
   }
@@ -128,43 +117,40 @@ export default class NextAppointments extends React.Component {
   // Load appointments
   loadAppointments() {
 
-    this.appointments = []
-
     var query = REFS.appointments
     query = query.where('user_id', '==', this.state.uid)
     query = query.where('finished', '==', false)
     query = query.where('cancelBP', '==', false)
     query = query.orderBy('date', 'desc')
 
-    query
-      .onSnapshot(function (querySnapshot) {
-        //console.log(querySnapshot)
-        let appointments = []
-        querySnapshot.forEach(doc => {
-          let id = doc.id
-          let date = doc.data().date
-          let doctorName = doc.data().doctorName
-          let doctorSpeciality = doc.data().doctorSpeciality
-          let state = doc.data().state
-          let postponeBP = doc.data().postponeBP
-          let postponing = doc.data().postponing
+    query.onSnapshot(function (querySnapshot) {
+      let appointments = []
+      querySnapshot.forEach(doc => {
+        let id = doc.id
+        let date = doc.data().date
+        let doctorName = doc.data().doctorName
+        let doctorSpeciality = doc.data().doctorSpeciality
+        let state = doc.data().state
+        let postponeBP = doc.data().postponeBP
+        let postponeBD = doc.data().postponeBD
+        let postponing = doc.data().postponing
 
-          let app = {
-            id: id,
-            date: date,
-            doctorName: doctorName,
-            doctorSpeciality: doctorSpeciality,
-            state: state,
-            postponeBP: postponeBP,
-            postponing: postponing
-          }
+        let app = {
+          id: id,
+          date: date,
+          doctorName: doctorName,
+          doctorSpeciality: doctorSpeciality,
+          state: state,
+          postponeBP: postponeBP,
+          postponeBD: postponeBD,
+          postponing: postponing
+        }
 
-          appointments.push(app)
-        })
-        //console.log("Current appointments are", appointments.join(", "))
-        this.setState({ appointments: appointments })
+        appointments.push(app)
+      })
+      this.setState({ appointments: appointments })
 
-      }.bind(this)) //.then(() => this.setState({ appointments: this.appointments }))
+    }.bind(this))
   }
 
   signOutUser() {
@@ -177,14 +163,7 @@ export default class NextAppointments extends React.Component {
     this.setState({ isRightSideMenuVisible: !this.state.isRightSideMenuVisible, appId: null });
   }
 
-  clearAllFilters = () => {
-    this.setState({
-      doctor: '', speciality: '', dateFrom: '', dateTo: '',
-      isDoctorSelected: false, isSpecialitySelected: false, isDateFromSelected: false, isDateToSelected: false,
-      isRightSideMenuVisible: false
-    })
-  }
-  //Get data from filters
+  //Filters data
   onSelectDoctor = (doctor) => {
     if (doctor === "")
       this.setState({ doctor: doctor, isDoctorSelected: false })
@@ -219,20 +198,9 @@ export default class NextAppointments extends React.Component {
     this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible, appId: null });
   }
 
-  navigateToMedicalFolder() {
+  navigateToScreen(screen) {
     this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('MedicalFolder'));
-    //console.log(this.props)
-  }
-
-  navigateToAppointments() {
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('TabScreenPatient'));
-  }
-
-  navigateToSearch() {
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('Search'));
+      () => this.props.navigation.navigate(screen));
   }
 
   signOutUserandToggle() {
@@ -240,6 +208,7 @@ export default class NextAppointments extends React.Component {
       this.signOutUser())
   }
 
+  //appointment card: roll/unroll effect
   toggleAppointment(appId) {
     if (appId !== this.state.appId) {
       this.month = ''
@@ -309,16 +278,32 @@ export default class NextAppointments extends React.Component {
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
         elevation: 4,
-        //backgroundColor: 'green'
+        //backgroundColor: 'green' 
       }
     }
   }
 
+  //appointment card functions
   handlePostponeAppointment(appId) {
     this.props.navigation.navigate('Booking', { appId: appId })
   }
 
-  handleCancelAppointment(appId) {
+  handleCancelAppointment(appId, date) {
+
+    REFS.appointments.doc(appId).get().then((doc1) => {
+      REFS.doctors.doc(doc1.data().doctor_id).collection('DoctorSchedule').where('ts', '==', date).get().then(querySnapshot => {
+
+        querySnapshot.forEach(doc => {
+          REFS.doctors.doc(doc1.data().doctor_id).collection('DoctorSchedule').doc(doc.id).update({ paid: false })
+            .then(() => console.log('document has been updated: paid = false'))
+            .catch((err) => console.error(err))
+        })
+
+      }).then(() => console.log('document has been retrieved to be updated'))
+        .catch((err) => console.error(err))
+
+    })
+
     REFS.appointments.doc(appId).update({ cancelBP: true }).then(() => {
       this.setState({ appId: null })
       alert('Votre rendez-vous est annulé.')
@@ -334,18 +319,13 @@ export default class NextAppointments extends React.Component {
   }
 
   render() {
+
     this.filteredAppointments = this.state.appointments
     this.month = ''
-    //console.log('month : ' + this.month)
-    //console.log(this.filteredAppointments)
-    //        firebase.auth().signOut()
-    // console.log(this.state.documents)
-    //console.log('rr' + this.state.documents)
 
+    //Filtering...
     if (this.state.dateFrom) {
       this.filteredAppointments = this.filteredAppointments.filter((appointment) => {
-        //console.log('appointment date: '+ moment(appointment.date).format('YYYY-MM-DD'))
-        //console.log('selected date: '+ moment(this.state.dateFrom).format('YYYY-MM-DD'))
         return moment(moment(appointment.date).format('YYYY-MM-DD')).isAfter(this.state.dateFrom) || moment(moment(appointment.date).format('YYYY-MM-DD')).isSame(this.state.dateFrom)
       })
     }
@@ -356,28 +336,11 @@ export default class NextAppointments extends React.Component {
     }
     if (this.state.doctor) {
       this.filteredAppointments = this.filteredAppointments.filter(createFilter(this.state.doctor, KEYS_TO_FILTERS_DOCTOR))
-      // console.log(this.filteredAppointments)
     }
     if (this.state.speciality) {
       this.filteredAppointments = this.filteredAppointments.filter(createFilter(this.state.speciality, KEYS_TO_FILTERS_SPECIALITY))
     }
-    /*if (this.state.date) {
-      this.filteredAppointments = this.filteredAppointments.filter(createFilter(this.state.date, KEYS_TO_FILTERS_SPECIALITY))
-    }*/
 
-    console.log(this.filteredAppointments)
-
-
-    if (this.filteredAppointments) {
-      // console.log(this.filteredAppointments[0])
-      //console.log(moment(this.filteredAppointments[0].date).format('DD-MM-YYYY') )
-      //console.log(moment(this.filteredAppointments[1].date).format('DD-MM-YYYY') )
-    }
-
-
-
-    //console.log(this.state.appointments)
-    //console.log(this.state.doctor)
     return (
       <View style={styles.container}>
 
@@ -387,9 +350,9 @@ export default class NextAppointments extends React.Component {
           nom={this.state.nom}
           prenom={this.state.prenom}
           email={this.state.email}
-          navigateToMedicalFolder={this.navigateToMedicalFolder}
-          navigateToAppointments={this.navigateToAppointments}
-          navigateToSearch={this.navigateToSearch}
+          navigateToMedicalFolder={() => this.navigateToScreen('MedicalFolder')}
+          navigateToAppointments={() => this.navigateToScreen('TabScreenPatient')}
+          navigateToSearch={() => this.navigateToScreen('Search')}
           signOutUser={this.signOutUserandToggle}
           navigate={this.props.navigation} />
 
@@ -403,8 +366,7 @@ export default class NextAppointments extends React.Component {
           onSelectDoctor={this.onSelectDoctor}
           onSelectSpeciality={this.onSelectSpeciality}
           onSelectDateFrom={this.onSelectDateFrom}
-          onSelectDateTo={this.onSelectDateTo}
-          clearAllFilters={this.clearAllFilters} />
+          onSelectDateTo={this.onSelectDateTo} />
 
         <Modal isVisible={this.state.isModalImageVisible}
           onBackdropPress={() => this.setState({ isModalImageVisible: false })}
@@ -414,7 +376,7 @@ export default class NextAppointments extends React.Component {
           swipeDirection="left"
           style={{ backgroundColor: 'white' }}>
 
-          < Icon1 name="remove"
+          <Icon1 name="remove"
             size={SCREEN_WIDTH * 0.1}
             color="#93eafe"
             onPress={() => {
@@ -521,13 +483,17 @@ export default class NextAppointments extends React.Component {
 
                       <View style={{}}>
                         <Text style={{ marginBottom: SCREEN_HEIGHT * 0.01 }}>Documents médicaux</Text>
-                        {this.state.documents.map(function (doc, key) {
-                          return (
-                            <View>
-                              <Text style={{ color: '#333', fontWeight: 'bold', textDecorationLine: 'underline', marginBottom: SCREEN_HEIGHT * 0.01 }}
-                                onPress={() => this.toggleModalImage(doc)} >Document {key + 1}</Text>
-                            </View>)
-                        }.bind(this))}
+                        {this.state.documents.length > 0 ?
+                          <View>
+                            {this.state.documents.map(function (doc, key) {
+                              return (
+                                <View>
+                                  <Text style={{ color: '#333', fontWeight: 'bold', textDecorationLine: 'underline', marginBottom: SCREEN_HEIGHT * 0.01 }}
+                                    onPress={() => this.toggleModalImage(doc)} >Document {key + 1}</Text>
+                                </View>)
+                            }.bind(this))}
+                          </View>
+                          : null}
 
                       </View>
 
@@ -548,19 +514,46 @@ export default class NextAppointments extends React.Component {
                         paddingTop={0}
                         paddingBottom={0}
                         text="Annuler"
-                        onPress={() => this.handleCancelAppointment(appointment.id)} />
-                      <Button
-                        width={SCREEN_WIDTH * 0.35}
-                        paddingTop={0}
-                        paddingBottom={0}
-                        text="Reporter"
-                        onPress={() => this.handlePostponeAppointment(appointment.id)} />
+                        onPress={() => this.handleCancelAppointment(appointment.id, appointment.date)} />
+
+
+                      {appointment.postponeBD === false ? // Can postpone only one time...
+                        <Button
+                          width={SCREEN_WIDTH * 0.35}
+                          paddingTop={0}
+                          paddingBottom={0}
+                          text="Reporter"
+                          onPress={() => this.handlePostponeAppointment(appointment.id)} />
+                        :
+                        <View style={{
+                          paddingLeft: 15,
+                          paddingRight: 15,
+                          paddingBottom: 0,
+                          paddingTop: 0,
+                          borderRadius: 30,
+                          marginTop: 16,
+                          width: SCREEN_WIDTH * 0.35,
+                          backgroundColor: '#D3D3D3',
+                          justifyContent: 'center',
+                          alignItems: 'center'
+                        }}>
+                          <Text style={{
+                            fontSize: SCREEN_HEIGHT * 0.021,
+                            fontWeight: 'bold',
+                            fontFamily: 'Avenir',
+                            textAlign: 'center',
+                            margin: SCREEN_HEIGHT * 0.012,
+                            color: '#ffffff',
+                            backgroundColor: 'transparent',
+                          }}>Reporter</Text>
+                        </View>}
+
                     </View>
                     : null}
 
                   {this.state.appId === appointment.id && appointment.postponing === true ?  //&& !appointment.state.includes('CBA')
                     <View style={itemStyle.confirmButton_container}>
-                        <Text>Cette consultation est en cours de modification.</Text>
+                      <Text>Cette consultation est en cours de modification.</Text>
                     </View>
                     : null}
 
@@ -571,7 +564,7 @@ export default class NextAppointments extends React.Component {
         </ScrollView>
 
         <View style={{ flex: 0.4, alignItems: 'center', justifyContent: 'center' }}>
-          <Button width={SCREEN_WIDTH * 0.87} text="Prendre un rendez-vous en urgence"/* onPress={ this.handleLogin } */ />
+          <Button width={SCREEN_WIDTH * 0.87} text="Prendre un rendez-vous en urgence" onPress={() => this.props.navigation.navigate('Search', { isUrgence: true })} />
           <Button2 style={{ backgroundColor: "#ffffff", color: "#000000" }} text="Planifier une consultation" onPress={() => this.props.navigation.navigate('Search')} />
         </View>
       </View>
@@ -712,9 +705,10 @@ const itemStyle = StyleSheet.create({
   },
   confirmButton_container: {
     flexDirection: 'row',
-    alignItems: 'stretch',
+    justifyContent: 'space-evenly',
     position: 'absolute',
     bottom: SCREEN_HEIGHT * 0.06,
+    width: SCREEN_WIDTH,
     //backgroundColor: 'yellow'
   },
   arrow_container: {

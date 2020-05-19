@@ -29,8 +29,8 @@ import NextAppointments from '../screens/User/NextAppointments'
 import DispoConfig from '../screens/User/Doctor/DispoConfig'*/
 
 import DoctorFile from '../screens/Booking/DoctorFile'
-import RootComponent from '../screens/Root/Guest/RootComponent'
-//import Test1 from '../screens/Test1'
+import RootComponent from '../screens/Root/RootComponent'
+import Test1 from '../screens/Test1'
 import Test2 from '../screens/Test2'
 //import CustomClaims from '../screens/CustomClaims'
 

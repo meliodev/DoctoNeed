@@ -7,9 +7,9 @@ import {
   Image,
 } from 'react-native';
 
-import Swiper from '../../Welcome/Swiper';
-import checkIfFirstLaunch from '../../../util/checkIfFirstLaunch';
-import Home from '../../Home/Home';
+import Swiper from '../Welcome/Swiper';
+import checkIfFirstLaunch from '../../util/checkIfFirstLaunch';
+import Home from '../Home/Home';
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -44,42 +44,42 @@ export default class RootComponent extends React.Component {
         {/* First screen */}
         <View style={[styles.slide, { backgroundColor: '#ffffff' }]}>
           <View style={[styles.logo_container, styles.fullScreen]}>
-            <Image source={require('../../../assets/logoIcon.png')} style={styles.logoIcon} />
+            <Image source={require('../../assets/logoIcon.png')} style={styles.logoIcon} />
           </View>
           <View style={[styles.presentation_container, styles.fullScreen]}>
             <Text style={styles.header}>Bienvenue sur{'\n'}DoctoNeed</Text>
             <Text style={styles.text}>Lorem ipsum dolor sit amet, consectetuer{'\n'}adipiscing elit, sed diam nonummy</Text>
           </View>
           <View style={[styles.otherComponents_container, styles.fullScreen]}>
-            <Image source={require('../../../assets/footerIconReduced.png')} style={styles.footerIcon} />
+            <Image source={require('../../assets/footerIconReduced.png')} style={styles.footerIcon} />
           </View>
         </View>
 
         {/* Second screen */}
         <View style={[styles.slide, { backgroundColor: '#ffffff' }]}>
           <View style={[styles.logo_container, styles.fullScreen]}>
-            <Image source={require('../../../assets/logoIcon.png')} style={styles.logoIcon} />
+            <Image source={require('../../assets/logoIcon.png')} style={styles.logoIcon} />
           </View>
           <View style={[styles.presentation_container, styles.fullScreen]}>
             <Text style={styles.header}>Lorem ipsum</Text>
             <Text style={styles.text}>Lorem ipsum dolor sit amet, consectetuer{'\n'}adipiscing elit, sed diam nonummy</Text>
           </View>
           <View style={[styles.otherComponents_container, styles.fullScreen]}>
-            <Image source={require('../../../assets/footerIconReduced.png')} style={styles.footerIcon} />
+            <Image source={require('../../assets/footerIconReduced.png')} style={styles.footerIcon} />
           </View>
         </View>
 
         {/* Third screen */}
         <View style={[styles.slide, { backgroundColor: '#ffffff' }]}>
           <View style={[styles.logo_container, styles.fullScreen]}>
-            <Image source={require('../../../assets/logoIcon.png')} style={styles.logoIcon} />
+            <Image source={require('../../assets/logoIcon.png')} style={styles.logoIcon} />
           </View>
           <View style={[styles.presentation_container, styles.fullScreen]}>
             <Text style={styles.header}>Lorem ipsum</Text>
             <Text style={styles.text}>Lorem ipsum dolor sit amet, consectetuer{'\n'}adipiscing elit, sed diam nonummy</Text>
           </View>
           <View style={[styles.otherComponents_container, styles.fullScreen]}>
-            <Image source={require('../../../assets/footerIconReduced.png')} style={styles.footerIcon} />
+            <Image source={require('../../assets/footerIconReduced.png')} style={styles.footerIcon} />
           </View>
         </View>
       </Swiper> :

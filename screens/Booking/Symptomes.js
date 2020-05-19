@@ -1,18 +1,6 @@
 
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableHighlight,
-  TouchableOpacity,
-  ScrollView,
-  Dimensions,
-  Button,
-  Picker
-} from 'react-native';
-//import { Actions } from 'react-native-router-flux';
+import { StyleSheet, Text, View, TextInput, TouchableHighlight, TouchableOpacity, ScrollView, Dimensions, Button, Picker } from 'react-native';
 import Swiper from 'react-native-swiper';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import LinearGradient from 'react-native-linear-gradient';
@@ -23,15 +11,18 @@ const SCREEN_HEIGHT = Dimensions.get("window").height
 export default class Symptomes extends React.Component {
   constructor(props) {
     super(props);
-    this.doctorId = this.props.navigation.getParam('doctorId', 'nothing sent')
+    this.doctorId = this.props.navigation.getParam('doctorId', '')
     this.date = this.props.navigation.getParam('date', 'nothing sent')
-  
+    this.speciality = this.props.navigation.getParam('speciality', '')
+    this.isUrgence = this.props.navigation.getParam('isUrgence', 'nothing sent')
+
+
 
     this.state = {
       comment: '',
       pickers: [],
       symptomes: [],
-      symptomsList: ['Angoisse, stress très important', 'Diarrhée', 'Douleur au thorax', 'Douleur dans le cou', 'Fièvre', 'Frissons', 'Mal au ventre']
+      symptomsList: ['Angoisse', 'Diarrhée', 'Douleur au thorax', 'Douleur dans le cou', 'Fièvre', 'Frissons', 'Mal au ventre']
     }
 
     this.onConfirmClick = this.onConfirmClick.bind(this);
@@ -41,9 +32,8 @@ export default class Symptomes extends React.Component {
 
   componentDidMount() {
     this.addPicker(0)
-    this.doctorId =  this.props.navigation.getParam('doctorId', 'nothing sent')
-    this.date =  this.props.navigation.getParam('date', 'nothing sent')
-
+    this.doctorId = this.props.navigation.getParam('doctorId', '')
+    this.date = this.props.navigation.getParam('date', 'nothing sent')
   }
 
   addPicker = (key) => {
@@ -53,27 +43,43 @@ export default class Symptomes extends React.Component {
     let component = null
 
     component =
-      <Picker key={key}
-        selectedValue={this.props.patient}
-        style={{ height: 100, width: SCREEN_WIDTH * 0.7, borderWidth: 1, borderColor: 'blue' }}
-        onValueChange={(symp, itemIndex) => {
-          symptomes.push(symp)
 
-          //Remove selected symptom from picker items
-          let index = this.state.symptomsList.indexOf(symp);
-          let symptomsList = this.state.symptomsList
-          if (index > -1) {
-            symptomsList.splice(index, 1)
-          }
-          this.setState({ symptomsList: symptomsList })
+      <View style={{
+        borderRadius: 50,
+        overflow: 'hidden',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.32,
+        shadowRadius: 5.46,
+        elevation: 5,
+        padding: 5,
+        marginTop: 15,
+        marginBottom: 15,
+        backgroundColor: 'white',
+        width: SCREEN_WIDTH * 0.7
+      }}>
+        <Picker key={key}
+          selectedValue={this.props.patient}
+          style={{ width: SCREEN_WIDTH * 0.7 }}
+          onValueChange={(symp, itemIndex) => {
+            symptomes.push(symp)
 
-          this.setState({ symptomes }, this.changePickersForm(key))
-        }}>
-        <Picker.Item value='' label='Selectionner un symptôme' />
-        {this.state.symptomsList.map((symptom, key) => {
-          return (<Picker.Item key={key} value={symptom} label={symptom} />);
-        })}
-      </Picker >
+            //Remove selected symptom from picker items
+            let index = this.state.symptomsList.indexOf(symp);
+            let symptomsList = this.state.symptomsList
+            if (index > -1) {
+              symptomsList.splice(index, 1)
+            }
+            this.setState({ symptomsList: symptomsList })
+
+            this.setState({ symptomes }, this.changePickersForm(key))
+          }}>
+          <Picker.Item value='' label='Selectionner un symptôme' />
+          {this.state.symptomsList.map((symptom, key) => {
+            return (<Picker.Item key={key} value={symptom} label={symptom} />);
+          })}
+        </Picker >
+      </View>
 
     pickers.push(component)
 
@@ -84,8 +90,6 @@ export default class Symptomes extends React.Component {
   changePickersForm(key) {
     let pickers = this.state.pickers
     let symptomes = this.state.symptomes
-
-
 
     let component =
       <View style={styles.symptomView}>
@@ -106,24 +110,31 @@ export default class Symptomes extends React.Component {
   }
 
   onConfirmClick() {
-    /* Actions.upload({
-     symptomes: 'this.state.symptomes',
-     comment: 'this.state.comment'
-     });*/
     this.props.navigation.navigate('Upload', {
-      doctorId: this.doctorId, 
+      doctorId: this.doctorId,
       date: this.date,
       symptomes: this.state.symptomes,
-      comment: this.state.comment
+      comment: this.state.comment,
+      isUrgence: this.isUrgence,
+      speciality: this.speciality
     })
   }
 
   skip() {
-    this.props.navigation.navigate('Upload')
+    this.props.navigation.navigate('Upload', {
+      doctorId: this.doctorId,
+      date: this.date,
+      symptomes: [],
+      comment: '',
+      isUrgence: this.isUrgence,
+      speciality: this.speciality
+    })
   }
 
   render() {
-    //console.log(this.state.pickers)
+console.log(this.state.symptomes)
+console.log(this.state.symptomsList)
+
     return (
       <View style={styles.container}>
         <View style={styles.bar_progression}>
@@ -141,14 +152,16 @@ export default class Symptomes extends React.Component {
             {this.state.pickers.map((value, index) => {
               return value
             })}
-            <TouchableHighlight onPress={() => this.addPicker(this.state.pickers.length)} style={styles.buttonPlus}>
-              <Text style={{ color: '#93eafe', fontSize: SCREEN_WIDTH * 0.04 }}> + </Text>
-            </TouchableHighlight>
-          </ScrollView>
 
-          {/* <View style={styles.buttonPlus_container}>
-             
-            </View> */}
+            {this.state.symptomsList.length === 0 ?
+              null :
+
+              <TouchableHighlight onPress={() => this.addPicker(this.state.pickers.length)} style={styles.buttonPlus}>
+                <Text style={{ color: '#93eafe', fontSize: SCREEN_WIDTH * 0.04 }}> + </Text>
+              </TouchableHighlight>
+            }
+
+          </ScrollView>
 
         </View>
 
@@ -262,19 +275,18 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   symptomView: {
+    overflow: 'hidden',
+    padding: 15,
     textAlignVertical: 'top',
     textAlign: 'center',
     backgroundColor: '#ffffff',
     borderRadius: 50,
-    padding: SCREEN_WIDTH * 0.03,
-    paddingLeft: SCREEN_WIDTH*0.05,
-    width: SCREEN_WIDTH * 0.8,
+    width: SCREEN_WIDTH * 0.7,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
     elevation: 5,
-    //margin: 15,
     marginTop: 15,
     marginBottom: 15,
     fontSize: 16,
@@ -295,7 +307,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 9,
+    elevation: 5,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -317,7 +329,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 9,
+    elevation: 5,
   },
   button_container: {
     flex: 0.15,

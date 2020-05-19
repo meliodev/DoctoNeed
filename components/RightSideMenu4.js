@@ -124,7 +124,7 @@ export default class RightSideMenu4 extends Component {
                             })}
                         </Picker>
                         </View>
-                    </View>
+                    </View> 
 
                     <View style={styles.speciality_container}>
                         <Text style={styles.title_text}>Pays</Text>

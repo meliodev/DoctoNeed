@@ -2,27 +2,27 @@ import React from 'react'
 import { View, Text, Image, Dimensions, TouchableHighlight, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
 import Modal from "react-native-modal";
 import { createFilter } from 'react-native-search-filter';
+import Icon1 from 'react-native-vector-icons/FontAwesome';
+import Icon from 'react-native-vector-icons/AntDesign';
+
 import moment from 'moment'
 import 'moment/locale/fr'
 moment.locale('fr')
 
+//Components
 import LeftSideMenu from '../../../components/LeftSideMenu'
 import RightSideMenu from '../../../components/RightSideMenu2'
-
-import Icon1 from 'react-native-vector-icons/FontAwesome';
-import Icon from 'react-native-vector-icons/AntDesign';
-
 import Button from '../../../components/Button';
 import Button2 from '../../../components/Button2';
 
+//Firebase
 import firebase from 'react-native-firebase'
 import { signOutUser } from '../../../DB/CRUD'
 import * as REFS from '../../../DB/CollectionsRefs'
 
+//Constants
 const KEYS_TO_FILTERS_DOCTOR = ['doctorName'];
 const KEYS_TO_FILTERS_SPECIALITY = ['doctorSpeciality'];
-
-//constants
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const ratioLogo = 420 / 244;
@@ -31,6 +31,7 @@ const LOGO_WIDTH = SCREEN_WIDTH * 0.14 * ratioLogo;
 export default class PreviousAppointments extends React.Component {
   constructor(props) {
     super(props);
+    this.appointments = []
     this.month = ''
     this.year = 0
     this.itemHeight = SCREEN_HEIGHT * 0.13
@@ -38,9 +39,7 @@ export default class PreviousAppointments extends React.Component {
 
     //Menu
     this.signOutUserandToggle = this.signOutUserandToggle.bind(this);
-    this.navigateToAppointments = this.navigateToAppointments.bind(this);
-    this.navigateToMedicalFolder = this.navigateToMedicalFolder.bind(this);
-    this.navigateToSearch = this.navigateToSearch.bind(this);
+    this.navigateToScreen = this.navigateToScreen.bind(this);
 
     //Filters
     this.onSelectDoctor = this.onSelectDoctor.bind(this);
@@ -48,7 +47,7 @@ export default class PreviousAppointments extends React.Component {
     this.onSelectDateFrom = this.onSelectDateFrom.bind(this);
     this.onSelectDateTo = this.onSelectDateTo.bind(this);
 
-
+    //Appointment item
     this.toggleAppointment = this.toggleAppointment.bind(this);
     this.defineItemStyle = this.defineItemStyle.bind(this);
     this.loadAppointments = this.loadAppointments.bind(this);
@@ -75,7 +74,7 @@ export default class PreviousAppointments extends React.Component {
       isDateFromSelected: false,
       isDateFromToSelected: false,
 
-      //Appointment dynamic style: open & close
+      //Appointment dynamic style: roll/unroll
       itemHeight: SCREEN_HEIGHT * 0.13,
       appId: null,
 
@@ -83,25 +82,22 @@ export default class PreviousAppointments extends React.Component {
       symptomes: [],
       documents: [],
       video: '',
-
       isModalImageVisible: false,
       ImageToShow: ''
     }
   }
 
-  componentWillMount() {
 
+  componentDidMount() {
+    //Unroll Cards on tab change
     const { navigation } = this.props;
     navigation.addListener('willFocus', async () => {
       await this.setState({ appId: null })
       this.month = ''
     });
-  }
 
-  componentDidMount() {
-
+    //Get current user metadata
     const { currentUser } = firebase.auth()
-
     if (currentUser) {
       this.setState({ currentUser })
 
@@ -112,10 +108,7 @@ export default class PreviousAppointments extends React.Component {
         this.setState({ email: currentUser.email })
       })
         .then(() => {
-          const { navigation } = this.props;
-          //navigation.addListener('willFocus', () =>
           this.loadAppointments()
-          //);
         })
     }
   }
@@ -128,31 +121,29 @@ export default class PreviousAppointments extends React.Component {
     query = query.where('finished', '==', true)
     query = query.orderBy('date', 'desc')
 
-    query
-      .onSnapshot(function (querySnapshot) {
-        //console.log(querySnapshot)
-        let appointments = []
-        querySnapshot.forEach(doc => {
-          let id = doc.id
-          let date = doc.data().date
-          let doctorName = doc.data().doctorName
-          let doctorSpeciality = doc.data().doctorSpeciality
-          let state = doc.data().state
+    query.onSnapshot(function (querySnapshot) {
 
-          let app = {
-            id: id,
-            date: date,
-            doctorName: doctorName,
-            doctorSpeciality: doctorSpeciality,
-            state: state
-          }
+      let appointments = []
+      querySnapshot.forEach(doc => {
+        let id = doc.id
+        let date = doc.data().date
+        let doctorName = doc.data().doctorName
+        let doctorSpeciality = doc.data().doctorSpeciality
+        let state = doc.data().state
 
-          appointments.push(app)
-        })
-        //console.log("Current appointments are", appointments.join(", "))
-        this.setState({ appointments: appointments })
+        let app = {
+          id: id,
+          date: date,
+          doctorName: doctorName,
+          doctorSpeciality: doctorSpeciality,
+          state: state
+        }
 
-      }.bind(this))
+        appointments.push(app)
+      })
+      this.setState({ appointments: appointments })
+
+    }.bind(this))
   }
 
   signOutUser() {
@@ -165,15 +156,7 @@ export default class PreviousAppointments extends React.Component {
     this.setState({ isRightSideMenuVisible: !this.state.isRightSideMenuVisible, appId: null });
   }
 
-  clearAllFilters = () => {
-    this.setState({
-      doctor: '', speciality: '', dateFrom: '', dateTo: '',
-      isDoctorSelected: false, isSpecialitySelected: false, isDateFromSelected: false, isDateToSelected: false,
-      isRightSideMenuVisible: false
-    })
-  }
-
-  //Get data from filters
+  //Filters data
   onSelectDoctor = (doctor) => {
     if (doctor === "")
       this.setState({ doctor: doctor, isDoctorSelected: false })
@@ -208,20 +191,9 @@ export default class PreviousAppointments extends React.Component {
     this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible, appId: null });
   }
 
-  navigateToMedicalFolder() {
+  navigateToScreen(screen) {
     this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('MedicalFolder'));
-    //console.log(this.props)
-  }
-
-  navigateToAppointments() {
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('TabScreenPatient'));
-  }
-
-  navigateToSearch() {
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('Search'));
+      () => this.props.navigation.navigate(screen));
   }
 
   signOutUserandToggle() {
@@ -229,6 +201,7 @@ export default class PreviousAppointments extends React.Component {
       this.signOutUser())
   }
 
+  //appointment card: roll/unroll effect
   toggleAppointment(appId) {
     if (appId !== this.state.appId) {
       this.month = ''
@@ -303,6 +276,7 @@ export default class PreviousAppointments extends React.Component {
     }
   }
 
+  //appointment item functions
   displayDetails = (appId) => {
     this.props.navigation.navigate('AppointmentDetails', { appId: appId, noinput: true })
   }
@@ -313,21 +287,18 @@ export default class PreviousAppointments extends React.Component {
 
   render() {
 
-    console.log(this.state.dateFrom)
-
     this.filteredAppointments = this.state.appointments
     this.month = ''
 
+    //Filtering...
     if (this.state.dateFrom) {
       this.filteredAppointments = this.filteredAppointments.filter((appointment) => {
-          //console.log('appointment date: '+ moment(appointment.date).format('YYYY-MM-DD'))
-          //console.log('selected date: '+ moment(this.state.dateFrom).format('YYYY-MM-DD'))
-        return moment(moment(appointment.date).format('YYYY-MM-DD')).isAfter(this.state.dateFrom) || moment(moment(appointment.date).format('YYYY-MM-DD')).isSame(this.state.dateFrom) 
+        return moment(moment(appointment.date).format('YYYY-MM-DD')).isAfter(this.state.dateFrom) || moment(moment(appointment.date).format('YYYY-MM-DD')).isSame(this.state.dateFrom)
       })
     }
     if (this.state.dateTo) {
       this.filteredAppointments = this.filteredAppointments.filter((appointment) => {
-        return moment(moment(appointment.date).format('YYYY-MM-DD')).isBefore(this.state.dateTo) || moment(moment(appointment.date).format('YYYY-MM-DD')).isSame(this.state.dateTo) 
+        return moment(moment(appointment.date).format('YYYY-MM-DD')).isBefore(this.state.dateTo) || moment(moment(appointment.date).format('YYYY-MM-DD')).isSame(this.state.dateTo)
       })
     }
     if (this.state.doctor) {
@@ -346,9 +317,9 @@ export default class PreviousAppointments extends React.Component {
           nom={this.state.nom}
           prenom={this.state.prenom}
           email={this.state.email}
-          navigateToMedicalFolder={this.navigateToMedicalFolder}
-          navigateToAppointments={this.navigateToAppointments}
-          navigateToSearch={this.navigateToSearch}
+          navigateToMedicalFolder={() => this.navigateToScreen('MedicalFolder')}
+          navigateToAppointments={() => this.navigateToScreen('TabScreenPatient')}
+          navigateToSearch={() => this.navigateToScreen('Search')}
           signOutUser={this.signOutUserandToggle}
           navigate={this.props.navigation} />
 
@@ -362,8 +333,7 @@ export default class PreviousAppointments extends React.Component {
           onSelectDoctor={this.onSelectDoctor}
           onSelectSpeciality={this.onSelectSpeciality}
           onSelectDateFrom={this.onSelectDateFrom}
-          onSelectDateTo={this.onSelectDateTo}
-          clearAllFilters={this.clearAllFilters} />
+          onSelectDateTo={this.onSelectDateTo} />
 
         <Modal isVisible={this.state.isModalImageVisible}
           onBackdropPress={() => this.setState({ isModalImageVisible: false })}
@@ -373,7 +343,7 @@ export default class PreviousAppointments extends React.Component {
           swipeDirection="left"
           style={{ backgroundColor: 'white' }}>
 
-          < Icon1 name="remove"
+          <Icon1 name="remove"
             size={SCREEN_WIDTH * 0.1}
             color="#93eafe"
             onPress={() => {
@@ -508,7 +478,7 @@ export default class PreviousAppointments extends React.Component {
         </ScrollView>
 
         <View style={{ flex: 0.4, alignItems: 'center', justifyContent: 'center' }}>
-          <Button width={SCREEN_WIDTH * 0.87} text="Prendre un rendez-vous en urgence"/* onPress={ this.handleLogin } */ />
+          <Button width={SCREEN_WIDTH * 0.87} text="Prendre un rendez-vous en urgence" onPress={() => this.props.navigation.navigate('Search', { isUrgence: true })} />
           <Button2 style={{ backgroundColor: "#ffffff", color: "#000000" }} text="Planifier une consultation" onPress={() => this.props.navigation.navigate('Search')} />
         </View>
       </View>
@@ -519,22 +489,15 @@ export default class PreviousAppointments extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    //justifyContent: 'center',
-    //alignItems: 'center',
     backgroundColor: '#ffffff',
   },
   logo_container: {
     flex: 0.3,
-    //justifyContent: 'flex-end',
-    //alignItems: 'center',
     //backgroundColor: 'green',
   },
   logoIcon: {
     height: SCREEN_WIDTH * 0.14,
     width: LOGO_WIDTH,
-    /*position: 'absolute',
-    top: 0,
-    right: 0*/
     //marginTop: SCREEN_WIDTH * 0.05
   },
   header_container: {
@@ -550,20 +513,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'black',
     //backgroundColor: 'yellow',
-    //marginBottom: SCREEN_HEIGHT * 0.01
   },
   menu_button: {
     width: SCREEN_WIDTH * 0.12,
     height: SCREEN_WIDTH * 0.12,
     borderRadius: 25,
     backgroundColor: '#ffffff',
-
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    left: SCREEN_WIDTH * 0.03,    /*position: 'relative',
-    left: SCREEN_WIDTH * 0.05,
-    top: SCREEN_WIDTH * 0.05,*/
+    left: SCREEN_WIDTH * 0.03,
   },
   filter_button: {
     width: SCREEN_WIDTH * 0.12,
@@ -583,10 +542,6 @@ const styles = StyleSheet.create({
   },
   appointments_container_scrollview: {
     flex: 1,
-    //alignItems: 'center',
-    //justifyContent: 'center',
-    //paddingTop: SCREEN_HEIGHT*0.05,
-    //paddingLeft: SCREEN_WIDTH*0.025,
     //backgroundColor: 'brown'
   },
   Button2: {
@@ -629,7 +584,6 @@ const itemStyle = StyleSheet.create({
     alignItems: 'center',
     marginBottom: SCREEN_HEIGHT * 0.025,
     marginLeft: SCREEN_HEIGHT * 0.01,
-    //alignItems: 'center',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
@@ -639,9 +593,7 @@ const itemStyle = StyleSheet.create({
   },
   main_container: {
     height: SCREEN_HEIGHT * 0.1,
-    //alignItems: 'flex-start',
     justifyContent: 'center',
-    //marginTop: SCREEN_HEIGHT*0.02,
     backgroundColor: '#ffffff',
     borderRadius: 20,
     flexDirection: 'row',
@@ -724,3 +676,12 @@ const itemStyle = StyleSheet.create({
     alignItems: 'center',
   },
 })
+
+
+/*clearAllFilters = () => {
+    this.setState({
+      doctor: '', speciality: '', dateFrom: '', dateTo: '',
+      isDoctorSelected: false, isSpecialitySelected: false, isDateFromSelected: false, isDateToSelected: false,
+      isRightSideMenuVisible: false
+    })
+  }*/

@@ -109,10 +109,10 @@ export default class Main extends React.Component {
 
         <ScrollView contentContainerStyle={styles.appointments_container} >
           <Text style={styles.paragraph}>
-            Votre rendez-vous avec Dr. {this.doctor.nom} {this.doctor.prenom} est fixé
+            Votre rendez-vous avec Dr. <Text style={[styles.paragraph, {color: '#93eafe'}]}>{this.doctor.nom} {this.doctor.prenom}</Text> est fixé
             </Text>
           <Text style={styles.paragraph}>
-            pour le {moment(this.date).format("Do MMMM YYYY")} à {moment(this.date).format('HH:mm')}
+            pour le <Text style={[styles.paragraph, {color: '#93eafe'}]}>{moment(this.date).format("Do MMMM YYYY")}</Text> à <Text style={[styles.paragraph, {color: '#93eafe'}]}>{moment(this.date).format('HH:mm')}</Text>
           </Text>
           <Text style={styles.text_details1}>
             Une notification de rappel vous sera envoyée

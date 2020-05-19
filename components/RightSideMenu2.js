@@ -179,7 +179,7 @@ export default class RightSideMenu2 extends Component {
                     </View>
 
                     <View style={styles.buttons_container}>
-                        <TouchableHighlight onPress={this.props.clearAllFilters} style={styles.CancelButton}>
+                        <TouchableHighlight onPress={this.props.toggleSideMenu} style={styles.CancelButton}>
                             <Text style={styles.buttonText1}>Annuler</Text>
                         </TouchableHighlight>
 

@@ -64,7 +64,7 @@ class LandingScreen extends React.Component {
             <TouchableOpacity style={styles.search_button}
               onPress={() => this.props.navigation.navigate('Search')}>
               <Icon name="search" size={20} color="#afbbbc" />
-              <Text style={styles.searchText}> Rechercher un médecin </Text>
+              <Text style={styles.searchText}>Rechercher un médecin</Text>
             </TouchableOpacity>
           </View>
 
@@ -95,7 +95,7 @@ class LandingScreen extends React.Component {
          
 
           <ImageBackground source={require('../../../assets/footerIconReduced.png')} style={styles.footer_container}>
-          <Text style={{color: 'gray'}}>Vous êtes un professionnel? <Text onPress={() => this.props.navigation.navigate('Login', {isDoctor: true})} style={{ textDecorationLine: 'underline', color: '#ffffff', fontFamily: 'Avenir', }}>
+          <Text style={{color: 'gray'}}>Vous êtes un professionnel ? <Text onPress={() => this.props.navigation.navigate('Login', {isDoctor: true})} style={{ textDecorationLine: 'underline', color: '#ffffff', fontFamily: 'Avenir', }}>
               Par ici</Text>
             </Text>
           </ImageBackground>

@@ -60,7 +60,7 @@ const colors = {
   FONT_SIZE_MEDIUM: 14,
   FONT_SIZE_LARGE: 16,
   FONT_FAMILY: 'Gill Sans',
-  BACKGROUND_COLOR: '#f9f9f9',
+  BACKGROUND_COLOR: '#ffffff',
   BLACK_COLOR: '#333', //black
   WHITE_COLOR: '#ffffff',
   GRAY_COLOR: '#b4c1c2',  //gray

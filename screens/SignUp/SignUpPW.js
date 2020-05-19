@@ -60,6 +60,7 @@ if(isDoctor !== 'nothing sent') {
       country: pays,
       nom: nom,
       prenom: prenom,
+      name: prenom + ' ' + nom,
       price: 15,
       speciality: speciality,
       urgences: 'false',

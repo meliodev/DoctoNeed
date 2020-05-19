@@ -1,33 +1,44 @@
-//To do: 1. Disponible maintenant doit être affichée si le prochain créneau horaire du médecin est disponible
-//          Disponible dans X min/heures doit être affichée si le prochain créneau horaire est indisponible (d'autres créneaux ultérieur son dispo)
-//       -> A faire après avoir finit l'interface de config de disponilbités
-//       2. Le texte descriptif et les diplomes seront affichées selon les données saisies (et validées par l'admin durant l'inscription)
-//       -> Ajouter la saisie des données ci-dessus dans le form d'inscription
 
 import React from 'react'
-import { View, Text, Image, Dimensions, ActivityIndicator, StyleSheet, ImageBackground , ScrollView} from 'react-native'
+import { View, Text, Image, Dimensions, ActivityIndicator, StyleSheet, ImageBackground, ScrollView } from 'react-native'
+import Button from '../../components/Button';
 
 import firebase from 'react-native-firebase'
-import Button from '../../components/Button';
-import Button2 from '../../components/Button2';
+import * as REFS from '../../DB/CollectionsRefs'
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
-const ratioHeader = 267 / 666; // The actaul icon headet size is 254 * 668
-const HEADER_ICON_HEIGHT = Dimensions.get("window").width * ratioHeader; // This is to keep the same ratio in all screen sizes (proportion between the image  width and height)
-
+const ratioHeader = 267 / 666;
+const HEADER_ICON_HEIGHT = Dimensions.get("window").width * ratioHeader;
 const ratioLogo = 420 / 244;
 const LOGO_WIDTH = SCREEN_WIDTH * 0.2 * ratioLogo;
 
 export default class DoctorFile extends React.Component {
+  constructor(props) {
+    super(props);
+    this.isUrgence = this.props.navigation.getParam('isUrgence', 'nothing sent')
+    this.doctor = this.props.navigation.getParam('doctor', 'nothing sent')
+
+    this.state = {
+      isLoading: false,
+      bio: '',
+      diplomes: [],
+      codeFinesse: ''
+    }
+  }
+
+  componentDidMount() {
+    //Retrieve bio, diplomes & code finesse
+    this.setState({ isLoading: true })
+    REFS.doctors.doc(this.doctor.uid).get().then((doc) => {
+      this.setState({ bio: doc.data().bio, diplomes: doc.data().diplomes, codeFinesse: doc.data().codeFinesse })
+    }).then(() => this.setState({ isLoading: false }))
+  }
 
   render() {
-    const doctor =  this.props.navigation.getParam('doctor', 'nothing sent')
 
     return (
-      <ScrollView>
-
       <View style={styles.container}>
 
         <View style={styles.logo_container}>
@@ -37,38 +48,48 @@ export default class DoctorFile extends React.Component {
         </View>
 
         <View style={styles.header_container}>
-          <Text style={styles.header}>{doctor.name}</Text>
-          <Text style={{ color: "#606060", fontStyle: "italic", fontWeight: 'bold', fontSize: 18, marginBottom: SCREEN_HEIGHT*0.025  }}>{doctor.speciality}</Text>
-          <Text style={{ color: '#47D885', fontSize: 15, fontWeight: 'bold'}}> Disponible maintenant </Text>
+          <Text style={styles.header}>{this.doctor.name}</Text>
+          <Text style={{ color: "#606060", fontStyle: "italic", fontWeight: 'bold', fontSize: 18, marginBottom: SCREEN_HEIGHT * 0.025 }}>{this.doctor.speciality}</Text>
+          <Text style={{ color: '#47D885', fontSize: 15, fontWeight: 'bold' }}>Disponible maintenant</Text>
         </View>
 
-        <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
+        {this.state.isLoading === true ?
+          <View style={[styles.data_container, {justifyContent: 'center'}]}>
+            <ActivityIndicator size='large' />
+          </View>
+          :
+          <View style={styles.data_container}>
+            <ScrollView contentContainerStyle={styles.test}>
+              <View style={{ marginBottom: SCREEN_HEIGHT * 0.03, alignItems: 'center' }}>
+                <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#333', marginBottom: SCREEN_HEIGHT * 0.02 }}>À propos</Text>
+                <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.08 }}>{this.state.bio}</Text>
+              </View>
 
-        <View style={styles.data_container}>
-          <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#333' }}>À propos</Text>
-          <Text style={{ paddingHorizontal: SCREEN_WIDTH*0.08  }}>Lorem ipsum is placeholder text commonly used in the graphic, print, and publishing industries for previewing layouts and visual mockups. </Text>
+              <View style={{ marginBottom: SCREEN_HEIGHT * 0.03, alignItems: 'center' }}>
+                <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#333', marginBottom: SCREEN_HEIGHT * 0.02 }}>Diplômes</Text>
+                {this.state.diplomes.map(diplome => {
+                  return (<Text>{'\u2022'} {diplome} </Text>)
+                })}
+              </View>
 
-          <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#333' }}>Diplômes</Text>
-          <Text>{'\u2022'} Diplomes Université en l'année 0000. </Text>
-          <Text>{'\u2022'} Diplomes Université en l'année 0000. </Text>
+              <View style={{ marginBottom: SCREEN_HEIGHT * 0.03, alignItems: 'center' }}>
+                <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#333', marginBottom: SCREEN_HEIGHT * 0.02 }}>Code Finesse</Text>
+                <Text>{this.state.codeFinesse}</Text>
+              </View>
+            </ScrollView>
 
-          <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#333' }}>Code Finesse</Text>
-          <Text>{'\u2022'} 0000 0000 0000 0000. </Text>
-        </View>
+          </View>
+        }
 
         <View style={styles.button_container}>
-          <Button text="Prendre un rendez-vous en urgence" style={{ width:"100%" }} /* onPress={ this.handleLogin } */ />
-          <Button2 style={{ backgroundColor: "#ffffff", color: "#000000" }} text="Planifier une consultation" onPress={ () =>     this.props.navigation.navigate('DoctorFile') } />
-          
-          {// This  Button is not yet working ,  when i use onPress navigation to Booking it shows errors}
-  }
-          <Button text="Configurer la disponibilité "  style={{ width: 10 }}       /*onPress={() => displayDoctorCalendar(doctor.uid)}>/* onPress={ this.handleLogin } */ onPress={ () =>     this.props.navigation.navigate('Booking') } />
-          
-
+          {this.doctor.urgences === true && this.isUrgence === true ?
+            <Button text="Prendre un rendez-vous en urgence" style={{ width: "100%" }} onPress={() => this.props.navigation.navigate('Booking', { doctorId: this.doctor.uid })} />
+            :
+            <Button text="Planifier une consultation" style={{ width: "100%" }} onPress={() => this.props.navigation.navigate('Booking', { doctorId: this.doctor.uid })} />
+          }
         </View>
 
       </View>
-      </ScrollView>
     );
   }
 }
@@ -76,8 +97,6 @@ export default class DoctorFile extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    //justifyContent: 'center',
-    //alignItems: 'center',
     backgroundColor: '#ffffff',
   },
   imagebg: {
@@ -87,9 +106,7 @@ const styles = StyleSheet.create({
     //backgroundColor: 'blue'
   },
   logo_container: {
-    flex: 0.23,
-    /*justifyContent: 'center',
-    alignItems: 'center',*/
+    flex: 0.25,
     //backgroundColor: 'red',
   },
   logoIcon: {
@@ -105,10 +122,10 @@ const styles = StyleSheet.create({
     borderStyle: "solid"
   },
   header_container: {
-    flex: 0.16,
+    flex: 0.17,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    //backgroundColor: 'green',
+    // backgroundColor: 'green',
   },
   header: {
     fontSize: SCREEN_HEIGHT * 0.025,
@@ -117,24 +134,30 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: 'black',
     //backgroundColor: 'yellow',
-    //marginBottom: SCREEN_HEIGHT * 0.01
   },
   data_container: {
-    flex: 0.39,
-    alignItems: 'center',
-    justifyContent: 'space-evenly',
+    flex: 0.4,
     //backgroundColor: 'brown',
   },
+  test: {
+    borderBottomColor: '#d9dbda',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#d9dbda',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    padding: SCREEN_WIDTH * 0.05,
+    //backgroundColor: 'green'
+  },
   button_container: {
-    flex: 0.22,
+    flex: 0.18,
     justifyContent: 'center',
     alignItems: 'center',
-    width:SCREEN_WIDTH,
-    paddingHorizontal:0,
-    marginHorizontal:0,
+    width: SCREEN_WIDTH,
+    paddingHorizontal: 0,
+    marginHorizontal: 0,
     //backgroundColor: 'yellow',
     paddingBottom: SCREEN_HEIGHT * 0.01,
   },
+
   loading_container: {
     position: 'absolute',
     left: 0,

@@ -1,17 +1,14 @@
-//Presentation.js
-//Next tasks: 
-//1. Display this screen only on first launch
-//2. Add a swiper (slides)
-//issues: we can not navigate to stack nav screens cause we are wrapped in tabs nav
+
 import React from 'react'
 import { View, Text, Image, Dimensions, TouchableHighlight, TouchableOpacity, ScrollView, StyleSheet } from 'react-native'
 import { createFilter } from 'react-native-search-filter';
 
 import LeftSideMenu from '../../../components/LeftSideMenu'
 import RightSideMenu from '../../../components/RightSideMenu4'
+import Button from '../../../components/Button';
 
 import moment from 'moment'
-import 'moment/locale/fr'  // without this line it didn't work
+import 'moment/locale/fr'
 moment.locale('fr')
 
 import firebase from 'react-native-firebase'
@@ -26,13 +23,8 @@ import Modal from "react-native-modal";
 const KEYS_TO_FILTERS_PATIENT = ['userName'];
 const KEYS_TO_FILTERS_COUNTRY = ['userCountry'];
 const KEYS_TO_FILTERS_STATE = ['state'];
-
-import Button from '../../../components/Button';
-import Button2 from '../../../components/Button2';
-
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
-
 const ratioLogo = 420 / 244;
 const LOGO_WIDTH = SCREEN_WIDTH * 0.14 * ratioLogo;
 
@@ -46,10 +38,7 @@ export default class NextAppointments extends React.Component {
     this.signOutUser = this.signOutUser.bind(this);
 
     //Menu Navigation functions
-    this.navigateToProfile = this.navigateToProfile.bind(this);
-    this.navigateToDispoConfig = this.navigateToDispoConfig.bind(this);
-    this.navigateToAppointments = this.navigateToAppointments.bind(this);
-    this.navigateToMyPatients = this.navigateToMyPatients.bind(this);
+    this.navigateToScreen = this.navigateToScreen.bind(this);
     this.signOutUserandToggle = this.signOutUserandToggle.bind(this);
 
     //Filters
@@ -58,6 +47,7 @@ export default class NextAppointments extends React.Component {
     this.onSelectState = this.onSelectState.bind(this);
     this.onSelectDateFrom = this.onSelectDateFrom.bind(this);
     this.onSelectDateTo = this.onSelectDateTo.bind(this);
+    this.filter = this.filter.bind(this);
 
     this.toggleAppointment = this.toggleAppointment.bind(this);
     this.defineItemStyle = this.defineItemStyle.bind(this);
@@ -97,17 +87,14 @@ export default class NextAppointments extends React.Component {
     }
   }
 
-  componentWillMount() {
-
+  componentDidMount() {
     const { navigation } = this.props;
     navigation.addListener('willFocus', async () => {
       await this.setState({ appId: null })
       this.month = ''
     });
-  }
 
-  componentDidMount() {
-
+    //Get current user metadata
     const { currentUser } = firebase.auth()
 
     if (currentUser) {
@@ -128,15 +115,17 @@ export default class NextAppointments extends React.Component {
     }
   }
 
-  // Load appointments
+  //Load appointments
   loadAppointments() {
 
     this.appointments = []
 
     var query = REFS.appointments
-    query = query.where('doctor_id', '==', firebase.auth().currentUser.uid)
+    // query = query.where('doctor_id', '==', firebase.auth().currentUser.uid)
+    query = query.where('doctor_id', "array-contains", firebase.auth().currentUser.uid)
     query = query.where('finished', '==', false)
-    query = query.where("state", "array-contains", "CBA")
+    query = query.where('cancelBP', '==', false)
+    query = query.where('state.CBA', '==', true)
     query = query.orderBy('date', 'desc')
 
     query
@@ -147,28 +136,34 @@ export default class NextAppointments extends React.Component {
           let id = doc.id
           let date = ''
 
-          if (doc.data().postponeBP) {
+          if (doc.data().postponeBA) {
             date = doc.data().postponedBPto
           }
 
-          else date = doc.data().date          
-          
+          else date = doc.data().date
+
+          let urgence2 = doc.data().urgence2
           let state = doc.data().state
           let userName = doc.data().userName
           let userCountry = doc.data().userCountry
           let postponing = doc.data().postponing
           let postponeBA = doc.data().postponeBA
+          let postponeBD = doc.data().postponeBD
           let postponedBPto = doc.data().postponedBPto
+          let postponedBPfrom = doc.data().postponedBPfrom
 
           let app = {
             id: id,
             date: date,
             userName: userName,
             userCountry: userCountry,
+            urgence2: urgence2,
             state: state,
             postponing: postponing,
             postponeBA: postponeBA,
-            postponedBPto: postponedBPto
+            postponeBD: postponeBD,
+            postponedBPto: postponedBPto,
+            postponedBPfrom: postponedBPfrom
           }
 
           appointments.push(app)
@@ -187,14 +182,6 @@ export default class NextAppointments extends React.Component {
   toggleRightSideMenu = () => {
     this.month = ''
     this.setState({ isRightSideMenuVisible: !this.state.isRightSideMenuVisible, appId: null });
-  }
-
-  clearAllFilters = () => {
-    this.setState({
-      patient: '', country: '', doctor: '', speciality: '', dateFrom: '', dateTo: '',
-      isPatientSelected: false, isCountrySelected: false, isAppointmentStateSelected: false, isDateFromSelected: false, isDateToSelected: false,
-      isRightSideMenuVisible: false
-    })
   }
 
   //Get data from filters
@@ -239,25 +226,9 @@ export default class NextAppointments extends React.Component {
     this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible, appId: null });
   }
 
-  navigateToProfile() {
+  navigateToScreen(screen) {
     this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('Profile'));
-  }
-
-  navigateToDispoConfig() {
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('DispoConfig'));
-  }
-
-  navigateToAppointments() {
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('TabScreenDoctor'));
-  }
-
-  navigateToMyPatients() {
-    console.log('pressed')
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('MyPatients'));
+      () => this.props.navigation.navigate(screen));
   }
 
   signOutUserandToggle() {
@@ -265,6 +236,7 @@ export default class NextAppointments extends React.Component {
       this.signOutUser())
   }
 
+  //LeftSideMenu functions
   toggleAppointment(appId) {
     if (appId !== this.state.appId) {
       this.month = ''
@@ -339,20 +311,39 @@ export default class NextAppointments extends React.Component {
     }
   }
 
-  handleConfirmAppointment(appId, postponeBA, postponedBPto) {
+  handleConfirmAppointment(appId, postponeBA, postponedBPto, postponedBPfrom, urgence2) {
     this.setState({ appId: null })
 
     if (postponeBA) {
+
+      //Change the old date to 'paid' = false --> the date will be available in calendar for patients
+      REFS.doctors.doc(firebase.auth().currentUser.uid).collection('DoctorSchedule').where('ts', '==', postponedBPfrom).get().then(querySnapshot => {
+
+        querySnapshot.forEach(doc => {
+          REFS.doctors.doc(firebase.auth().currentUser.uid).collection('DoctorSchedule').doc(doc.id).update({ paid: false })
+            .then(() => console.log('document has been updated: paid = false.'))
+            .catch((err) => console.error(err))
+          console.log('paid:')
+          console.log(doc.data().paid)
+        })
+
+      }).then(() => console.log('document has been retrieved to be updated...'))
+        .catch((err) => console.error(err))
+
+
       console.log('postponing')
       REFS.appointments.doc(appId).update({ postponeBD: true, date: postponedBPto, postponing: false })
     }
 
-    else {
-      const state = ['CBP', 'CBA', 'CBD']
-      REFS.appointments.doc(appId).update("state", state).then(() => console.log('Appointment confirmed by Doctor succesfuly'))
-        .catch((err) => console.error(err))
+    if (urgence2 === true) {
+      //remove other doctors Ids from doctor_id 
+      const doctor_id = [firebase.auth().currentUser.uid]
+      REFS.appointments.doc(appId).update({ doctor_id: doctor_id })
     }
 
+    //const state = ['CBP', 'CBA', 'CBD']
+    REFS.appointments.doc(appId).update({ state: { CBP: true, CBA: true, CBD: true } }).then(() => console.log('Appointment confirmed by Doctor succesfuly'))
+      .catch((err) => console.error(err))
   }
 
   displayDetails = (appId) => {
@@ -363,19 +354,53 @@ export default class NextAppointments extends React.Component {
     this.setState({ isModalImageVisible: !this.state.isModalImageVisible, ImageToShow: doc })
   }
 
-  render() {
+  renderButton(appointment) {
+    if (this.state.appId === appointment.id) {
+
+      if (appointment.postponing === false && appointment.state.CBD === false || appointment.postponing === true && appointment.postponeBA === true && appointment.postponeBD === false)
+
+        return (
+          <View style={itemStyle.confirmButton_container}>
+            <Button
+              width={SCREEN_WIDTH * 0.35}
+              paddingTop={0}
+              paddingBottom={0}
+              text="Confirmer"
+              onPress={() => this.handleConfirmAppointment(appointment.id, appointment.postponeBA, appointment.postponedBPto, appointment.postponedBPfrom, appointment.urgence2)} />
+          </View>)
+
+      else if (appointment.postponing === false && appointment.state.CBD === true || appointment.postponing === true && appointment.state.CBD === true && appointment.postponeBA === false || appointment.postponing === false && appointment.state.CBD === true && appointment.postponeBA === true)
+        return (
+          <View style={itemStyle.camera_container}>
+            <View style={itemStyle.cameraButton_container}>
+              <TouchableHighlight onPress={() => Alert("Lancement de l'appel video")} style={itemStyle.buttonLaunchCall}>
+                <Icon2 name="video-camera"
+                  size={SCREEN_WIDTH * 0.05}
+                  color="#93eafe" />
+              </TouchableHighlight>
+            </View>
+
+            <View style={itemStyle.headerVideo_container}>
+              <Icon1 name="lock"
+                size={SCREEN_WIDTH * 0.045}
+                color="gray" />
+              <View style={itemStyle.headerVideo_text_container}>
+                <Text style={{ fontSize: SCREEN_HEIGHT * 0.017, fontWeight: 'bold', color: "gray", }}>Lancez l'appel lorsque vous êtes prêt</Text>
+                <Text style={{ fontSize: SCREEN_HEIGHT * 0.011, fontWeight: 'bold', color: "gray", }}>Vos appels video resteront confidentiels lorem ipsum lorem</Text>
+              </View>
+            </View>
+          </View>
+        )
+    }
+  }
+
+  filter() {
+
     this.filteredAppointments = this.state.appointments
     this.month = ''
-    console.log('month : ' + this.month)
-    //console.log(this.filteredAppointments)
-    //        firebase.auth().signOut()
-    // console.log(this.state.documents)
-    //console.log('rr' + this.state.documents)
 
     if (this.state.dateFrom) {
       this.filteredAppointments = this.filteredAppointments.filter((appointment) => {
-        //console.log('appointment date: '+ moment(appointment.date).format('YYYY-MM-DD'))
-        //console.log('selected date: '+ moment(this.state.dateFrom).format('YYYY-MM-DD'))
         return moment(moment(appointment.date).format('YYYY-MM-DD')).isAfter(this.state.dateFrom) || moment(moment(appointment.date).format('YYYY-MM-DD')).isSame(this.state.dateFrom)
       })
     }
@@ -395,26 +420,22 @@ export default class NextAppointments extends React.Component {
 
     if (this.state.appointmentState === 'CBD') {
       this.filteredAppointments = this.filteredAppointments.filter((appointment) => {
-        return appointment.state.includes('CBD')
+        return appointment.state.CBD === true
       })
     }
 
     else if (this.state.appointmentState === 'pending') {
       this.filteredAppointments = this.filteredAppointments.filter((appointment) => {
-        return !appointment.state.includes('CBD')
+        return !appointment.state.CBD === true
       })
     }
 
-    /*  if (this.state.appointmentState) {
-        this.filteredAppointments = this.filteredAppointments.filter(createFilter(this.state.appointmentState, KEYS_TO_FILTERS_COUNTRY))
-      }*/
+  }
 
-    /*if (this.state.date) {
-      this.filteredAppointments = this.filteredAppointments.filter(createFilter(this.state.date, KEYS_TO_FILTERS_SPECIALITY))
-    }*/
+  render() {
 
-    //console.log(this.state.appointments)
-    //console.log(this.state.doctor)
+    this.filter()
+
     return (
       <View style={styles.container}>
 
@@ -424,10 +445,10 @@ export default class NextAppointments extends React.Component {
           nom={this.state.nom}
           prenom={this.state.prenom}
           email={this.state.email}
-          navigateToProfile={this.navigateToProfile}
-          navigateToDispoConfig={this.navigateToDispoConfig}
-          navigateToAppointments={this.navigateToAppointments}
-          navigateToMyPatients={this.navigateToMyPatients}
+          navigateToProfile={() => this.navigateToScreen('Profile')}
+          navigateToMyPatients={() => this.navigateToScreen('MyPatients')}
+          navigateToDispoConfig={() => this.navigateToScreen('DispoConfig')}
+          navigateToAppointments={() => this.navigateToScreen('TabScreenDoctor')}
           signOutUser={this.signOutUserandToggle}
           navigate={this.props.navigation} />
 
@@ -446,6 +467,7 @@ export default class NextAppointments extends React.Component {
           onSelectDateTo={this.onSelectDateTo}
           clearAllFilters={this.clearAllFilters} />
 
+        {/*Display document on press*/}
         <Modal isVisible={this.state.isModalImageVisible}
           onBackdropPress={() => this.setState({ isModalImageVisible: false })}
           animationIn="zoomIn"
@@ -468,6 +490,7 @@ export default class NextAppointments extends React.Component {
 
         </Modal>
 
+        {/*Header*/}
         <View style={{ height: SCREEN_HEIGHT * 0.24, flexDirection: 'row', paddingTop: SCREEN_HEIGHT * 0.04, justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <TouchableHighlight style={styles.menu_button}
             onPress={this.toggleLeftSideMenu}>
@@ -482,13 +505,7 @@ export default class NextAppointments extends React.Component {
           </TouchableHighlight>
         </View>
 
-
-        {/*
-        <View style={styles.header_container}>
-          <Text style={styles.header}>Mes consultations passées</Text>
-          <Text style={{ color: 'gray', fontSize: SCREEN_HEIGHT * 0.0115 }}>( 18 derniers mois )</Text>
-        </View> */}
-
+        {/*Appointments list*/}
         <ScrollView style={styles.appointments_container_scrollview}>
           {this.filteredAppointments.map(appointment => {
 
@@ -504,9 +521,10 @@ export default class NextAppointments extends React.Component {
               <View>
                 {dateComponent}
                 <View style={this.defineItemStyle(appointment.id)}>
+
+                  {/*Appointment main data*/}
                   <View style={itemStyle.main_container}>
                     <View style={itemStyle.dot_container}>
-
                     </View>
 
                     <View style={itemStyle.date_container}>
@@ -536,6 +554,7 @@ export default class NextAppointments extends React.Component {
                     </View>
                   </View>
 
+                  {/*Arrow (to display/hide detailed data)*/}
                   <View style={itemStyle.arrow_container}>
                     <TouchableOpacity
                       onPress={() => this.toggleAppointment(appointment.id)}>
@@ -551,72 +570,37 @@ export default class NextAppointments extends React.Component {
                     </TouchableOpacity>
                   </View>
 
+                  {/*Appointment detailed data*/}
                   {this.state.appId === appointment.id ?
-                    <View style={{ flexDirection: 'row', width: SCREEN_WIDTH * 0.95, paddingLeft: SCREEN_WIDTH * 0.08, paddingRight: SCREEN_WIDTH * 0.08, alignItems: 'flex-start', justifyContent: 'space-evenly' }}>
+                    <View style={itemStyle.appDetails}>
 
-                      <View style={{ width: SCREEN_WIDTH * 0.2 }}>
-                        <Text style={{ marginBottom: SCREEN_HEIGHT * 0.01, fontSize: SCREEN_HEIGHT * 0.014 }}>Durée</Text>
-                        <Text style={{ fontWeight: 'bold', fontSize: SCREEN_HEIGHT * 0.014 }}>30 min</Text>
+                      <View style={itemStyle.appDetailsColumn}>
+                        <Text style={itemStyle.appDetailsHeader}>Durée</Text>
+                        <Text style={itemStyle.appDetailsText}>30 min</Text>
                       </View>
 
-                      <View style={{ width: SCREEN_WIDTH * 0.4, paddingLeft: SCREEN_WIDTH * 0.02, marginLeft: SCREEN_WIDTH * 0.02 }}>
-                        <Text style={{ marginBottom: SCREEN_HEIGHT * 0.01, fontSize: SCREEN_HEIGHT * 0.014 }}>Documents médicaux</Text>
+                      <View style={itemStyle.appDetailsColumn}>
+                        <Text style={itemStyle.appDetailsHeader}>Documents médicaux</Text>
                         {this.state.documents.map(function (doc, key) {
                           return (
                             <View>
-                              <Text style={{ color: '#333', fontSize: SCREEN_HEIGHT * 0.014, fontWeight: 'bold', textDecorationLine: 'underline', marginBottom: SCREEN_HEIGHT * 0.01 }}
+                              <Text style={[itemStyle.appDetailsText, { textDecorationLine: 'underline' }]}
                                 onPress={() => this.toggleModalImage(doc)} >Document {key + 1}</Text>
                             </View>)
                         }.bind(this))}
-
                       </View>
 
-                      <View style={{ width: SCREEN_WIDTH * 0.35, marginLeft: SCREEN_WIDTH * 0.1 }}>
-                        <Text style={{ marginBottom: SCREEN_HEIGHT * 0.01, fontSize: SCREEN_HEIGHT * 0.014 }}>Symptômes</Text>
+                      <View style={itemStyle.appDetailsColumn}>
+                        <Text style={itemStyle.appDetailsHeader}>Symptômes</Text>
                         {this.state.symptomes.map(symptom => {
-                          return (<Text style={{ flexWrap: 'wrap', fontWeight: 'bold', fontSize: SCREEN_HEIGHT * 0.014 }}>{symptom}</Text>)
+                          return (<Text style={itemStyle.appDetailsText}>{symptom}</Text>)
                         })}
                       </View>
 
                     </View>
                     : null}
 
-                  {this.state.appId === appointment.id && !appointment.state.includes('CBD') || this.state.appId === appointment.id && appointment.postponing === true && appointment.postponeBD === false ?
-                    <View style={itemStyle.confirmButton_container}>
-                      <Button
-                        width={SCREEN_WIDTH * 0.35}
-                        paddingTop={0}
-                        paddingBottom={0}
-                        text="Confirmer"
-                        onPress={() => this.handleConfirmAppointment(appointment.id, appointment.postponeBA, appointment.postponedBPto)} />
-                    </View>
-                    : null}
-
-                  {this.state.appId === appointment.id && appointment.state.includes('CBD') ||  this.state.appId === appointment.id && appointment.postponing === false && appointment.postponeBD === true ?
-                    <View style={itemStyle.cameraButton_container}>
-
-                      <TouchableHighlight onPress={() => Alert("Lancement de l'appel video")} style={itemStyle.buttonLaunchCall}>
-                        <Icon2 name="video-camera"
-                          size={SCREEN_WIDTH * 0.05}
-                          color="#93eafe" />
-                      </TouchableHighlight>
-
-                    </View>
-                    : null}
-
-                  {this.state.appId === appointment.id && appointment.state.includes('CBD') ?
-                    <View style={itemStyle.headerVideo_container}>
-                      <Icon1 name="lock"
-                        size={SCREEN_WIDTH * 0.045}
-                        color="gray" />
-                      <View style={itemStyle.headerVideo_text}>
-                        <Text style={{ fontSize: SCREEN_HEIGHT * 0.017, fontWeight: 'bold', color: "gray", }}>Lancez l'appel lorsque vous êtes prêt</Text>
-                        <Text style={{ fontSize: SCREEN_HEIGHT * 0.011, fontWeight: 'bold', color: "gray", }}>Vos appels video resteront confidentiels lorem ipsum lorem</Text>
-                      </View>
-                    </View>
-                    : null}
-
-
+                  {this.renderButton(appointment)}
 
                 </View>
               </View>
@@ -624,7 +608,7 @@ export default class NextAppointments extends React.Component {
           })}
         </ScrollView>
 
-        <View style={{ flex: 0.4, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ flex: 0.3, alignItems: 'center', justifyContent: 'center' }}>
           <Button width={SCREEN_WIDTH * 0.87} text="Voir mes patients" onPress={() => this.props.navigation.navigate('MyPatients')} />
         </View>
       </View>
@@ -737,7 +721,6 @@ const styles = StyleSheet.create({
 const itemStyle = StyleSheet.create({
   ItemStyle: {
     flex: 1,
-
     backgroundColor: '#ffffff',
     borderRadius: 20,
     height: SCREEN_HEIGHT * 0.14, //animate to SCREEN_HEIGHT * 0.3
@@ -766,11 +749,6 @@ const itemStyle = StyleSheet.create({
   confirmButton_container: {
     position: 'absolute',
     bottom: SCREEN_HEIGHT * 0.06,
-    //backgroundColor: 'yellow'
-  },
-  cameraButton_container: {
-    position: 'absolute',
-    bottom: SCREEN_HEIGHT * 0.11,
     //backgroundColor: 'yellow'
   },
   arrow_container: {
@@ -844,6 +822,35 @@ const itemStyle = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  viewDetails: {
+    fontSize: SCREEN_HEIGHT * 0.015,
+    color: 'white',
+    marginRight: SCREEN_WIDTH * 0.01
+  },
+  //Appointment card: details
+  appDetails: {
+    flexDirection: 'row',
+    width: SCREEN_WIDTH * 0.95,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    //backgroundColor: 'green'
+  },
+  appDetailsColumn: {
+    width: SCREEN_WIDTH * 0.95 / 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+    //backgroundColor: 'blue'
+  },
+  appDetailsHeader: {
+    marginBottom: SCREEN_HEIGHT * 0.01,
+    fontSize: SCREEN_HEIGHT * 0.014
+  },
+  appDetailsText: {
+    fontWeight: 'bold',
+    color: '#333',
+    fontSize: SCREEN_HEIGHT * 0.014,
+    marginBottom: SCREEN_HEIGHT * 0.01
+  },
   buttonLaunchCall: {
     width: SCREEN_WIDTH * 0.13,
     height: SCREEN_WIDTH * 0.13,
@@ -856,6 +863,18 @@ const itemStyle = StyleSheet.create({
     elevation: 9,
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  camera_container: {
+    backgroundColor: 'green', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    position: 'absolute', 
+    bottom: SCREEN_HEIGHT*0.01
+  },
+  cameraButton_container: {
+    position: 'absolute',
+    bottom: SCREEN_HEIGHT * 0.11,
+    //backgroundColor: 'yellow'
   },
   headerVideo_container: {
     position: 'absolute',

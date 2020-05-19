@@ -144,7 +144,7 @@ export default class LeftSideMenu extends Component {
                     {this.state.isAdmin ?
                         <TouchableHighlight
                             style={sideMenuStyle.pageLink_button}
-                            onPress={this.props.navigateToDispoConfig}>
+                            onPress={this.props.navigateToRequests}>
 
                             <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', paddingLeft: SCREEN_WIDTH * 0.12 }}>
                                 <Icon name="user-md"

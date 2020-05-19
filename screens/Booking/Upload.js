@@ -1,30 +1,8 @@
-//tasks: 
-/*
-remove image on cross press
-upload multiple images (array)
-bar progression during upload
 
-take or choose a video
-*/
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableHighlight,
-  TouchableOpacity,
-  ScrollView,
-  SafeAreaView,
-  StatusBar,
-  Dimensions,
-  Button,
-  Image,
-} from 'react-native';
-//import { Actions } from 'react-native-router-flux';
+import { StyleSheet, Text, View, TextInput, TouchableHighlight, TouchableOpacity, ScrollView, SafeAreaView, StatusBar, Dimensions, Button, Image } from 'react-native';
 import Icon1 from 'react-native-vector-icons/Entypo';
 import Icon from 'react-native-vector-icons/FontAwesome';
-//import UploadFile from './UploadFile';
 import ImagePicker from 'react-native-image-picker';
 import { imagePickerOptions, options2, getFileLocalPath, createStorageReferenceToFile, uploadFileToFireBase } from '../../util/MediaPickerFunctions';
 import firebase from 'react-native-firebase';
@@ -45,10 +23,13 @@ export default class Upload extends React.Component {
     this.VideoStorageRef = null
     this.ImageObjects = []
     this.doctor = null
-    this.doctorId = this.props.navigation.getParam('doctorId', 'nothing sent')
-    this.date = this.props.navigation.getParam('date', 'nothing sent') 
+    this.isUrgence = ''
+
+    this.doctorId = this.props.navigation.getParam('doctorId', '')
+    this.date = this.props.navigation.getParam('date', 'nothing sent')
     this.symptomes = this.props.navigation.getParam('symptomes', 'nothing sent')
     this.comment = this.props.navigation.getParam('comment', 'nothing sent')
+    this.speciality = this.props.navigation.getParam('speciality', 'NoUrgence')
 
     this.state = {
       currentUser: null,
@@ -62,54 +43,48 @@ export default class Upload extends React.Component {
     //this.uploadImages = this.uploadImages.bind(this); 
     //this.uploadVideo = this.uploadVideo.bind(this); 
     this.uploadFiles = this.uploadFiles.bind(this);
-    this.skip = this.skip.bind(this);
     this.onConfirm = this.onConfirm.bind(this);
-
   }
 
   componentDidMount() {
+   this.isUrgence = this.props.navigation.getParam('isUrgence', 'nothing sent')
+   this.getUserMetadata()
+   this.getDoctorMetadata()
+  }
+
+  getUserMetadata() {
     const { currentUser } = firebase.auth()
     this.setState({ currentUser })
     REFS.users.doc(currentUser.uid).get().then(doc => {
       this.setState({ userName: doc.data().nom + ' ' + doc.data().prenom, userCountry: doc.data().country })
     })
-
-    REFS.doctors.doc(this.doctorId).get().then((doc) => {
-         let doctor = {
-           uid: doc.id,
-           nom: doc.data().nom,
-           prenom: doc.data().prenom,
-           speciality: doc.data().speciality
-         }
-
-         this.doctor = doctor
-    })
   }
 
-  getVideo = () => {
-    ImagePicker.launchCamera(options2, imagePickerResponse => {
-      const { didCancel, error } = imagePickerResponse;
-      if (didCancel) { console.log('Post canceled') }
-      else if (error) { alert('An error occurred: ', error); }
-      else {
-        console.log(imagePickerResponse)
-        this.VideoSource = getFileLocalPath((imagePickerResponse))
-        this.VideoStorageRef = firebase.storage().ref('/' + this.state.currentUser.uid + '/Videos/' + this.doctor.nom + this.doctor.prenom + this.fullDate + this.timeSelected)
-
-        this.setState({
-          VideoSource: this.VideoSource,
-          VideoStorageRef: this.VideoStorageRef
-        })
-      }
+  getDoctorMetadata() {
+    //Regular case
+    if(this.doctorId !== '') {
+      REFS.doctors.doc(this.doctorId).get().then((doc) => {
+        let doctor = {
+          uid: doc.id,
+          nom: doc.data().nom,
+          prenom: doc.data().prenom,
+          speciality: doc.data().speciality
+        }
+        this.doctor = doctor
+      })
     }
-    );
-  }
 
-  /*uploadVideo = () => {
-     console.log('uploading video')
-     Promise.resolve(this.state.VideoStorageRef.putFile(this.state.VideoSource)).then((URLObject) => console.log('Video added to Storage!'))
-                                                                                .catch((error) => console.log(error))
-   } */
+    //URG2
+    else {
+      let doctor = {
+        uid: 'undefined',
+        nom: 'undefined',
+        prenom: 'undefined',
+        speciality: this.speciality
+      }
+      this.doctor = doctor
+    }
+  }
 
   getImages = () => {
     ImagePicker.showImagePicker(imagePickerOptions, imagePickerResponse => {
@@ -128,8 +103,26 @@ export default class Upload extends React.Component {
       }
     }
     );
+  }
 
-  };
+  getVideo = () => {
+    ImagePicker.launchCamera(options2, imagePickerResponse => {
+      const { didCancel, error } = imagePickerResponse;
+      if (didCancel) { console.log('Post canceled') }
+      else if (error) { alert('An error occurred: ', error); }
+      else {
+        console.log(imagePickerResponse)
+        this.VideoSource = getFileLocalPath((imagePickerResponse))
+        this.VideoStorageRef = firebase.storage().ref('/' + this.state.currentUser.uid + '/Videos/' + this.doctor.nom + this.doctor.prenom + this.date)
+
+        this.setState({
+          VideoSource: this.VideoSource,
+          VideoStorageRef: this.VideoStorageRef
+        })
+      }
+    }
+    );
+  }
 
   removeImage(index) {
     console.log('icon pressed')
@@ -138,30 +131,30 @@ export default class Upload extends React.Component {
     this.setState({ ImageObjects: ImageObjects })
   }
 
-  /*uploadImages() {
-  //Promise.resolve(this.state.storageRef.putFile(this.state.fileSource))
-  const ImageObjects = this.state.ImageObjects
- 
-  for(let i=0 ; i<ImageObjects.length; i++) {
-     
-    Promise.resolve(ImageObjects[i].storageRef.putFile(ImageObjects[i].fileSource)).then((URLObject) => {db.collection('Images').doc().set({ downloadURL: URLObject.downloadURL })
-                                                                                                                             .then( () => { console.log('Image URL persisted to the database')})
-                                                                                                                             .catch(err => console.log(err))  })
-                                                                                   .catch((error) => console.log(error))
-  }
-}*/
-
-  uploadFiles(docId) {
+  uploadFiles(docId, skip) {
+    
     //Promise.resolve(this.state.storageRef.putFile(this.state.fileSource))
     let ImageObjects = this.state.ImageObjects
     let DocumentsRefs = []
 
-    console.log('Appointment id: ' + docId)
-
+    if(skip === true) {
     //Initialize DocumentsRefs Array: []
-    REFS.appointments.doc(docId).update({ DocumentsRefs: [] }).then(() => console.log('DocumentsRefs added'))
+    REFS.appointments.doc(docId).update({ DocumentsRefs: [] }).then(() => console.log('DocumentsRefs initialized'))
       .catch((err) => console.error(err))
 
+    //Initialize DocumentsRefs Array: []
+    REFS.appointments.doc(docId).update({ Video: '' })
+        //db.collection('Videos').doc().set({ downloadURL: URLObject.downloadURL })
+        .then(() => { console.log('Video URL initialized on FireStore')
+                      this.props.navigation.navigate('BookingConfirmed', {
+                        doctor: this.doctor,
+                        date: this.date,
+                      })
+        })
+        .catch(err => console.log(err))
+    }
+
+    else {
     //Uploading Documents
     console.log('uploading images...')
     for (let i = 0; i < ImageObjects.length; i++) {
@@ -197,33 +190,47 @@ export default class Upload extends React.Component {
     })
       .catch((error) => console.log(error))
       .then(() => {
-        
+
+
         this.props.navigation.navigate('BookingConfirmed', {
-        doctor: this.doctor, 
-        date: this.date, 
-        symptomes: this.symptomes,
-        comment: this.comment
+          doctor: this.doctor,
+          date: this.date,
+        })
       })
-      })
+    }
+
   }
 
-  skip() {
-    console.log('Skip...')
-    //this.props.navigation.navigate('Upload')
-  }
+  onConfirm(skip) {
+    //task: the following operation should be after payment have been done by patient + rules: check if patient has changed only 'paid' field.
+    // 'paid' will be changed to true automatically when payment is done succesfully.
 
-  onConfirm() {
+    if(this.doctorId !== '') { 
+      REFS.doctors.doc(this.doctorId).collection('DoctorSchedule').where('ts', '==', this.date).get().then(querySnapshot => {
 
-    //  let ImageRefs = []
+        //if consultation is not URG2
+        querySnapshot.forEach(doc => {
+        REFS.doctors.doc(this.doctorId).collection('DoctorSchedule').doc(doc.id).update({ paid: true })
+          .then(() => console.log('document has been updated'))
+          .catch((err) => console.error(err))
+        })
+  
+      }).then(() => console.log('document has been retrieved.'))
+        .catch((err) => console.error(err))
+    }
 
-    /*for (let i=0; i<this.state.ImageObjects; i++) {
-      ImageRefs.push(this.state.ImageObjects[i].storageRef)
-    }*/
+    let urgence2 = false
 
-    // REFS.users.doc(firebase.auth().currentUser.uid).collection("appointments").doc().set({
+    if(this.doctorId === '')
+    urgence2 = true
+
+    //Array of doctors (in case of urgent appointment: admin chooses many doctors)
+    const doctors_id = []
+    doctors_id.push(this.doctorId)
+
     REFS.appointments.add({
       //doctor ref
-      doctor_id: this.doctor.uid,
+      doctor_id: doctors_id,
       doctorName: this.doctor.nom + ' ' + this.doctor.prenom,
       doctorSpeciality: this.doctor.speciality,
       //patient ref
@@ -231,20 +238,17 @@ export default class Upload extends React.Component {
       userName: this.state.userName,
       userCountry: this.state.userCountry,
       date: this.date,
-      //date & hour
-      //fullDate: this.fullDate,
-      //day: Number(this.daySelected),
-      //month: this.monthSelected,
-      //year: Number(this.yearSelected),
-      //timeslot: this.timeSelected,
       //appointment data
       symptomes: this.symptomes,
       comment: this.comment,
-      //Documents & Video -- storage references
-      //Documents: ImageRefs,
-      //Video: this.state.VideoStorageRef,
-      //appointment state  ; CBP: Confirmed By Patient
-      state: ['CBP'],
+      speciality: this.speciality,
+      isUrgent: this.isUrgence,
+      urgence2: urgence2,
+      state: {
+        CBP: true,
+        CBA: false,
+        CBD: false
+      },
       finished: false,
       cancelBP: false,
 
@@ -254,8 +258,14 @@ export default class Upload extends React.Component {
       postponeBD: false,
     })
       .then((doc) => {
-        this.uploadFiles(doc.id)
-        console.log(doc.id)
+
+        if(skip === false)
+        this.uploadFiles(doc.id, false)
+
+        else {
+        this.uploadFiles(doc.id, true)
+        }     
+
       }).catch(err => console.log(err))
 
     /* this.props.navigation.navigate('BookingConfirmed', {doctor: this.doctor, daySelected: this.daySelected, fullDate: this.fullDate,
@@ -345,32 +355,28 @@ export default class Upload extends React.Component {
           <TouchableHighlight onPress={this.getVideo} style={styles.buttonAddVideo}>
             <Icon1 name="video-camera"
               size={SCREEN_WIDTH * 0.05}
-              color="#93eafe" /> 
+              color="#93eafe" />
           </TouchableHighlight>
 
           {this.state.VideoSource ? <View style={styles.VideoElement}>
             <Text> Video explicative </Text>
             <Icon name="remove"
-              size={SCREEN_WIDTH * 0.08}
+              size={SCREEN_WIDTH * 0.05}
               color="#93eafe"
-              onPress={() => {
-                console.log('icon pressed')
-                this.setState({ VideoSource: null, VideoStorageRef: null })
-              }}
-              style={{ marginLeft: SCREEN_WIDTH * 0.05 }}
-            />
+              onPress={() => { this.setState({ VideoSource: null, VideoStorageRef: null }) }}
+              style={{ marginLeft: SCREEN_WIDTH * 0.05 }}/>
           </View>
             : null}
 
         </View>
 
         <View style={styles.button_container}>
-          <TouchableOpacity onPress={this.skip} style={styles.skipButton}>
+          <TouchableOpacity onPress={() => this.onConfirm(true)} style={styles.skipButton}>
             <Text style={styles.buttonText1}>Passer cette étape</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={this.onConfirm}>
+            onPress={() => this.onConfirm(false)}>
             <LinearGradient
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
@@ -603,3 +609,21 @@ const styles = StyleSheet.create({
   },
 })
 
+  /*uploadVideo = () => {
+     console.log('uploading video')
+     Promise.resolve(this.state.VideoStorageRef.putFile(this.state.VideoSource)).then((URLObject) => console.log('Video added to Storage!'))
+                                                                                .catch((error) => console.log(error))
+   } */
+
+     /*uploadImages() {
+  //Promise.resolve(this.state.storageRef.putFile(this.state.fileSource))
+  const ImageObjects = this.state.ImageObjects
+ 
+  for(let i=0 ; i<ImageObjects.length; i++) {
+     
+    Promise.resolve(ImageObjects[i].storageRef.putFile(ImageObjects[i].fileSource)).then((URLObject) => {db.collection('Images').doc().set({ downloadURL: URLObject.downloadURL })
+                                                                                                                             .then( () => { console.log('Image URL persisted to the database')})
+                                                                                                                             .catch(err => console.log(err))  })
+                                                                                   .catch((error) => console.log(error))
+  }
+}*/

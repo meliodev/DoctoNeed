@@ -1,7 +1,3 @@
-/**
- * Button component
- * Renders a button and calls a function passed via onPress prop once tapped
- */
 
 import React, { Component, Children } from 'react';
 import { StyleSheet, Text, TouchableHighlight, View, Dimensions, SafeAreaView, Slider } from 'react-native';
@@ -37,7 +33,7 @@ export default class RightSideMenu extends Component {
                     <View style={styles.header_container}>
                         <Text style={styles.header_text}>Trier par</Text>
                         <TouchableHighlight style={styles.filter_button}
-                            onPress={this.toggleSideMenu}>
+                            onPress={this.props.toggleSideMenu}>
                             <Icon name="filter" size={25} color="#93eafe" />
                         </TouchableHighlight>
                     </View>
@@ -50,25 +46,33 @@ export default class RightSideMenu extends Component {
                             withCountryNameButton
                             withAlphaFilter
                             translation="fra"
-                            placeholder={this.props.countryPlaceHolder}  
-                            containerButtonStyle= {{width: SCREEN_WIDTH *0.6, height: SCREEN_HEIGHT*0.065, borderRadius: 50, marginTop: SCREEN_HEIGHT*0.02 }} 
-                            onSelect={country => this.props.onSelectCountry(country)}   
+                            placeholder={this.props.countryPlaceHolder}
+                            containerButtonStyle={{ width: SCREEN_WIDTH * 0.6, height: SCREEN_HEIGHT * 0.065, borderRadius: 50, marginTop: SCREEN_HEIGHT * 0.02 }}
+                            onSelect={country => this.props.onSelectCountry(country)}
                         />
                     </View>
 
-                    <View style={styles.urgence_container1}>
-                        <Text style={styles.title_text}>Urgences</Text>
-                    </View>
+                    {/*
+                       {this.props.isUrgence ?
+                         null :
+                        <View style= {styles.urgence_container}>
+                            <View style={styles.urgence_container1}>
+                                <Text style={styles.title_text}>Urgences</Text>
+                            </View>
 
-                    <View style={styles.urgence_container2}>
-                        <TouchableHighlight style={styles.urgence_button}
-                            onPress={this.props.toggleUrgence}>
-                            {this.props.urgences === 'true'
-                                ? <View style={{ width: SCREEN_WIDTH * 0.02, height: SCREEN_WIDTH * 0.02, borderRadius: 25, backgroundColor: '#93eafe' }} />
-                                : <View style={{ width: 0.005, height: 0.005, backgroundColor: 'white' }} />}
-                        </TouchableHighlight>
-                        <Text style={styles.urgence_text}>Afficher uniquement les médecins gérant les urgences</Text>
-                    </View>
+                            <View style={styles.urgence_container2}>
+                                <TouchableHighlight style={styles.urgence_button}
+                                    onPress={this.props.toggleUrgence}>
+                                    {this.props.urgences === 'true'
+                                        ? <View style={{ width: SCREEN_WIDTH * 0.02, height: SCREEN_WIDTH * 0.02, borderRadius: 25, backgroundColor: '#93eafe' }} />
+                                        : <View style={{ width: 0.005, height: 0.005, backgroundColor: 'white' }} />}
+                                </TouchableHighlight>
+                                <Text style={styles.urgence_text}>Afficher uniquement les médecins gérant les urgences</Text>
+                            </View>
+                        </View>}
+                               */}
+
+
 
                     <View style={styles.speciality_container}>
                         <Text style={styles.title_text}>Spécialité</Text>
@@ -87,7 +91,7 @@ export default class RightSideMenu extends Component {
                             ]}
                             placeholder={{
                                 label: 'Choisissez une spécialité',
-                                value: 'Choisissez une spécialité'
+                                value: ''
                             }}
                         />
                     </View>
@@ -108,7 +112,7 @@ export default class RightSideMenu extends Component {
                     </View>
 
                     <View style={styles.buttons_container}>
-                        <TouchableHighlight onPress={this.props.clearAllFilters} style={styles.CancelButton}>
+                        <TouchableHighlight onPress={this.props.toggleSideMenu} style={styles.CancelButton}>
                             <Text style={styles.buttonText1}>Annuler</Text>
                         </TouchableHighlight>
 
@@ -135,13 +139,7 @@ const styles = StyleSheet.create({
     pageLink_button: {
         height: SCREEN_HEIGHT * 0.045,
         width: SCREEN_WIDTH * 0.7,
-        //alignItems: 'flex-end',
-        //justifyContent: 'center',
-        //paddingRight: SCREEN_WIDTH*0.05,
-        //backgroundColor: 'green',
-        // backgroundColor: 'white',
         backgroundColor: '#ffffff',
-        //backgroundColor: '#93eafe',
         borderTopRightRadius: 25,
         borderBottomRightRadius: 25,
         marginBottom: SCREEN_WIDTH * 0.08
@@ -203,19 +201,21 @@ const styles = StyleSheet.create({
         fontSize: 17,
         //fontWeight: "bold"
     },
-    urgence_container1: {
-        flex: 0.075,
+    urgence_container: {
+        flex: 0.15,
         paddingLeft: SCREEN_WIDTH * 0.1,
-        // backgroundColor: 'yellow'
+        //backgroundColor: 'yellow'
+    },
+    urgence_container1: {
+        flex: 0.3,
+        //backgroundColor: 'green'
     },
     urgence_container2: {
-        flex: 0.075,
+        flex: 0.7,
         flexDirection: 'row',
-        paddingLeft: SCREEN_WIDTH * 0.1,
-        paddingRight: SCREEN_WIDTH * 0.1,
         alignItems: 'center',
         justifyContent: 'space-between',
-        // backgroundColor: 'blue'
+        //backgroundColor: 'blue'
     },
 
     urgence_button: {
@@ -227,7 +227,6 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        // marginTop: SCREEN_WIDTH*0.05,
         elevation: 9,
         justifyContent: 'center',
         alignItems: 'center'
@@ -250,8 +249,8 @@ const styles = StyleSheet.create({
     },
     slider: {
         marginTop: SCREEN_HEIGHT * 0.05,
-        marginBottom: SCREEN_HEIGHT*0.02,
-        marginRight: SCREEN_HEIGHT*0.03
+        marginBottom: SCREEN_HEIGHT * 0.02,
+        marginRight: SCREEN_HEIGHT * 0.03
     },
     buttons_container: {
         flex: 0.25,
@@ -318,7 +317,6 @@ const styles = StyleSheet.create({
         flex: 0.1,
         flexDirection: 'row',
         alignItems: 'center',
-        //justifyContent: 'space-between',
         //backgroundColor: 'brown'
     },
     filterItem: {
@@ -334,9 +332,6 @@ const styles = StyleSheet.create({
         shadowRadius: 5.46,
         elevation: 5,
         marginLeft: SCREEN_WIDTH * 0.03,
-        //margin: 15,
-        //marginTop: 15,
-        //marginBottom: 15,
         fontSize: 16,
         flexDirection: 'row',
         alignItems: 'center',
@@ -357,31 +352,26 @@ const pickerSelectStyles = StyleSheet.create({
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
         elevation: 9,
-        //margin: 15,
         marginTop: 15,
         marginBottom: 15,
         fontSize: 11,
     },
     inputAndroid: {
         textAlignVertical: 'top',
-        paddingLeft: SCREEN_WIDTH*0.06,
+        paddingLeft: SCREEN_WIDTH * 0.06,
         textAlign: 'left',
         backgroundColor: '#ffffff',
         borderRadius: 50,
         paddingTop: SCREEN_WIDTH * 0.05,
         paddingRight: SCREEN_WIDTH * 0.07,
-        width: SCREEN_WIDTH *0.6, height: SCREEN_HEIGHT*0.065,
+        width: SCREEN_WIDTH * 0.6, height: SCREEN_HEIGHT * 0.065,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
         elevation: 9,
-        //margin: 15,
         marginTop: SCREEN_WIDTH * 0.03,
-        //marginBottom: 15,
         fontSize: 11,
         color: '#333',
-        //justifyContent: 'center',
-        // alignItems: 'center'
     },
 });

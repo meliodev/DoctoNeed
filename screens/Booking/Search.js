@@ -1,11 +1,17 @@
 
 import React from 'react'
-//import LinearGradient from 'react-native-linear-gradient';
-import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, TextInput } from 'react-native'
+import { View, Text, Image, TouchableOpacity, Dimensions, ActivityIndicator, StyleSheet, TextInput, Picker } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Icon1 from 'react-native-vector-icons/FontAwesome';
+import Icon1 from 'react-native-vector-icons/Feather';
 import { ScrollView } from 'react-native-gesture-handler';
-import SearchInput, { createFilter } from 'react-native-search-filter';
+import { createFilter } from 'react-native-search-filter';
+import Button from '../../components/Button';
+import Modal from "react-native-modal";
+import { CheckBox } from 'native-base';
+
+import moment from 'moment'
+import 'moment/locale/fr'  // without this line it didn't work
+moment.locale('fr')
 
 import DoctorItem from '../../components/DoctorItem'
 import RightSideMenu from '../../components/RightSideMenu1'
@@ -13,38 +19,43 @@ import RightSideMenu from '../../components/RightSideMenu1'
 import firebase from 'react-native-firebase';
 import * as REFS from '../../DB/CollectionsRefs'
 
-import { withNavigation } from 'react-navigation';
-
 const KEYS_TO_FILTERS_COUNTRY = ['country'];
 const KEYS_TO_FILTERS_URGENCES = ['urgences'];
 const KEYS_TO_FILTERS_SPECIALITY = ['speciality'];
-const KEYS_TO_FILTERS_PRICE = ['price'];
 const KEYS_TO_FILTERS = ['name', 'speciality'];
 
-const SCREEN_WIDTH = Dimensions.get("window").width;
-const SCREEN_HEIGHT = Dimensions.get("window").height;
-
-const ratioFooter = 254 / 668; // The actaul icon footer size is 254 * 668
-const FOOTER_ICON_HEIGHT = Dimensions.get("window").width * ratioFooter; // This is to keep the same ratio in all screen sizes (proportion between the image  width and height)
+const SCREEN_WIDTH = Dimensions.get("window").width
+const SCREEN_HEIGHT = Dimensions.get("window").height
 
 const ratioLogo = 420 / 244;
 const LOGO_WIDTH = SCREEN_WIDTH * 0.25 * ratioLogo;
 
-const db = firebase.firestore()
-const doctorsRef = db.collection("Doctors");
+const specialities = ['Ophtalmologue', 'Médecin généraliste', 'Psychologue', 'Cardiologue', 'Rhumatologue', 'Neurologue', 'Gynécologue']
 
 class Search extends React.Component {
   constructor(props) {
     super(props);
     this.filteredDoctors1 = []
+    this.isUrgence = false
+    this.urgenceSpeciality = ''
+    this.nextAvailableTime = ''
+    this.doctorList = []
+    this.doctorItemWidth = SCREEN_WIDTH * 0.95
+    this.appId = ''
+
     this.toggleUrgence = this.toggleUrgence.bind(this);
+    this.toggleModalUrgence = this.toggleModalUrgence.bind(this);
+    this.handleConfirm = this.handleConfirm.bind(this);
     this.countryPlaceHolder = this.countryPlaceHolder.bind(this);
+    this.inviteDoctors = this.inviteDoctors.bind(this);
 
     this.state = {
+      isLoading: false,
       doctorList: [],
       searchTerm: '',
+
+      //Filters
       isSideMenuVisible: false,
-      isLoading: false,
       country: "",
       urgences: "",
       speciality: "",
@@ -53,35 +64,139 @@ class Search extends React.Component {
       isUrgencesSelected: false,
       isSpecialitySelected: false,
       isPriceSelected: false,
+
+      nextAvailableTime: '',
+      noDoctors: true,
+
+      //patient: URG2
+      isModalUrgenceVisible: false,
+      selectedSpeciality: '',
+
+      //admin: URG2
+      selectedDoctors: []
     }
   }
 
-  //Handle sidemenu filters
+  componentDidMount() {
+    this.displayLoading()
+
+    this.isUrgence = this.props.navigation.getParam('isUrgence', '')
+    this.urgenceSpeciality = this.props.navigation.getParam('urgenceSpeciality', '')
+    this.appId = this.props.navigation.getParam('appId', '')
+
+    if (this.urgenceSpeciality !== '')
+      this.doctorItemWidth = SCREEN_WIDTH * 0.7
+
+    this._loadDoctors()
+  }
+
+  displayLoading() {
+    this.setState({ isLoading: true }, () => setTimeout(() => this.setState({ isLoading: false }), 1315))
+  }
+
+  //Load doctors data
+  _loadDoctors() {
+    let doctor = {
+      uid: '',
+      name: '',
+      timeLeft: '',
+      urgences: false,
+    }
+
+    //this.setState({ isLoading: true })
+
+    REFS.doctors.get().then(querySnapshot => {
+
+      querySnapshot.forEach(doc => {
+        let maxTimeLeft = 5  //The value 60 slows down the doctor loading.. Solution: retrieve only the doctors available in the next 30min
+
+        if (this.isUrgence === true) {
+          maxTimeLeft = 31
+        }
+
+        //Retrieve the next available timeslot for each doctor
+        this.findNextAvailability(doc.id, maxTimeLeft).then(() => {
+          const id = doc.id
+          doctor = doc.data()
+          doctor.uid = id
+          doctor.isSelected = false
+
+
+          //Disponible dans X min: Fin X for each doctor
+          let timeLeft = this.calculateTimeLeft(this.nextAvailableTime)
+          doctor.timeLeft = timeLeft
+
+          this.doctorList.push(doctor)
+          this.setState({ doctorList: this.doctorList })
+        })
+      })
+
+    }) //.then(() => this.setState({ isLoading: false }))
+      .catch(error => console.log('Error getting doctors data:' + error))
+  }
+
+  async findNextAvailability(doctorId, maxTimeLeft) {
+
+    await REFS.doctors.doc(doctorId).collection('DoctorSchedule').get().then(querySnapshot => {
+
+      let currentDay = moment().seconds(0).milliseconds(0).format()
+
+      let currentTime = ''
+      let docTime = ''
+      let nextAvailableTime = ''
+
+      for (let m = 0; m < maxTimeLeft; m++) {
+
+        if (nextAvailableTime === '') {
+
+          currentTime = moment(currentDay).format()
+
+          querySnapshot.forEach(doc => {
+            docTime = moment(doc.data().ts).format()
+
+            if (currentTime === docTime && doc.data().paid === false) {
+
+              if (nextAvailableTime === '') {
+                nextAvailableTime = docTime
+                this.nextAvailableTime = docTime
+              }
+
+            }
+          })
+
+          currentDay = moment(currentDay).add(1, 'minutes').format()
+        }
+
+      }
+    })
+
+  }
+
+  calculateTimeLeft(nextAvailableTime) {
+    let nextTimeslot = moment(nextAvailableTime).format()
+    let now = moment().format()
+    let timeLeft = ''
+
+    timeLeft = moment.utc(moment(nextTimeslot).diff(moment(now))).format("mm")
+    return timeLeft
+  }
+
+  //Search bar
+  searchUpdated(term) {
+    this.setState({ searchTerm: term })
+  }
+
+  //Filters: Get data
   toggleSideMenu = () => {
     this.setState({ isSideMenuVisible: !this.state.isSideMenuVisible });
   }
 
-  countryPlaceHolder = () => {
-    return this.state.country ? <Text style={styles.pays1}> {this.state.country} </Text> : <Text style={styles.placeHolder}> Choisir un pays </Text>
-  }
-
-  toggleUrgence = () => {
-    if (this.state.urgences === 'true' || this.state.urgences === '')
-      this.setState({ urgences: 'false', isUrgencesSelected: false })
-    if (this.state.urgences === 'false' || this.state.urgences === '')
-      this.setState({ urgences: 'true', isUrgencesSelected: true })
-  }
-
-  clearAllFilters = () => {
-    this.setState({
-      country: '', urgences: '', speciality: '', price: 50,
-      isCountrySelected: false, isUrgencesSelected: false, isSpecialitySelected: false, isPriceSelected: false
-    })
-  }
-
-  //Get data from filters
   onSelectCountry = (childData) => {
     this.setState({ country: childData.name, isCountrySelected: true })
+  }
+
+  countryPlaceHolder = () => {
+    return this.state.country ? <Text style={styles.pays1}> {this.state.country} </Text> : <Text style={styles.placeHolder}> Choisir un pays </Text>
   }
 
   onSelectSpeciality = (speciality) => {
@@ -95,189 +210,100 @@ class Search extends React.Component {
     this.setState({ price: value, isPriceSelected: true })
   }
 
+  toggleUrgence = () => {
+    if (this.state.urgences === 'true' || this.state.urgences === '')
+      this.setState({ urgences: 'false', isUrgencesSelected: false })
+    if (this.state.urgences === 'false' || this.state.urgences === '')
+      this.setState({ urgences: 'true', isUrgencesSelected: true })
+  }
+
+  //Filters: filtering...
+  filter(filteredDoctors1, field, isUrgence, keysToFilters) {
+    if (field === 'price')
+      return filteredDoctors1.filter((doctor) => { return doctor.price <= this.state.price })
+
+    else
+      return filteredDoctors1.filter(createFilter(field, keysToFilters))
+  }
+
+  filterDoctors(country, urgences, speciality) {
+    this.filteredDoctors1 = this.state.doctorList
+
+    this.filteredDoctors1 = this.filter(this.filteredDoctors1, 'price')
+
+    if (country) {
+      this.filteredDoctors1 = this.filter(this.filteredDoctors1, country, KEYS_TO_FILTERS_COUNTRY)
+    }
+    if (urgences === 'true') {
+      this.filteredDoctors1 = this.filter(this.filteredDoctors1, speciality, KEYS_TO_FILTERS_URGENCES)
+    }
+    if (speciality) {
+      this.filteredDoctors1 = this.filter(this.filteredDoctors1, speciality, KEYS_TO_FILTERS_SPECIALITY)
+    }
+
+    if (this.isUrgence === true) {
+      this.filteredDoctors1 = this.filteredDoctors1.filter((doctor) => { return doctor.timeLeft !== 'Invalid date' })
+    }
+
+    this.filteredDoctors1 = this.filteredDoctors1.filter(createFilter(this.state.searchTerm, KEYS_TO_FILTERS))
+
+    /*URG2: show only doctors with the chosen speciality*/
+    if (this.urgenceSpeciality !== '') {
+      this.filteredDoctors1 = this.filteredDoctors1.filter((doctor) => {
+        return doctor.speciality === this.urgenceSpeciality
+      })
+    }
+  }
 
   //handle doctor click
   onDoctorClick(doctor) {
-        this.props.navigation.navigate('Booking', { doctorId: doctor.uid})
+    this.props.navigation.navigate('Booking', { doctorId: doctor.uid, isUrgence: this.isUrgence })
   }
 
   displayDoctorDetails(doctor) {
-    //console.log(doctor)
-    this.props.navigation.navigate('DoctorFile', { doctor: doctor })
+    this.props.navigation.navigate('DoctorFile', { doctor: doctor, isUrgence: this.isUrgence })
   }
 
-  _displayLoading() {
-    if (this.state.isLoading) {
-      return (
-        <View style={styles.loading_container}>
-          <ActivityIndicator size='large' />
-        </View>
-      )
-    }
+  //Patient functions: URG2
+  toggleModalUrgence() {
+    this.setState({ isModalUrgenceVisible: !this.state.isModalUrgenceVisible })
   }
 
-  formatDate(date) {
-    let monthNames = [
-      "Janvier", "Février", "Mars",
-      "Avril", "Mai", "Juin", "Juillet",
-      "Aout", "Septembre", "Octobre",
-      "Novembre", "Decembre"
-    ];
+  handleConfirm() {
+    this.setState({ isModalUrgenceVisible: !this.state.isModalUrgenceVisible }, () =>
+      this.props.navigation.navigate('Symptomes', { isUrgence: true, doctorId: '', speciality: this.state.selectedSpeciality, date: moment().startOf('day').format() })
+    )
 
-    let dayNames = [
-      "Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"
-    ]
+  }
 
-    let day = date.getDate();
-    let dayindex = date.getDay();
-    let dayname = dayNames[dayindex]
-    let monthIndex = date.getMonth();
-    let month = monthNames[monthIndex]
-    let year = date.getFullYear();
-
-    let journee = {
-      dayname: dayname,
-      day: day,
-      month: month,
-      monthIndex: monthIndex + 1,
-      year: year,
-      timeslots: {
-        ts0800: { time: '08h00', status: 'open' },
-        ts0900: { time: '09h00', status: 'blocked' },
-        ts1000: { time: '10h00', status: 'open' },
-        ts1100: { time: '11h00', status: 'open' },
-        ts1200: { time: '12h00', status: 'open' },
-        ts1300: { time: '13h00', status: 'open' },
-        ts1400: { time: '14h00', status: 'open' },
-        ts1500: { time: '15h00', status: 'blocked' },
-        ts1600: { time: '16h00', status: 'open' },
-        ts1700: { time: '17h00', status: 'open' },
-        ts1800: { time: '18h00', status: 'blocked' },
-        ts1900: { time: '19h00', status: 'open' },
+  //Admin functions: URG2 
+  selectDoctor(doctorId) {
+    this.filteredDoctors1.forEach((doc) => {
+      if (doc.uid === doctorId) {
+        doc.isSelected = !doc.isSelected
+        this.forceUpdate()
       }
-    }
-
-    return journee
+    })
   }
 
-  //create and populate the doctor's schedule with dates and timeslots
-  buildDoctorSchedule() {
-    const date1 = new Date();
-    const y = date1.getFullYear();
-    const m = date1.getMonth();
-    const d = date1.getDate();
+  inviteDoctors() {
+    let doctorsId = []
+    this.filteredDoctors1.forEach((doc) => {
+      if (doc.isSelected === true) {
+        doctorsId.push(doc.uid)
+      }
+    })
 
-    //generate 3months of schedule
-    for (let i = 0; i < 84; i++) {
-
-      const date = new Date(y, m, d + i)
-
-      let journee = this.formatDate(date)
-      let dayname = journee.dayname
-
-      let day = journee.day
-      if (journee.day < 10)
-        day = "0" + journee.day;
-
-      let monthIndex = journee.monthIndex
-      if (journee.monthIndex < 10)
-        monthIndex = "0" + journee.monthIndex;
-
-      //console.log('day' + i + ': ' + day)
-
-      //console.log(i + ': ' + journee.dayname + ' ' + journee.day + ' ' + journee.month + ' ' + ' ' + journee.year + ' '+ journee.timeslots.ts1730.time)
-      db.collection('Doctors').doc('v88gAwcSdWTQzFpi3H2w').collection('DoctorSchedule').doc().set({
-        //db.collection('Doctors').doc(doctorId).collection('DoctorSchedule').doc().set({
-        dayname: dayname,
-        day: day,
-        month: journee.month,
-        year: journee.year,
-        status: 'open',
-
-        fullDate: Number(journee.year + '' + monthIndex + '' + day), //field to use "order by" in queries
-        formatedDate: journee.dayname + ' ' + journee.day + ' ' + journee.month,
-        timeslots: journee.timeslots
-      }).then(() => {
-        console.log('The Doctor Schedule is now populated')
-      }).catch(err => console.log(err))
-    }
-  }
-
-  //-----------------------------------------------------------
-
-  componentDidMount() {
-    //this.buildDoctorSchedule()
-    this._loadDoctors()
-    // this.filterCountry()
-  }
-
-  searchUpdated(term) {
-    this.setState({ searchTerm: term })
-  }
-
-  _loadDoctors() {
-    const doctorList = []
-    let doctor = {
-      uid: '',
-      Adresse: '',
-      name: '',
-      phone: '',
-      type: '',
-      //doctorSchedule: []
-    }
-    //get the doctor selected
-    //firebase.firestore().collection("Doctors").doc('zMl7Olfq3GeRDzrk4fCd').get()
-    REFS.doctors.get()
-      .then(querySnapshot => {
-
-        querySnapshot.forEach(doc => {
-          const id = doc.id
-          doctor = doc.data()
-          doctor.uid = id
-          doctorList.push(doctor)
-        })
-
-        this.setState({
-          doctorList: doctorList
-        }
-          //,console.log(doctorList)
-        )
-
-      })
-      .catch(error => console.log('Error getting documents:' + error))
+    REFS.appointments.doc(this.appId).update({ doctor_id: doctorsId, state: { CBA: true } }).then(() => {
+      alert('Les médecins que vous avez selectionné ont reçu une demande de confirmation de rendez-vous avec succès !')
+      this.props.navigation.navigate('TabScreenAdmin')
+    })
   }
 
   render() {
+    console.log('loading: ' + this.state.isLoading)
+    this.filterDoctors(this.state.country, this.state.urgences, this.state.speciality)
 
-    this.filteredDoctors1 = this.state.doctorList
-    console.log(this.filteredDoctors1)
-
-    this.filteredDoctors1 = this.filteredDoctors1.filter((doctor) => {
-      return doctor.price <= this.state.price
-    })
-
-    if (this.state.country) {
-      this.filteredDoctors1 = this.filteredDoctors1.filter(createFilter(this.state.country, KEYS_TO_FILTERS_COUNTRY))
-    }
-    if (this.state.urgences === 'true') {
-      this.filteredDoctors1 = this.filteredDoctors1.filter(createFilter(this.state.urgences, KEYS_TO_FILTERS_URGENCES))
-    }
-    if (this.state.speciality) {
-      this.filteredDoctors1 = this.filteredDoctors1.filter(createFilter(this.state.speciality, KEYS_TO_FILTERS_SPECIALITY))
-    }
-
-    console.log('country: ' + this.state.country)
-    console.log('urgences: ' + this.state.urgences)
-    console.log('speciality: ' + this.state.speciality)
-    console.log('price: ' + this.state.price)
-
-
-    //  }
-    // this.filteredDoctors1 = this.filteredDoctors1.filter(createFilter(this.state.PRICE, KEYS_TO_FILTERS_PRICE))
-    // }
-    this.filteredDoctors1 = this.filteredDoctors1.filter(createFilter(this.state.searchTerm, KEYS_TO_FILTERS))
-    //
-    console.log('speciality: ' + this.state.speciality)
     return (
 
       <View style={styles.container}>
@@ -285,11 +311,11 @@ class Search extends React.Component {
         <RightSideMenu
           isSideMenuVisible={this.state.isSideMenuVisible}
           toggleSideMenu={this.toggleSideMenu}
+          isUrgence={this.isUrgence}
           countryPlaceHolder={this.countryPlaceHolder()}
           toggleUrgence={this.toggleUrgence}
           urgences={this.state.urgences}
           price={this.state.price}
-          clearAllFilters={this.clearAllFilters}
           onSelectCountry={this.onSelectCountry}
           onSelectSpeciality={this.onSelectSpeciality}
           onSelectPriceMax={this.onSelectPriceMax} />
@@ -298,24 +324,24 @@ class Search extends React.Component {
           <Image source={require('../../assets/doctoneedLogoIcon.png')} style={styles.logoIcon} />
         </View>
 
+        {/* Search Bar + Filter button */}
         <View style={styles.search_container}>
-
           <View style={styles.search_button}>
-            <Icon1 name="search" size={20} color="#afbbbc" style={{ flex: 0.1, paddingRight: 5 }} />
+            <Icon name="search" size={20} color="#afbbbc" style={{ flex: 0.07, paddingRight: 1 }} />
             <TextInput
+              style={{ flex: 0.93 }}
               onChangeText={(term) => { this.searchUpdated(term) }}
-              placeholder="Rechercher un médecin"
-              style={{ flex: 0.9 }}
+              placeholder="Rechercher un médecin ou une spécialité"
             />
           </View>
 
-
           <TouchableOpacity style={styles.filter_button}
             onPress={this.toggleSideMenu}>
-            <Icon1 name="filter" size={25} color="#93eafe" />
+            <Icon name="filter" size={25} color="#93eafe" />
           </TouchableOpacity>
         </View>
 
+        {/* Display the filters applied */}
         <View style={styles.filters_selected_container}>
           {this.state.isCountrySelected ?
             <View style={styles.filterItem}>
@@ -325,8 +351,7 @@ class Search extends React.Component {
                 color="#93eafe"
                 onPress={() => this.setState({ country: '', isCountrySelected: false })} />
             </View>
-            : null
-          }
+            : null}
 
           {this.state.isUrgencesSelected ?
             <View style={styles.filterItem}>
@@ -359,39 +384,103 @@ class Search extends React.Component {
             : null}
         </View>
 
-        <ScrollView style={styles.doctorList_container}>
-          {this.filteredDoctors1.map(doctor => {
-            return (
-              <View style={{ flex: 1, alignItems: 'center' }}>
-                <DoctorItem
-                  doctor={doctor}
-                  displayDoctorCalendar={() => this.onDoctorClick(doctor)}
-                  displayDoctorDetails={() => this.displayDoctorDetails(doctor)}
-                />
-              </View>
-            )
-          })}
-        </ScrollView>
+        {/* Doctors List */}
 
+        {this.state.isLoading === true ?
+          <View style={styles.loading_container}>
+            <ActivityIndicator size='large' />
+          </View>
+          :
+          <ScrollView style={styles.doctorList_container} >
+
+            {this.filteredDoctors1.map((doctor, key) => {
+              return (
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly', paddingLeft: 5 }}>
+                  {/* Admin: URG2: doctors selection */}
+                  {this.urgenceSpeciality !== '' &&
+                    <CheckBox color="#93eafe" style={{ borderColor: '#93eafe' }}
+                      title='check box'
+                      checked={doctor.isSelected}
+                      onPress={() => this.selectDoctor(doctor.uid)} />}
+
+                  <DoctorItem
+                    doctor={doctor}
+                    itemWidth={this.doctorItemWidth}
+                    timeLeft={doctor.timeLeft}
+                    displayDoctorCalendar={() => this.onDoctorClick(doctor)}
+                    displayDoctorDetails={() => this.displayDoctorDetails(doctor)} />
+                </View>
+              )
+            })}
+
+          </ScrollView>
+        }
+
+
+        {/* Patient: URG2 interface */}
+        {this.isUrgence === true && this.urgenceSpeciality === '' ?
+          <View style={{ flex: 0.2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+            <Button width={SCREEN_WIDTH * 0.7} text="Rendez-vous en urgence par choix de spécialité" onPress={this.toggleModalUrgence} />
+
+            <TouchableOpacity style={{ marginLeft: SCREEN_WIDTH * 0.025 }} onPress={() => alert('Explication du concept de la prise de rendez-vous en urgence par choix de spécialité...')}>
+              <Icon1 name="info" size={20} color="#8febfe" />
+            </TouchableOpacity>
+          </View>
+          : null}
+
+        <Modal
+          isVisible={this.state.isModalUrgenceVisible}
+          onBackdropPress={() => this.setState({ isModalUrgenceVisible: false })}
+          animationIn="fadeInUp"
+          animationOut="fadeInDown"
+          onSwipeComplete={() => this.setState({ isModalUrgenceVisible: false })}
+          // swipeDirection="right"
+          style={{ backgroundColor: 'white', height: 100, width: SCREEN_WIDTH * 0.9 }}>
+
+          <View style={{ justifyContent: 'center', alignItems: 'center', backgroundColor: 'green' }}>
+            <View style={styles.picker_container} >
+              <Picker selectedValue={this.state.selectedSpeciality} onValueChange={(value) => this.setState({ selectedSpeciality: value })} style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.8, textAlign: "center" }}>
+                <Picker.Item value='' label='Selectionnez une spécialité' />
+                {specialities.map((spec, key) => {
+                  return (<Picker.Item key={key} value={spec} label={spec} />);
+                })}
+              </Picker>
+            </View>
+
+            <Button
+              style={{ marginBottom: 100 }}
+              width={SCREEN_WIDTH * 0.8}
+              paddingTop={0}
+              paddingBottom={0}
+              text="Confirmer"
+              onPress={this.handleConfirm} />
+          </View>
+
+        </Modal>
+
+        {/* Admin: URG2 interface */}
+        {this.isUrgence === true && this.urgenceSpeciality !== '' ?
+          <View style={{ flex: 0.2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+            <Button width={SCREEN_WIDTH * 0.5} text="Confirmer" onPress={this.inviteDoctors} />
+          </View>
+          : null}
       </View>
     );
   }
 }
 
-export default withNavigation(Search);
+export default Search;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    //justifyContent: 'center',
-    //alignItems: 'center',
     backgroundColor: '#ffffff',
   },
   logo_container: {
     flex: 0.3,
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    //backgroundColor: 'blue',
+    //backgroundColor: 'orange',
   },
   logoIcon: {
     height: SCREEN_WIDTH * 0.25,
@@ -410,11 +499,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     backgroundColor: '#ffff',
     borderRadius: 50,
-    //borderWidth: 1, 
-    //borderColor: '#93eafe',
     paddingLeft: SCREEN_WIDTH * 0.02,
     paddingRight: SCREEN_WIDTH * 0.02,
-    width: SCREEN_WIDTH * 0.75,
+    width: SCREEN_WIDTH * 0.8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
@@ -448,7 +535,6 @@ const styles = StyleSheet.create({
     flex: 0.1,
     flexDirection: 'row',
     alignItems: 'center',
-    //justifyContent: 'space-between',
     //backgroundColor: 'brown'
   },
   filterItem: {
@@ -464,9 +550,6 @@ const styles = StyleSheet.create({
     shadowRadius: 5.46,
     elevation: 5,
     marginLeft: SCREEN_WIDTH * 0.03,
-    //margin: 15,
-    //marginTop: 15,
-    //marginBottom: 15,
     fontSize: 16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -478,7 +561,47 @@ const styles = StyleSheet.create({
   doctorList_container: {
     flex: 1,
     //backgroundColor: 'yellow'
+  },
+  loading_container: {
+    flex: 1,
+  },
+  picker_container: {
+    borderRadius: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 5, height: 5 },
+    shadowOpacity: 0.32,
+    shadowRadius: 5.46,
+    elevation: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    height: SCREEN_HEIGHT * 0.05,
+    width: SCREEN_WIDTH * 0.8,
+    paddingLeft: 20,
+    paddingRight: 10
   }
-
 });
 
+
+
+/*  clearAllFilters = () => {
+    this.setState({
+        country: '', urgences: '', speciality: '', price: 50,
+        isCountrySelected: false, isUrgencesSelected: false, isSpecialitySelected: false, isPriceSelected: false,
+      isSideMenuVisible: false
+    })
+  }*/
+
+          //Check if there is at least one doctor available "in the next 30min for an urgent consultation"
+        //util pour afficher: 'Aucun medecin disponible' 
+/*  if (this.isUrgence === true) {
+    if (doc.data().urgences === true) {
+      if (timeLeft !== 'Invalid date') {
+        this.setState({ noDoctors: false })
+      }
+    }
+  }*/
+
+        //let currentDay = moment().startOf('hours').format() //Jeudi 07 mai 2020 00:00
+
+              //let currentDay = moment().startOf("hours").format() //Jeudi 07 mai 2020 00:00

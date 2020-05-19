@@ -17,7 +17,7 @@ class DoctorItem extends React.Component {
 
           onPress={() => displayDoctorCalendar(doctor.uid)}>
 
-          <View style={styles.main_container}>
+          <View style={[styles.main_container, { width: this.props.itemWidth  }]}>
             <View style={{ flex: 0.37, paddingLeft: SCREEN_WIDTH * 0.04, borderBottomLeftRadius: 25, borderTopLeftRadius: 25, }}>
               <TouchableHighlight style={styles.imageFrame}>
                 <Image
@@ -35,9 +35,12 @@ class DoctorItem extends React.Component {
               <View style={styles.description_container}>
                 <Text style={styles.description_text}>{doctor.speciality}</Text>
               </View>
-              <View style={styles.date_container}>
-                <Text style={styles.date_text}>Disponible dans: 5 min</Text>
-              </View>
+
+              {doctor.timeLeft !== 'Invalid date' ?
+                <View style={styles.date_container}>
+                  <Text style={styles.date_text}>Disponible dans: {doctor.timeLeft} min</Text>
+                </View>
+                : null}
             </View>
 
             <View style={styles.button_container}>
@@ -66,7 +69,7 @@ const styles = StyleSheet.create({
     //borderColor: 'green',
     //borderWidth: 1,
     height: 120,
-    width: SCREEN_WIDTH * 0.95,
+    width: SCREEN_WIDTH * 0.75,
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: SCREEN_HEIGHT * 0.02,

@@ -96,7 +96,7 @@ export default class DocumentItem extends Component {
             shadowOffset: { width: 0, height: 5 },
             shadowOpacity: 0.32,
             shadowRadius: 5.46,
-            elevation: 9,
+            elevation: 3,
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: 'white',padding:5}}>

@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.27,
     shadowRadius: 4.65,
-    elevation: 7,
+    elevation: 3,
   },
   blockedTime: {
     //marginLeft: 20,
@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.27,
     shadowRadius: 4.65,
-    elevation: 7,
+    elevation: 3,
   },
   open: {
     //marginLeft: 20,
@@ -554,7 +554,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.27,
     shadowRadius: 4.65,
-    elevation: 7,
+    elevation: 3,
   },
   openTime: {
     //marginLeft: 20,
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.27,
     shadowRadius: 4.65,
-    elevation: 7,
+    elevation: 3,
   },
   timeslotText: {
     alignSelf: 'center',

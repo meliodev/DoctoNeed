@@ -17,6 +17,8 @@ export const options2 = {
   title: 'Selectionner une video',
   mediaType: 'video',
   path: 'video',
+  durationLimit: 300,
+  allowsEditing: true,
   quality: 1
 };
 

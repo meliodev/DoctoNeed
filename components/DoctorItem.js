@@ -1,46 +1,67 @@
 import React from 'react'
 import { StyleSheet, View, Text, Image, TouchableHighlight, TouchableOpacity, Dimensions } from 'react-native'
 import Icon from 'react-native-vector-icons/AntDesign';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
 const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
 
 class DoctorItem extends React.Component {
 
+  formatTime(time) {
+    const hours = time.split(':')[0]
+    const minutes = time.split(':')[1]
+
+    let formatedHour
+
+    if (hours === '00') {
+      return { formatedHour: minutes, unit: 'min' }
+    }
+
+    else {
+      return { formatedHour: time.replace(':', 'h'), unit: '' }
+    }
+  }
 
   render() {
-    const { doctor, displayDoctorDetails, displayDoctorCalendar } = this.props
+    const { doctor, displayDoctorDetails } = this.props
+    const timeLeft = this.formatTime(doctor.timeLeft)
+
+    console.log(doctor.timeLeft)
+
     return (
       <View>
         <TouchableHighlight
           underlayColor="#93eafe"
+          onPress={() => displayDoctorDetails(doctor.uid)}>
 
-          onPress={() => displayDoctorCalendar(doctor.uid)}>
-
-          <View style={[styles.main_container, { width: this.props.itemWidth  }]}>
-            <View style={{ flex: 0.37, paddingLeft: SCREEN_WIDTH * 0.04, borderBottomLeftRadius: 25, borderTopLeftRadius: 25, }}>
-              <TouchableHighlight style={styles.imageFrame}>
-                <Image
-                  style={styles.image}
-                  source={require('../assets/profile.jpg')}
-                />
-              </TouchableHighlight>
+          <View style={[styles.container, { width: this.props.itemWidth }]}>
+            <View style={styles.avatar_container}>
+              <View style={styles.Avatar_box}>
+                {doctor.Avatar !== '' ?
+                  <Image style={{ width: 75, height: 75, borderRadius: 37.5 }} source={{ uri: doctor.Avatar }} />
+                  :
+                  <FontAwesome name="user" size={24} color="#93eafe" />
+                }
+              </View>
             </View>
-
 
             <View style={styles.content_container}>
               <View style={styles.header_container}>
-                <Text style={styles.title_text}>{doctor.nom} {doctor.prenom}</Text>
+                <Text style={styles.title_text}>{doctor.prenom} {doctor.nom}</Text>
               </View>
               <View style={styles.description_container}>
                 <Text style={styles.description_text}>{doctor.speciality}</Text>
               </View>
 
-              {doctor.timeLeft !== 'Invalid date' ?
-                <View style={styles.date_container}>
-                  <Text style={styles.date_text}>Disponible dans: {doctor.timeLeft} min</Text>
-                </View>
-                : null}
+
+              <View style={styles.date_container}>
+                {doctor.timeLeft !== 'Invalid date' && doctor.timeLeft !== '' ?
+                  <Text style={[styles.date_text, { color: 'green' }]}>Disponible dans: {timeLeft.formatedHour} {timeLeft.unit}</Text>
+                  :
+                  <Text style={styles.date_text}>{doctor.status}</Text>
+                }
+              </View>
             </View>
 
             <View style={styles.button_container}>
@@ -61,7 +82,7 @@ class DoctorItem extends React.Component {
 }
 
 const styles = StyleSheet.create({
-  main_container: {
+  container: {
     textAlignVertical: 'top',
     textAlign: 'center',
     backgroundColor: '#ffffff',
@@ -78,48 +99,29 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 7,
+    elevation: 3,
     flexDirection: 'row',
-    margin: 15,
   },
-  imageFrame: {
-    width: 95,
-    height: 95,
-    margin: 5,
-    borderRadius: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    textAlignVertical: 'top',
-    textAlign: 'center',
-    backgroundColor: '#ffffff',
-    borderRadius: 50,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.32,
-    shadowRadius: 5.46,
-    elevation: 10,
-    shadowColor: '#93eafe'
-  },
-  image: {
-    width: 80,
-    height: 80,
-    margin: 5,
-    borderRadius: 50,
-    backgroundColor: 'black'
+  avatar_container: {
+    flex: 0.3,
+    paddingLeft: SCREEN_WIDTH * 0.04,
+    borderBottomLeftRadius: 25,
+    borderTopLeftRadius: 25,
+    //backgroundColor: 'green'
   },
   content_container: {
-    flex: 0.43,
+    flex: 0.5,
     margin: 5,
-    paddingTop: 5
-    //backgroundColor: 'green'
+    paddingVertical: 10,
+    // backgroundColor: 'green'
   },
   header_container: {
     flex: 0.22,
-    //backgroundColor: 'purple'
+    // backgroundColor: 'purple'
   },
   button_container: {
     flex: 0.2,
-    // backgroundColor: 'blue'
+    //  backgroundColor: 'blue'
   },
   button: {
     height: SCREEN_HEIGHT * 0.05,
@@ -129,7 +131,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#93eafe',
     borderTopLeftRadius: 25,
     borderBottomLeftRadius: 25,
-
   },
   title_text: {
     fontWeight: 'bold',
@@ -138,33 +139,40 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     paddingRight: 5
   },
-  vote_text: {
-    fontWeight: 'bold',
-    fontSize: 26,
-    color: '#666666'
-  },
   description_container: {
     flex: 0.43,
     //backgroundColor: 'yellow'
   },
   description_text: {
     fontStyle: 'italic',
-    fontSize: 11,
+    fontSize: 12,
     color: '#666666'
   },
   date_container: {
     flex: 0.3,
+    justifyContent: 'center',
     //backgroundColor: 'brown'
   },
   date_text: {
     fontSize: 11,
+    color: 'gray',
     fontWeight: 'bold'
   },
-  favorite_image: {
-    width: 25,
-    height: 25,
-    marginRight: 5
-  }
+  Avatar_box: {
+    width: 80,
+    height: 80,
+    margin: 5,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    //backgroundColor: 'pink',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.32,
+    shadowRadius: 5.46,
+    elevation: 1,
+    shadowColor: '#93eafe'
+  },
 })
 
 export default DoctorItem

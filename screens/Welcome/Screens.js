@@ -26,7 +26,7 @@ export default class Screens extends Component {
           </View>
           <View style={[styles.presentation_container, styles.fullScreen]}>
             <Text style={styles.header}>Bienvenue sur{'\n'}DoctoNeed</Text>
-            <Text style={styles.text}>Lorem ipsum dolor sit amet, consectetuer{'\n'}adipiscing elit, sed diam nonummy</Text>
+            <Text style={styles.text}>L'application qui met en relation le praticien avec son patient</Text>
           </View>
           <View style={[styles.otherComponents_container, styles.fullScreen]}>
             <Image source={require('../../assets/footerIconReduced.png')} style={styles.footerIcon} />
@@ -39,8 +39,8 @@ export default class Screens extends Component {
             <Image source={require('../../assets/logoIcon.png')} style={styles.logoIcon} />
           </View>
           <View style={[styles.presentation_container, styles.fullScreen]}>
-            <Text style={styles.header}>Lorem ipsum</Text>
-            <Text style={styles.text}>Lorem ipsum dolor sit amet, consectetuer{'\n'}adipiscing elit, sed diam nonummy</Text>
+            <Text style={styles.header}>Bienvenue sur{'\n'}DoctoNeed</Text>
+            <Text style={styles.text}>Prenez rendez-vous dans plusieurs jours ou en urgence</Text>
           </View>
           <View style={[styles.otherComponents_container, styles.fullScreen]}>
             <Image source={require('../../assets/footerIconReduced.png')} style={styles.footerIcon} />
@@ -53,8 +53,8 @@ export default class Screens extends Component {
             <Image source={require('../../assets/logoIcon.png')} style={styles.logoIcon} />
           </View>
           <View style={[styles.presentation_container, styles.fullScreen]}>
-            <Text style={styles.header}>Lorem ipsum</Text>
-            <Text style={styles.text}>Lorem ipsum dolor sit amet, consectetuer{'\n'}adipiscing elit, sed diam nonummy</Text>
+            <Text style={styles.header}>Bienvenue sur{'\n'}DoctoNeed</Text>
+            <Text style={styles.text}>Le praticien vous rappelle en visio-consultation</Text>
           </View>
           <View style={[styles.otherComponents_container, styles.fullScreen]}>
             <Image source={require('../../assets/footerIconReduced.png')} style={styles.footerIcon} />

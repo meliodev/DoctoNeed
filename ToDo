@@ -59,3 +59,14 @@ Booking:
 
 -Rendre indisponible les consultations dont le créneau horaire est déjà Passée 
 -(Les consultation déjà confirmé (payées) sont aussi rendues indisponibles)
+
+
+
+
+Appointment at 14:00 between Patient X & Doctor Y:
+
+1. at 13:45 : send scheduled notification (sonud: default) to remind Patient X and Doctor Y:
+Patient X: Votre rendez-vous a lieu dans 15 min, veuillez être disponible.
+Doctor Y: Vous avez un rendez-vous dans 15min, veuillez initier la consultation à temps.
+
+2. at 14:00 : 

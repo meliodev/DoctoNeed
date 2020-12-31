@@ -1,8 +1,5 @@
-/**
- * Button component
- * Renders a button and calls a function passed via onPress prop once tapped
- */
 
+//Patient dashboard filter
 import React, { Component, Children } from 'react';
 import { StyleSheet, Text, TouchableHighlight, View, Dimensions, SafeAreaView, Slider, Picker } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -18,61 +15,23 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 import LinearGradient from 'react-native-linear-gradient';
 import Modal from "react-native-modal";
+import Main from 'react-native-country-picker-modal';
 
 export default class RightSideMenu2 extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            doctorNames: [],
-            doctorSpecialities: []
-        }
-    } 
-
-    async  componentDidMount() {
-        console.log('componentdidMount')
-        await REFS.users.doc(firebase.auth().currentUser.uid).get().then(function (docUser) {
-            let doctorsId = docUser.data().myDoctors
-            //let doctorNames = []
-
-            for (let i = 0; i < doctorsId.length; i++) {
-                REFS.doctors.doc(doctorsId[i]).get().then(function (doc) {
-                    //  this.doctorNames.push(doc.data().nom)
-
-                    this.setState({
-                        ...this.state,
-                        doctorNames: this.state.doctorNames.concat(doc.data().nom + ' ' + doc.data().prenom)
-                    });
-                    this.setState({
-                        ...this.state,
-                        doctorSpecialities: this.state.doctorSpecialities.concat(doc.data().speciality)
-                    });
-
-                    // this.setState({ doctorNames: this.doctorNames}) 
-                }.bind(this))
-
-            }
-        }.bind(this))
-
-    }
 
     render({ onPress } = this.props) {
-        let TodayDay = new Date().getDate()
-        let TodayMonth = new Date().getMonth() + 1
-        let TodayYear = new Date().getFullYear()
-        let Today = TodayYear + '-' + TodayMonth + '-' + TodayDay
 
-
-        console.log(this.state.doctorNames)
-
-        //  console.log(this.state.doctorNames)
+        const { main, isSideMenuVisible, toggleSideMenu, clearAllFilters } = this.props
+        const { doctor, doctorNames } = this.props
+        const { speciality, doctorSpecialities } = this.props
+        const { dateFrom, dateTo } = this.props
 
         return (
             <Modal
-                isVisible={this.props.isSideMenuVisible}
+                isVisible={isSideMenuVisible}
                 coverScreen='true'
-                onBackdropPress={this.props.toggleSideMenu} // Android back press
-                onSwipeComplete={this.props.toggleSideMenu} // Swipe to discard
+                onBackdropPress={toggleSideMenu} // Android back press
+                onSwipeComplete={toggleSideMenu} // Swipe to discard
                 animationIn="slideInRight" // Has others, we want slide in from the left
                 animationOut="slideOutRight" // When discarding the drawer
                 swipeDirection="right" // Discard the drawer with swipe to left
@@ -83,72 +42,47 @@ export default class RightSideMenu2 extends Component {
             >
                 <SafeAreaView style={styles.safeAreaView}>
                     <View style={styles.header_container}>
-                        <Text style={styles.header_text}>Filter par</Text>
+                        <Text style={styles.header_text}>Filtrer par</Text>
                         <TouchableHighlight style={styles.filter_button}
-                            onPress={this.props.toggleSideMenu}>
+                            onPress={toggleSideMenu}>
                             <Icon name="filter" size={25} color="#93eafe" />
                         </TouchableHighlight>
                     </View>
 
                     <View style={styles.doctor_container}>
                         <Text style={styles.title_text}>Médecin</Text>
-                        <View style={{ borderRadius: 30,
-                                borderWidth: 0,
-                                borderColor: '#bdc3c7',
-                                overflow: 'hidden',
-                                shadowColor: "#000",
-                                shadowOffset: { width: 0, height: 5 },
-                                shadowOpacity: 0.32,
-                                shadowRadius: 5.46,
-                                elevation: 9,
-                                backgroundColor: 'white', 
-                                marginHorizontal: SCREEN_WIDTH * 0.02,
-                                 marginTop: 10,
-                                 paddingVertical: 0,
-                                  width: SCREEN_WIDTH * 0.55}}>
-                        <Picker selectedValue={this.props.doctor}
-                                onValueChange={(doctor) => this.props.onSelectDoctor(doctor)}>
-                            <Picker.Item value='' label='Choisissez votre médecin' />
-                            {this.state.doctorNames.map((doctorName, key) => {
-                                return (<Picker.Item key={key} value={doctorName} label={doctorName} />);
-                            })}
-                        </Picker>
-</View>
+                        <View style={styles.doctorField}>
+                            <Picker selectedValue={doctor}
+                                onValueChange={(doctor) => main.setState({ doctor })}>
+                                {/* onValueChange={(doctor) => onSelectDoctor(doctor, 'doctor', 'isDoctorSelected')}> */}
+                                <Picker.Item value='' label='Choisissez votre médecin' />
+                                {doctorNames.map((doctorName, key) => {
+                                    return (<Picker.Item key={key} value={doctorName} label={doctorName} />);
+                                })}
+                            </Picker>
+                        </View>
                     </View>
 
                     <View style={styles.speciality_container}>
                         <Text style={styles.title_text}>Spécialité</Text>
-                        <View style={{ borderRadius: 30,
-                                borderWidth: 0,
-                                borderColor: '#bdc3c7',
-                                overflow: 'hidden',
-                                shadowColor: "#000",
-                                shadowOffset: { width: 0, height: 5 },
-                                shadowOpacity: 0.32,
-                                shadowRadius: 5.46,
-                                elevation: 9,
-                                backgroundColor: 'white', 
-                                marginHorizontal: SCREEN_WIDTH * 0.02,
-                                 marginTop: 10,
-                                 paddingVertical: 0,
-                                  width: SCREEN_WIDTH * 0.55}}>
-                        <Picker selectedValue={this.props.speciality}
-                                onValueChange={(speciality) => this.props.onSelectSpeciality(speciality)}>
-                            <Picker.Item value='' label='Choisissez une spécialité' />
-                            {this.state.doctorSpecialities.map((doctorSpeciality, key) => {
-                                return (<Picker.Item key={key} value={doctorSpeciality} label={doctorSpeciality} />);
-                            })}
-                        </Picker>
+                        <View style={styles.doctorField}>
+                            <Picker selectedValue={speciality}
+                                onValueChange={(speciality) => main.setState({ speciality })}>
+                                <Picker.Item value='' label='Choisissez une spécialité' />
+                                {doctorSpecialities.map((doctorSpeciality, key) => {
+                                    return (<Picker.Item key={key} value={doctorSpeciality} label={doctorSpeciality} />);
+                                })}
+                            </Picker>
                         </View>
                     </View>
 
                     <View style={styles.date_container}>
                         <Text style={styles.title_text}>Date</Text>
-                        <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', marginBottom: SCREEN_HEIGHT * 0.02 }}>
+                        <View style={styles.dateField}>
                             <Text style={[styles.title_text, { color: 'gray' }]}>Du</Text>
                             <DatePicker
-                                style={{ width: SCREEN_WIDTH * 0.5, marginTop: SCREEN_WIDTH * 0.03, marginLeft: SCREEN_WIDTH * 0.03 }}
-                                date={this.props.dateFrom}
+                                style={styles.datePicker}
+                                date={dateFrom}
                                 mode="date"
                                 placeholder="Jour - Mois - Année"
                                 format="YYYY-MM-DD"
@@ -156,15 +90,15 @@ export default class RightSideMenu2 extends Component {
                                 //maxDate= {Today}
                                 confirmBtnText="Confirm"
                                 cancelBtnText="Cancel"
-                                onDateChange={(date) => this.props.onSelectDateFrom(date)}
+                                onDateChange={(dateFrom) => main.setState({ dateFrom })}
                             />
                         </View>
 
                         <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center' }}>
                             <Text style={[styles.title_text, { color: 'gray' }]}>Au</Text>
                             <DatePicker
-                                style={{ width: SCREEN_WIDTH * 0.5, marginTop: SCREEN_WIDTH * 0.03, marginLeft: SCREEN_WIDTH * 0.03 }}
-                                date={this.props.dateTo}
+                                style={styles.datePicker}
+                                date={dateTo}
                                 mode="date"
                                 placeholder="Jour - Mois - Année"
                                 format="YYYY-MM-DD"
@@ -172,19 +106,17 @@ export default class RightSideMenu2 extends Component {
                                 //maxDate={Today}
                                 confirmBtnText="Confirm"
                                 cancelBtnText="Cancel"
-                                onDateChange={(date) => this.props.onSelectDateTo(date)}
+                                onDateChange={(dateTo) => main.setState({ dateTo })}
                             />
                         </View>
-
                     </View>
 
                     <View style={styles.buttons_container}>
-                        <TouchableHighlight onPress={this.props.toggleSideMenu} style={styles.CancelButton}>
-                            <Text style={styles.buttonText1}>Annuler</Text>
+                        <TouchableHighlight onPress={clearAllFilters} style={styles.CancelButton}>
+                            <Text style={styles.buttonText1}>Réinitialiser</Text>
                         </TouchableHighlight>
 
-                        <TouchableHighlight
-                            onPress={this.props.toggleSideMenu}>
+                        <TouchableHighlight onPress={toggleSideMenu}>
                             <LinearGradient
                                 start={{ x: 0, y: 0 }}
                                 end={{ x: 1, y: 0 }}
@@ -194,8 +126,6 @@ export default class RightSideMenu2 extends Component {
                             </LinearGradient>
                         </TouchableHighlight>
                     </View>
-
-
                 </SafeAreaView>
             </Modal>
         );
@@ -203,6 +133,33 @@ export default class RightSideMenu2 extends Component {
 }
 
 const styles = StyleSheet.create({
+    doctorField: {
+        borderRadius: 30,
+        borderWidth: 0,
+        borderColor: '#bdc3c7',
+        overflow: 'hidden',
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.32,
+        shadowRadius: 5.46,
+        elevation: 3,
+        backgroundColor: 'white',
+        marginHorizontal: SCREEN_WIDTH * 0.02,
+        marginTop: 10,
+        paddingVertical: 0,
+        width: SCREEN_WIDTH * 0.55
+    },
+    dateField: {
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        marginBottom: SCREEN_HEIGHT * 0.02
+    },
+    datePicker: {
+        width: SCREEN_WIDTH * 0.5,
+        marginTop: SCREEN_WIDTH * 0.03,
+        marginLeft: SCREEN_WIDTH * 0.03
+    },
     pageLink_button: {
         height: SCREEN_HEIGHT * 0.045,
         width: SCREEN_WIDTH * 0.7,
@@ -260,7 +217,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         justifyContent: 'center',
         alignItems: 'center'
     },
@@ -310,7 +267,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 5,
+        elevation: 3,
         fontSize: 16,
         alignItems: 'center',
         justifyContent: 'space-between'
@@ -325,7 +282,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 5,
+        elevation: 3,
     },
     buttonText1: {
         fontSize: SCREEN_HEIGHT * 0.016,
@@ -368,7 +325,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 5,
+        elevation: 3,
         marginLeft: SCREEN_WIDTH * 0.03,
         //margin: 15,
         //marginTop: 15,
@@ -392,7 +349,7 @@ const pickerSelectStyles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         marginTop: SCREEN_WIDTH * 0.03,
         fontSize: 16,
     },
@@ -408,7 +365,7 @@ const pickerSelectStyles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         //margin: 15,
         marginTop: SCREEN_WIDTH * 0.03,
         //marginBottom: 15,
@@ -418,3 +375,18 @@ const pickerSelectStyles = StyleSheet.create({
         // alignItems: 'center'
     },
 });
+
+
+
+//  this.doctorNames.push(doc.data().nom)
+
+                        // let doctorNames = []
+                        // doctorNames.push(doc.data().nom + ' ' + doc.data().prenom)
+
+
+                        // this.setState({ doctorNames: doctorNames  })
+
+                        // this.doctorSpecialities = []
+                        // this.doctorSpecialities.push(doc.data().speciality)
+                        // console.log(this.doctorSpecialities)
+                        // this.setState({ doctorSpecialities: this.doctorSpecialities  }, () => console.log('spec: '+this.state.doctorSpecialities[0]+' '+this.state.doctorSpecialities[1]))

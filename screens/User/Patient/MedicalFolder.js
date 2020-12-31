@@ -1,31 +1,33 @@
 //Presentation.js
 //TEST
 
+//if isDoctor: READ-only
+//if isAdmin or isPatient: Free 
+
 import React from 'react'
 import LinearGradient from 'react-native-linear-gradient';
-import { View, Button, Text, Image, TouchableOpacity, TouchableHighlight, Dimensions, Slider, StyleSheet } from 'react-native'
+import { View, ScrollView, ActivityIndicator, TextInput, Picker, Text, Image, TouchableOpacity, TouchableHighlight, Dimensions, Slider, StyleSheet, SafeAreaView, ActionSheetIOS } from 'react-native'
 import Modal from 'react-native-modal';
+import RadioForm, { RadioButton, RadioButtonInput, RadioButtonLabel } from 'react-native-simple-radio-button';
 
-import { withNavigation } from 'react-navigation';
+import ImageViewing from "react-native-image-viewing";
 
 import * as REFS from '../../../DB/CollectionsRefs'
-import { signOutUser } from '../../../DB/CRUD'
+
+import { connect } from 'react-redux'
+
+import { toggleLeftSideMenu, navigateToMedicalFolder, navigateToScreen, signOutUserandToggle } from '../../../Navigation/Navigation_Functions'
 
 import Icon from 'react-native-vector-icons/FontAwesome';
 import firebase from 'react-native-firebase';
-import { ScrollView, TextInput } from 'react-native-gesture-handler';
-import { Picker, CheckBox, Content, Card, CardItem } from 'native-base';
-import DatePicker from 'react-native-datepicker'
-import { imagePickerOptions, options2, getFileLocalPath, createStorageReferenceToFile, uploadFileToFireBase } from '../../../util/MediaPickerFunctions'
-
-
-//import { RadioButton } from 'react-native-paper';
-//import RadioForm, {RadioButton, RadioButtonInput, RadioButtonLabel} from 'react-native-simple-radio-button';
+import { Card } from 'native-base';
+import { imagePickerOptions, getFileLocalPath } from '../../../util/MediaPickerFunctions'
 
 import ImagePicker from 'react-native-image-picker';
 
 import LeftSideMenu from '../../../components/LeftSideMenu'
 import Icon1 from 'react-native-vector-icons/FontAwesome';
+import { Alert } from 'react-native';
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -36,12 +38,15 @@ const HEADER_ICON_HEIGHT = Dimensions.get("window").width * ratioHeader; // This
 const ratioLogo = 420 / 244;
 const LOGO_WIDTH = SCREEN_WIDTH * 0.25 * ratioLogo;
 
+const line = <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
+const GS = ['A', 'B', 'O', 'AB']
+const Professions = ['Enseignant', 'Salarié', 'Commercant', 'Etudiant', 'Retraité', 'Sans profession', 'Fonctionnaire', 'Artisan']
+const Allergies = ['Antibiotique', 'Anti-inflammatoires', 'non-stéroidiens', 'Aspirine', 'Autre', 'Antibiotique', 'Anti-inflammatoires', 'non-stéroidiens', 'Aspirine', 'Autre']
+
 const options = {
   title: 'Select Image',
-
   takePhotoButtonTitle: 'Take photo with your camera',
   chooseFromLibraryButtonTitle: 'Choose photo from library',
-
   // customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
   storageOptions: {
     skipBackup: true,
@@ -49,1035 +54,841 @@ const options = {
   },
 };
 
-export default class MedicalFolder extends React.Component {
+class MedicalFolder extends React.Component {
   constructor(props) {
     super(props);
     this.renderForm = this.renderForm.bind(this);
+    this.rootingConfirm = this.rootingConfirm.bind(this);
+
+    this.user_id_param = this.props.navigation.getParam('user_id', '')  //received from admin or doctor navigation params
+    this.user_id = ''
+
+    this.reRender = this.props.navigation.addListener('willFocus', () => {
+      this.fetchFirebase();
+      this.forceUpdate();
+    });
 
 
     this.state = {
       currentUser: null,
+      //Metadata fields
       nom: "",
       prenom: "",
       dateNaissance: "",
       age: "",
+      Avatar: '',
+
+      //Data fields
       Sexe: "",
-      date: "1990-01-01",
-      ismodalSexVisible: false,
-      isLeftSideMenuVisible: false,
-      ismodalPoidsVisible: false,
-      Poids: 0,
-      ismodalTailleVisible: false,
+      Poids: 100,
       Taille: 0,
-      ismodalGSVisible: false,
+      Profession: '',
       GS: '',
-      ismodalNomPrenomVisible: false,
-      oui: false,
-      non: false,
+      Allergies: false,
+      ListAllergies: [],
+      Medication: '',
+      NumSS: '',
+      Mutuelle: '',
+      CarteVitale: '',
+
+      //Variables to toggle Modal
+      isName: false,
+      isSexe: false,
+      isPoids: false,
+      isTaille: false,
+      isProfession: false,
+      isGS: false,
+      isAllergies: false,
+      isMedication: false,
+      isNumSS: false,
+      isMutuelle: false,
+      isCarteVitale: false,
+
+      //Mutuelle & Carte Vitale refs
+      MutuelleSource: '',
+      MutuelleStorageRef: '',
+      CarteVitaleSource: '',
+      CarteVitaleStorageRef: '',
+      AvatarSource: '',
+      AvatarStorageRef: '',
+
+      isUploading1: false,
+      isUploading2: false,
+      isUploading3: false,
+
+      isModalImageVisible: false,
+      ismodalVisible: false,
+      ImageToShow: '',
+
+      isLeftSideMenuVisible: false
+
+      // //Antecedants
+      // isCardioDisease: false,
+      // isCardioDiseaseIndex: 0,
     }
-    //this.navigateToDispoConfig = this.navigateToDispoConfig.bind(this);
-    //Menu
-    this.signOutUserandToggle = this.signOutUserandToggle.bind(this);
-    this.navigateToAppointments = this.navigateToAppointments.bind(this);
-    this.navigateToMedicalFolder = this.navigateToMedicalFolder.bind(this);
-    this.navigateToSearch = this.navigateToSearch.bind(this);
+
 
   }
 
 
+  componentDidMount() {
+    //Initializing current user
+    if (this.props.role === 'isPatient')
+      this.user_id = firebase.auth().currentUser.uid
 
+    else if (this.props.role === 'isAdmin' || this.props.role === 'isDoctor') {
+      this.user_id = this.user_id_param
+    }
 
-  componentWillMount() {
-    const { currentUser } = firebase.auth()
-    this.setState({ currentUser })
-    firebase.firestore().collection("users").doc(currentUser.uid).get().then(doc => {
-      this.setState({ Sexe: doc.data().Sexe })
-      this.setState({ Poids: doc.data().Poids })
-      this.setState({ Taille: doc.data().Taille })
-      this.setState({ nom: doc.data().nom })
-      this.setState({ prenom: doc.data().prenom })
-      this.setState({ dateNaissance: doc.data().dateNaissance })
-      this.setState({ Profession: doc.data().Profession })
-      this.setState({ Sanguin: doc.data().Sanguin })
-      this.setState({ date: doc.data().date})
+    this.fetchFirebase()
+  }
+
+  // componentWillUnmount() {
+  //   this.reRender;
+  // }
+
+  fetchFirebase() {
+
+    REFS.users.doc(this.user_id).onSnapshot(doc => {
+      this.setState({
+        //Meta data
+        nom: doc.data().nom,
+        prenom: doc.data().prenom,
+        dateNaissance: doc.data().dateNaissance,
+        Avatar: doc.data().Avatar,
+
+        //Infos personnelles
+        Sexe: doc.data().Sexe,
+        Poids: doc.data().Poids,
+        Taille: doc.data().Taille,
+        Profession: doc.data().Profession,
+        GS: doc.data().GS,
+
+        //Allergies
+        Allergies: doc.data().isAllergies,
+        ListAllergies: doc.data().Allergies,
+        Medication: doc.data().Medication,
+
+        //Antécédants médicaux
+        isCardioDisease: doc.data().isCardioDisease,
+        isCardioDiseaseFamily: doc.data().isCardioDiseaseFamily,
+        isStress: doc.data().isStress,
+        isNoMoral: doc.data().isNoMoral,
+        isFollowUp: doc.data().isFollowUp,
+        isAsthme: doc.data().isAsthme,
+
+        //Infos sup
+        NumSS: doc.data().NumSS,
+        Mutuelle: doc.data().Mutuelle,
+        CarteVitale: doc.data().CarteVitale,
+
+      }, () => {
+        //Initialize radio fields
+        if (this.state.Sexe === 'Homme')
+          this.setState({ sexeIndex: 0 })
+        else
+          this.setState({ sexeIndex: 1 })
+
+        if (doc.data().isAllergies === 'Oui')
+          this.setState({ isAllergiesIndex: 0 })
+        else if (doc.data().isAllergies === 'Non')
+          this.setState({ isAllergiesIndex: 1 })
+
+        if (doc.data().isCardioDisease === 'Oui')
+          this.setState({ isCardioDiseaseIndex: 0 })
+        else if (doc.data().isCardioDisease === 'Non')
+          this.setState({ isCardioDiseaseIndex: 1 })
+
+        if (doc.data().isCardioDiseaseFamily === 'Oui')
+          this.setState({ isCardioDiseaseFamilyIndex: 0 })
+        else if (doc.data().isCardioDiseaseFamily === 'Non')
+          this.setState({ isCardioDiseaseFamilyIndex: 1 })
+
+        if (doc.data().isStress === 'Oui')
+          this.setState({ isStressIndex: 0 })
+        else if (doc.data().isStress === 'Non')
+          this.setState({ isStressIndex: 1 })
+
+        if (doc.data().isNoMoral === 'Oui')
+          this.setState({ isNoMoralIndex: 0 })
+        else if (doc.data().isNoMoral === 'Non')
+          this.setState({ isNoMoralIndex: 1 })
+
+        if (doc.data().isFollowUp === 'Oui')
+          this.setState({ isFollowUpIndex: 0 })
+        else if (doc.data().isFollowUp === 'Non')
+          this.setState({ isFollowUpIndex: 1 })
+
+        if (doc.data().isAsthme === 'Oui')
+          this.setState({ isAsthmeIndex: 0 })
+        else if (doc.data().isAsthme === 'Non')
+          this.setState({ isAsthmeIndex: 1 })
+      })
 
     })
-
   }
-
 
   signOutUser() {
     signOutUser();
   }
 
-  //Modal (data modification interfaces)
-  openModal() {
-    this.setState({ ismodalVisible: true })
-  }
+  toggleModal = (isField) => {
 
-  //Modals for edit
-  //Modal Sexe
-  openModalSex() {
-    this.setState({ ismodalSexVisible: true })
-  }
+    const update = {};
+    update[isField] = true
+    this.setState(update);
 
-  toggleModalSex = () => {
     this.setState({
       ismodalVisible: !this.state.ismodalVisible
     })
   }
 
-  closeModal = () => {
-    this.setState({
-      ismodalVisible: false,
-      isSexe: false,
-      isPoids: false,
-      isTaille: false
-    })
+  async onConfirm(isField, Field, value) {
+    this.toggleModal()
+    var usersUpdate = {};
+    usersUpdate[`${Field}`] = value;
+    await REFS.users.doc(this.user_id).update(usersUpdate)
+    this.setState({ isName: false, isSexe: false, isPoids: false, isTaille: false, isProfession: false, isGS: false, isCodeFinesse: false, isMedication: false })
+  }
+
+  rootingConfirm() {
+    const { isName, nom, prenom, isSexe, Sexe, isPoids, Poids, isTaille, Taille, isProfession, Profession, isGS, GS, isMedication, Medication, isNumSS, NumSS } = this.state
+
+    if (isName) {
+      this.onConfirm('isName', 'nom', nom)
+      this.onConfirm('', 'prenom', prenom)
+    }
+
+    else if (isSexe)
+      this.onConfirm('isSexe', 'Sexe', Sexe)
+
+    else if (isPoids)
+      this.onConfirm('isPoids', 'Poids', Poids)
+
+    else if (isTaille)
+      this.onConfirm('isTaille', 'Taille', Taille)
+
+    else if (isProfession)
+      this.onConfirm('isProfession', 'Profession', Profession)
+
+    else if (isGS)
+      this.onConfirm('isGS', 'GS', GS)
+
+    else if (isMedication)
+      this.onConfirm('isMedication', 'Medication', Medication)
+
+    else if (isNumSS)
+      this.onConfirm('isNumSS', 'NumSS', NumSS)
   }
 
   renderForm() {
-    if (this.state.isSexe)
-      return (
-        <View>
-          <View style={{ flex: 1, justifyContent: 'center' }}>
-            <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.1 }}>Quel est votre sexe</Text>
-            <View style={{ flexDirection: 'row', marginBottom: SCREEN_HEIGHT * 0.07, }}>
-              {this.state.sexe === 'female' || this.state.sexe === '' ? <TouchableOpacity onPress={() => {
-                if (this.state.sexe === 'female' || this.state.sexe === '') this.setState({ sexe: 'male' })
-              }}
-                style={modalStyles.item_inactive}><Text style={modalStyles.item_text}>Homme</Text></TouchableOpacity>
-                : <View style={modalStyles.item_active}><Text style={modalStyles.item_text}>Homme</Text></View>}
 
-              {this.state.sexe === 'male' || this.state.sexe === '' ? <TouchableOpacity onPress={() => {
-                if (this.state.sexe === 'male' || this.state.sexe === '') this.setState({ sexe: 'female' })
-              }}
-                style={modalStyles.item_inactive}><Text style={modalStyles.item_text}>Femme</Text></TouchableOpacity>
-                : <View style={modalStyles.item_active}><Text style={modalStyles.item_text}>Femme</Text></View>}
-            </View>
+    var radio_props1 = [
+      { label: 'Homme', value: 'Homme' },
+      { label: 'Femme', value: 'Femme' }
+    ];
+
+    let component = null
+
+    //Metadata (nom & prenom)
+    if (this.state.isName)
+      component = (
+        <View style={{ flex: 1, alignItems: 'center', paddingTop: SCREEN_HEIGHT * 0.1 }}>
+          <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.04 }}>Quels sont vos nom et prénom ?</Text>
+          <View style={[modalStyles.picker_container, { marginBottom: SCREEN_HEIGHT * 0.03 }]} >
+            <TextInput
+              onChangeText={(nom) => this.setState({ nom })}
+              placeholder={'Votre nom'}
+              value={this.state.nom}
+              style={{ width: SCREEN_WIDTH * 0.6, height: SCREEN_HEIGHT * 0.1 }} />
           </View>
 
-          <View style={{ flex: 1, justifyContent: 'center', position: 'absolute', bottom: 0 }}>
-            <View style={{ flexDirection: 'row', }}>
-              <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
-                <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModal()}>
-                <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
-              </TouchableOpacity>
-            </View>
+          <View style={modalStyles.picker_container} >
+            <TextInput
+              onChangeText={(prenom) => this.setState({ prenom })}
+              placeholder={'Votre prénom'}
+              value={this.state.prenom}
+              style={{ width: SCREEN_WIDTH * 0.6, height: SCREEN_HEIGHT * 0.1 }} />
           </View>
         </View>
-      );
+      )
+
+    //Infos personnelles
+    else if (this.state.isSexe)
+      component = (
+        <View style={{ flex: 1, alignItems: 'center', paddingTop: SCREEN_HEIGHT * 0.1 }}>
+          <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.05 }}>Quel est votre sexe ?</Text>
+          <RadioForm>
+            {
+              radio_props1.map((obj, i) => (
+                <RadioButton labelHorizontal={true} key={i} style={{ marginBottom: SCREEN_HEIGHT * 0.02 }}>
+                  {/*  You can set RadioButtonLabel before RadioButtonInput */}
+                  <RadioButtonInput
+                    obj={obj}
+                    index={i}
+                    isSelected={this.state.sexeIndex === i}
+                    onPress={(value) => { this.setState({ Sexe: value, sexeIndex: i }) }}
+                    buttonColor={'#93eafe'}
+                    selectedButtonColor={'#93eafe'}
+                  />
+                  <RadioButtonLabel
+                    obj={obj}
+                    index={i}
+                    onPress={(value) => this.setState({ Sexe: value, sexeIndex: i })}
+                    labelStyle={{ marginLeft: 10 }}
+                  />
+                </RadioButton>
+              ))
+            }
+          </RadioForm>
+        </View>
+      )
 
     else if (this.state.isPoids)
-      return (
-        <View>
-          <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT * 0.1 }}>
-            <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 28, marginBottom: SCREEN_HEIGHT * 0.04 }}>Quel est votre Poids?</Text>
-            <Text style={{ fontWeight: 'bold', fontSize: 30, textAlign: 'center', marginBottom: SCREEN_HEIGHT * 0.07 }}>{this.state.poids} Kg</Text>
-            <Slider
-              value={this.state.poids}
-              onValueChange={value => this.setState({ poids: value })}
-              minimumValue={0}
-              maximumValue={200}
-              step={1}
-              minimumTrackTintColor='#93eafe'
-              thumbTintColor='#93eafe'
-              style={{ width: SCREEN_WIDTH * 0.7 }}
-            />
-          </View>
-
-          <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center'}}>
-              <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
-                <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModal()}>
-                <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+      component = (
+        <View style={{ flex: 1, alignItems: 'center', paddingTop: SCREEN_HEIGHT * 0.1 }}>
+          <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.04 }}>Quel est votre Poids ?</Text>
+          <Text style={{ fontWeight: 'bold', fontSize: 30, textAlign: 'center', marginBottom: SCREEN_HEIGHT * 0.07 }}>{this.state.Poids} Kg</Text>
+          <Slider
+            value={this.state.Poids}
+            onValueChange={value => this.setState({ Poids: value })}
+            minimumValue={0}
+            maximumValue={200}
+            step={1}
+            minimumTrackTintColor='#93eafe'
+            thumbTintColor='#93eafe'
+            style={{ width: SCREEN_WIDTH * 0.7 }} />
         </View>
-      );
+      )
 
     else if (this.state.isTaille)
-      return (
-        <View>
-          <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT * 0.1 }}>
-            <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 28, marginBottom: SCREEN_HEIGHT * 0.04 }}>Quel est votre taille?</Text>
-            <Text style={{ fontWeight: 'bold', fontSize: 30, textAlign: 'center', marginBottom: SCREEN_HEIGHT * 0.07 }}>{this.state.taille} cm</Text>
-            <Slider
-              value={this.state.taille}
-              onValueChange={value => this.setState({ taille: value })}
-              minimumValue={0}
-              maximumValue={300}
-              step={1}
-              minimumTrackTintColor='#93eafe'
-              thumbTintColor='#93eafe'
-              style={{ width: SCREEN_WIDTH * 0.7 }}
-            />
-          </View>
+      component = (
+        <View style={{ flex: 1, alignItems: 'center', paddingTop: SCREEN_HEIGHT * 0.1 }}>
+          <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.04 }}>Quel est votre taille ?</Text>
+          <Text style={{ fontWeight: 'bold', fontSize: 30, textAlign: 'center', marginBottom: SCREEN_HEIGHT * 0.07 }}>{this.state.Taille} cm</Text>
+          <Slider
+            value={this.state.Taille}
+            onValueChange={value => this.setState({ Taille: value })}
+            minimumValue={0}
+            maximumValue={300}
+            step={1}
+            minimumTrackTintColor='#93eafe'
+            thumbTintColor='#93eafe'
+            style={{ width: SCREEN_WIDTH * 0.7 }}
+          />
+        </View>
+      )
 
-          <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
-            <View style={{ flexDirection: 'row', }}>
-              <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
-                <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModal()}>
-                <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
-              </TouchableOpacity>
-            </View>
+    else if (this.state.isProfession)
+      component = (
+        <View style={{ flex: 1, alignItems: 'center', paddingTop: SCREEN_HEIGHT * 0.1 }}>
+          <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.04 }}>Quelle est votre profession ?</Text>
+          <View style={modalStyles.picker_container} >
+            <Picker selectedValue={this.state.Profession} onValueChange={(value) => this.setState({ Profession: value })} style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.6, textAlign: "center" }}>
+              <Picker.Item value='' label='Selectionnez votre profession' />
+              {Professions.map((profession, key) => {
+                return (<Picker.Item key={key} value={profession} label={profession} />);
+              })}
+            </Picker>
           </View>
         </View>
-      );
+      )
+
+    else if (this.state.isMedication)
+      component = (
+        <View style={{ flex: 1, alignItems: 'center', paddingTop: SCREEN_HEIGHT * 0.1 }}>
+          <View>
+            <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 22, marginBottom: SCREEN_HEIGHT * 0.04 }}>Quels médicaments prenez-vous actuellement ?</Text>
+          </View>
+
+          <View>
+            <TextInput
+              onChangeText={(Medication) => this.setState({ Medication: Medication })}
+              placeholder={"Veuillez spécifier les médicaments que vous prenez en ce moment si c'est le cas. (exp: Zyrtec, Febrex, Doliprane, Panadol)"}
+              value={this.state.Medication}
+              style={{ height: 150, justifyContent: "flex-start", borderRadius: 20, elevation: 3, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.32, shadowRadius: 5.46, backgroundColor: '#fff', padding: 15, margin: 5, textAlignVertical: 'top' }}
+              numberOfLines={10}
+              multiline={true} />
+          </View>
+        </View>
+      )
+
+    else if (this.state.isGS)
+      component = (
+        <View style={{ flex: 1, alignItems: 'center', paddingTop: SCREEN_HEIGHT * 0.1 }}>
+          <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.04 }}>Quel est votre groupe sanguin ?</Text>
+          <View style={modalStyles.picker_container} >
+            <Picker selectedValue={this.state.GS} onValueChange={(value) => this.setState({ GS: value })} style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.6, textAlign: "center" }}>
+              <Picker.Item value='' label='Selectionnez votre groupe sanguin' />
+              {GS.map((GS, key) => {
+                return (<Picker.Item key={key} value={GS} label={GS} />);
+              })}
+            </Picker>
+          </View>
+        </View>
+      )
+
+    //Infos sup
+    else if (this.state.isNumSS)
+      component = (
+        <View style={{ flex: 1, alignItems: 'center', paddingTop: SCREEN_HEIGHT * 0.1 }}>
+          <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.04 }}>Quel est votre numéro de sécurité sociale ?</Text>
+          <View style={modalStyles.picker_container} >
+            <TextInput
+              onChangeText={(NumSS) => this.setState({ NumSS: NumSS })}
+              placeholder={'Votre numéro de sécurité sociale'}
+              style={{ width: SCREEN_WIDTH * 0.6, height: SCREEN_HEIGHT * 0.1 }}
+              value={this.state.NumSS} />
+          </View>
+        </View>
+      )
+
+    let buttonsComponent = (
+      <View style={modalStyles.modalButtons_container}>
+        <TouchableOpacity style={modalStyles.CancelButton} onPress={async () => {
+          this.toggleModal()
+          this.setState({ isName: false, isSexe: false, isPoids: false, isTaille: false, isProfession: false, isGS: false, isCodeFinesse: false, isMedication: false })
+        }}>
+          <Text style={modalStyles.buttonText1}>Annuler</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={this.rootingConfirm}>
+          <LinearGradient
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            colors={['#b3f3fd', '#84e2f4', '#5fe0fe']}
+            style={modalStyles.ConfirmButton}>
+            <Text style={modalStyles.buttonText2}>Confirmer</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    )
+
+    return (
+      <View style={{ flex: 1 }}>
+        {component}
+        {buttonsComponent}
+      </View>
+    )
   }
 
-  //Taille
-  openModalTaille() {
-    this.setState({ ismodalTailleVisible: true })
-  }
+  //Handle Images (Mutuelle, Carte Vitale)
+  uploadImage(field, source) {
 
-  toggleModalTaille = () => {
-    this.setState({
-      ismodalTailleVisible: !this.state.ismodalTailleVisible
-    })
-  }
-
-  closeModalTaille = () => {
-    this.setState({
-      ismodalTailleVisible: false
-    })
-  }
-
-  //NomPrenom
-
-  openModalNomPrenom() {
-    this.setState({ ismodalNomPrenomVisible: true })
-  }
-
-  toggleModalNomPrenom = () => {
-    this.setState({
-      ismodalNomPrenomVisible: !this.state.ismodalNomPrenomVisible
-    })
-  }
-
-  closeModalNomPrenom = () => {
-    this.setState({
-      ismodalNomPrenomVisible: false
-    })
-  }
-
-
-
-
-  //LeftSideMenu functions
-  toggleLeftSideMenu = () => {
-    this.month = ''
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible, appId: null });
-  }
-
-  navigateToMedicalFolder() {
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('MedicalFolder'));
-    //console.log(this.props)
-  }
-
-  navigateToAppointments() {
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('TabScreenPatient'));
-  }
-
-  navigateToSearch() {
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate('Search'));
-  }
-
-  signOutUserandToggle() {
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      this.signOutUser())
-  }
-
- 
-
-  PressOui(){
-    console.log(this.state.oui);
-    this.setState({oui:true, non:false})
-  }
-  PressNon(){
-    console.log(this.state.non);
-    this.setState({oui:false, non:true})
-
-  }
-
-  myImagefunction_vital=()=>{
-
-    ImagePicker.showImagePicker(options, (response) => {
-      console.log('Response = ', response);
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      }
-      else if (response.error) {
-        console.log('Image Picker Error: ', response.error);
-      }
-      else {
-        let source = { uri: response.uri };
-        // You can also display the image using data:
-        // let source = { uri: 'data:image/jpeg;base64,' + response.data };
-        this.setState({
-          avatarSource1: source,
-          pic:response.data
-        });
-      }
-    });
-    console.log('clicked');
-  }
-
-  myImagefunction_mutuel=()=>{
-
-    ImagePicker.showImagePicker(options, (response) => {
-      console.log('Response = ', response);
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      }
-      else if (response.error) {
-        console.log('Image Picker Error: ', response.error);
-      }
-      else {
-        let source = { uri: response.uri };
-        // You can also display the image using data:
-        // let source = { uri: 'data:image/jpeg;base64,' + response.data };
-        this.setState({
-          avatarSource2: source,
-          pic:response.data
-        });
-      }
-    });
-    console.log('clicked');
-  }
-  getImages = () => {
-    ImagePicker.showImagePicker(imagePickerOptions, imagePickerResponse => {
-      const { didCancel, error } = imagePickerResponse;
-      if (didCancel) { console.log('Post canceled'); }
-      else if (error) { alert('An error occurred: ', error); }
-      else {
-        this.fileSrce = getFileLocalPath((imagePickerResponse))
-        this.stgRef = createStorageReferenceToFile(imagePickerResponse)
-        this.ImageObjects = this.state.ImageObjects
-        this.ImageObjects.push({ fileSource: this.fileSrce, storageRef: this.stgRef })
-        this.setState({
-          ImageURI: imagePickerResponse.uri,
-          ImageObjects: this.ImageObjects
-        }, console.log(this.state.ImageObjects[0].storageRef))
-      }
-      
+    if (field === 'Mutuelle') {
+      this.setState({ isUploading1: true })
+      const MutuelleStorageRef = firebase.storage().ref('/Users/' + this.user_id + '/Dossier médical/Documents/Mutuelle')
+      Promise.resolve(MutuelleStorageRef.putFile(source)).then((URLObject) => {
+        REFS.users.doc(this.user_id).update({ Mutuelle: URLObject.downloadURL })
+          .finally(this.setState({ isUploading1: false }))
+      })
     }
-    );
-  };
-  myImagefunction=()=>{
 
-    ImagePicker.showImagePicker(options, (response) => {
-      console.log('Response = ', response);
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      }
-      else if (response.error) {
-        console.log('Image Picker Error: ', response.error);
-      }
+    else if (field === 'Carte Vitale') {
+      this.setState({ isUploading2: true })
+      const CarteVitaleStorageRef = firebase.storage().ref('/Users/' + this.user_id + '/Dossier médical/DocumentsCarte-Vitale')
+      Promise.resolve(CarteVitaleStorageRef.putFile(source)).then((URLObject) => {
+        REFS.users.doc(this.user_id).update({ CarteVitale: URLObject.downloadURL })
+          .finally(err => this.setState({ isUploading2: false }))
+      })
+    }
+
+    else if (field === 'Avatar') {
+      this.setState({ isUploading3: true })
+      const AvatarStorageRef = firebase.storage().ref('/Users/' + this.user_id + '/Profile/Avatar')
+      Promise.resolve(AvatarStorageRef.putFile(source)).then((URLObject) => {
+        REFS.users.doc(this.user_id).update({ Avatar: URLObject.downloadURL })
+          .finally(err => this.setState({ isUploading3: false }))
+      })
+    }
+
+  }
+
+  handleImage = async (field) => {
+    await ImagePicker.showImagePicker(imagePickerOptions, imagePickerResponse => {
+      const { didCancel, error } = imagePickerResponse;
+      if (didCancel) console.log('Post canceled')
+      else if (error) Alert.alert('Erreur, veuillez réessayer...')
+
       else {
-        let source = { uri: response.uri };
-        // You can also display the image using data:
-        // let source = { uri: 'data:image/jpeg;base64,' + response.data };
-        this.setState({
-          avatarSourceProfile: source,
-          pic:response.data
-        });
+        if (field === 'Mutuelle') {
+          const MutuelleSource = getFileLocalPath((imagePickerResponse))
+          this.uploadImage(field, MutuelleSource)
+          //this.setState({ MutuelleSource })
+        }
+
+        else if (field === 'Carte Vitale') {
+          const CarteVitaleSource = getFileLocalPath((imagePickerResponse))
+          this.uploadImage(field, CarteVitaleSource)
+          // this.setState({ CarteVitaleSource })
+        }
+
+        else if (field === 'Avatar') {
+          const AvatarSource = getFileLocalPath((imagePickerResponse))
+          this.uploadImage(field, AvatarSource)
+          // this.setState({ AvatarSource })
+        }
+
       }
-    });
-    console.log('clicked');
+    })
+  }
+
+  toggleModalImage(link) {
+    this.setState({ isModalImageVisible: !this.state.isModalImageVisible, ImageToShow: link })
+  }
+
+  onPress1(Field) {
+    if (this.props.role === 'isPatient' || this.props.role === 'isAdmin')
+      this.toggleModal(Field)
+  }
+
+  onPress2() {
+    if (this.props.role === 'isPatient' || this.props.role === 'isAdmin')
+      this.props.navigation.navigate('Allergies', { user_id: this.user_id, isAllergies: this.state.Allergies, isAllergiesIndex: this.state.isAllergiesIndex, ListAllergies: this.state.ListAllergies })
+  }
+
+  onPress3() {
+    if (this.props.role === 'isPatient' || this.props.role === 'isAdmin')
+      this.props.navigation.navigate('Antecedants', {
+        user_id: this.user_id,
+        isCardioDisease: this.state.isCardioDisease, isCardioDiseaseIndex: this.state.isCardioDiseaseIndex,
+        isCardioDiseaseFamily: this.state.isCardioDiseaseFamily, isCardioDiseaseFamilyIndex: this.state.isCardioDiseaseFamilyIndex,
+        isStress: this.state.isStress, isStressIndex: this.state.isStressIndex,
+        isNoMoral: this.state.isNoMoral, isNoMoralIndex: this.state.isNoMoralIndex,
+        isFollowUp: this.state.isFollowUp, isFollowUpIndex: this.state.isFollowUpIndex,
+        isAsthme: this.state.isAsthme, isAsthmeIndex: this.state.isAsthmeIndex,
+      })
   }
 
   render() {
-    // const currentUser= firebase.auth().currentUser.
-    console.log(this.state.Sexe)
-    console.log(this.state.nom)
-    console.log(this.state.prenom)
-    console.log(this.state.dateNaissance)
+
+    let images = [
+      {
+        uri: this.state.ImageToShow,
+      }
+    ]
 
     return (
       <View style={styles.container}>
 
-<View style={styles.header_container}><Image source={require('../../../assets/header-image.png')} style={styles.headerIcon} /></View>
+        <View style={styles.header_container}><Image source={require('../../../assets/header-image.png')} style={styles.headerIcon} /></View>
 
-<LeftSideMenu
-          isSideMenuVisible={this.state.isLeftSideMenuVisible}
-          toggleSideMenu={this.toggleLeftSideMenu}
-          nom={this.state.nom}
-          prenom={this.state.prenom}
-          email={this.state.email}
-          navigateToMedicalFolder={this.navigateToMedicalFolder}
-          navigateToAppointments={this.navigateToAppointments}
-          navigateToSearch={this.navigateToSearch}
-          signOutUser={this.signOutUserandToggle} 
-          navigate={this.props.navigation} />
+        <View style={{ height: SCREEN_HEIGHT * 0.01, flexDirection: 'row', paddingTop: SCREEN_HEIGHT * 0.00, justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', bottom: 80, }}>
+          <LeftSideMenu />
+        </View>
 
-
-
-<View style={{ height: SCREEN_HEIGHT * 0.01, flexDirection: 'row', paddingTop: SCREEN_HEIGHT * 0.00, justifyContent: 'space-between', alignItems: 'flex-start',position:'relative', bottom:80,
-         }}>
-
-
-          <TouchableHighlight 
-          style={{ 
-                  width: SCREEN_WIDTH * 0.12,
-                  height: SCREEN_WIDTH * 0.12,
+        {/* user metadata */}
+        <View style={styles.metadata_container}>
+          <TouchableOpacity onPress={() => {
+            if (this.props.role === 'isPatient' || this.props.role === 'isAdmin')
+              this.handleImage('Avatar')
+          }}>
+            <View style={styles.Avatar_box}>
+              {this.state.isUploading3
+                ?
+                <View style={{ alignItems: 'flex-start' }}>
+                  <ActivityIndicator size='small' />
+                </View>
+                :
+                <Image style={{
+                  width: SCREEN_WIDTH * 0.11,
+                  height: SCREEN_WIDTH * 0.11,
                   borderRadius: 25,
-                  backgroundColor: '#ffffff',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  position: 'relative',
-                  left: SCREEN_WIDTH * 0.05
                 }}
-
-            onPress={this.toggleLeftSideMenu}>
-            <Icon1 name="bars" size={25} color="#93eafe" />
-          </TouchableHighlight>
-
-
-         </View>
-         
-         
-         
-         <View style={styles.metadata_container}>
-              <TouchableOpacity onPress={this.myImagefunction}>
-
-          <View style={styles.Avatar_box}>
-          {this.avatarSourceProfile != null  ?
-    
-    <Icon name="user"
-    size={SCREEN_WIDTH * 0.05}
-    color="#93eafe" />
-    : 
-    
-    <Image source={this.state.avatarSourceProfile} style={{width:30,height:30,margin:0}}/>
-
-        }
-          </View>
-
+                  source={{ uri: this.state.Avatar }} />
+              }
+            </View>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => this.openModalNomPrenom()}>
-
-          <View style={styles.metadata_box}>
-            <Text style={styles.metadata_text1}>{this.state.nom} {this.state.prenom}</Text>
-            <Text style={styles.metadata_text2}>{this.state.dateNaissance} (25 ans)</Text>
-          </View>
-        </TouchableOpacity>
-
-        <Modal isVisible={this.state.ismodalNomPrenomVisible}
-              onBackdropPress={() => this.closeModalNomPrenom()}
-              animationIn="slideInLeft"
-              animationOut="slideOutLeft"
-              style={{ flex: 1, backgroundColor: 'white', maxHeight: SCREEN_HEIGHT / 2, marginTop: SCREEN_HEIGHT * 0.25, alignItems: 'center', }}>
-
-              <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT * 0.1 }}>
-             
-              </View>
-
-              <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
-                <View style={{ flexDirection: 'row', }}>
-                  <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
-                    <Text style={{ color: 'white', textAlign: 'center', padding: 10 }} onPress={() => {
-                             REFS.users.doc(firebase.auth().currentUser.uid).update({'Taille': this.state.Taille})
-                             .then(()=> this.closeModalTaille())
-                             .catch((err)=> console.error(err)) }}>Confirmer</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModalNomPrenom()}>
-                    <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-
-            </Modal>
-
+          <TouchableOpacity onPress={() => this.onPress1('isName')}>
+            <View style={styles.metadata_box}>
+              <Text style={styles.metadata_text1}>{this.state.prenom} {this.state.nom}</Text>
+              <Text style={styles.metadata_text2}>{this.state.dateNaissance}</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.infos_container}>
           <View style={styles.info_container}>
-            <View
-              style={styles.edit_button}
-              onPress={() => displayDetailForDoctor(doctor.uid)}>
-              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' }}>
-                <Text style={{ color: 'black', fontWeight: 'bold' }}>Informations personnelles</Text>
-                <Icon name="pencil"
-                  size={SCREEN_WIDTH * 0.04}
-                  color="#93eafe" />
-              </View>
-            </View>
 
-            <TouchableOpacity style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}
-              onPress={() => this.openModalSex()}>
-              <Text style={styles.title_text}>Sexe</Text>
-              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>{this.state.Sexe}</Text>
-            </TouchableOpacity>
-
-            <Modal isVisible={this.state.ismodalSexVisible}
-              onBackdropPress={() => this.closeModalSex()}
+            <Modal
+              isVisible={this.state.ismodalVisible}
               animationIn="slideInLeft"
               animationOut="slideOutLeft"
-              onSwipeComplete={() => this.closeModal()}
-              swipeDirection="left"
-              style={{ backgroundColor: 'white', maxHeight: SCREEN_HEIGHT / 2, marginTop: SCREEN_HEIGHT * 0.25, alignItems: 'center', }}>
+              style={{ flex: 1, backgroundColor: '#fff', }}>
 
-              <View style={{ flex: 1, justifyContent: 'center' }}>
-                <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.1 }}>Votre Sexe</Text>
-                <View style={{ flexDirection: 'row', marginBottom: SCREEN_HEIGHT * 0.07, }}>
-                  {this.state.Sexe === 'Femme' || this.state.Sexe === '' ? <TouchableOpacity onPress={() => {
-                    if (this.state.Sexe === 'Femme' || this.state.Sexe === '') this.setState({ Sexe: 'Homme' })
-                  }}
-                    style={modalStyles.item_inactive}><Text style={modalStyles.item_text}>Homme</Text></TouchableOpacity>
-                    : <View style={modalStyles.item_active}><Text style={modalStyles.item_text}>Homme</Text></View>}
-
-                  {this.state.Sexe === 'Homme' || this.state.Sexe === '' ? <TouchableOpacity onPress={() => {
-                    if (this.state.Sexe === 'Homme' || this.state.Sexe === '') this.setState({ Sexe: 'Femme' })
-                  }}
-                    style={modalStyles.item_inactive}><Text style={modalStyles.item_text}>Femme</Text></TouchableOpacity>
-                    : <View style={modalStyles.item_active}><Text style={modalStyles.item_text}>Femme</Text></View>}
-                </View>
-              </View>
-
-              <View style={{ flex: 1, justifyContent: 'center', position: 'absolute', bottom: 0 }}>
-                <View style={{ flexDirection: 'row', }}>
-                  <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }} onPress={() => {
-                             REFS.users.doc(firebase.auth().currentUser.uid).update({'Sexe': this.state.Sexe})
-                             .then(()=> this.closeModal())
-                             .catch((err)=> console.error(err)) }}>
-                    <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModalSex()}>
-                    <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Modal>
-
-            <TouchableOpacity style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}
-              onPress={() => { this.setState({ isSexe: true }, this.openModal()) }}>
-              <Text style={styles.title_text}>Sexe</Text>
-              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>F/H</Text>
-            </TouchableOpacity>
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-
-            <TouchableOpacity style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}
-              onPress={() => { this.setState({ isPoids: true }, this.openModal()) }}>
-              <Text style={styles.title_text}>Poids</Text>
-              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>{this.state.Poids} kgs</Text>
-            </TouchableOpacity>
-
-            <Modal isVisible={this.state.ismodalPoidsVisible}
-              onBackdropPress={() => this.closeModalPoids()}
-              animationIn="slideInLeft"
-              animationOut="slideOutLeft"
-              style={{ flex: 1, backgroundColor: 'white', maxHeight: SCREEN_HEIGHT / 2, marginTop: SCREEN_HEIGHT * 0.25, alignItems: 'center', }}>
-
-              <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT * 0.1 }}>
-                <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 28, marginBottom: SCREEN_HEIGHT * 0.04 }}>Votre Poids</Text>
-                <Text style={{ fontWeight: 'bold', fontSize: 40, textAlign: 'center', marginBottom: SCREEN_HEIGHT * 0.07 }}>{this.state.Poids} Kg</Text>
-                <Slider
-                  value={this.state.Poids}
-                  onValueChange={value => this.setState({ Poids: value })}
-                  minimumValue={0}
-                  maximumValue={400}
-                  step={1}
-                  minimumTrackTintColor='#93eafe'
-                  thumbTintColor='#93eafe'
-                  style={{ width: SCREEN_WIDTH * 0.7 }}
-                />
-              </View>
-
-              <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
-                <View style={{ flexDirection: 'row', }}>
-                  <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}  onPress={() => {
-                             REFS.users.doc(firebase.auth().currentUser.uid).update({'Poids': this.state.Poids})
-                             .then(()=> this.closeModalPoids())
-                             .catch((err)=> console.error(err)) }}>
-                    <Text style={{ color: 'white', textAlign: 'center', padding: 10 }}>Confirmer</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModalPoids()}>
-                    <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
+              {this.renderForm()}
 
             </Modal>
 
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
+            {/*Info personnelles*/}
+            <Card style={{ padding: SCREEN_HEIGHT * 0.02, marginBottom: SCREEN_HEIGHT * 0.03 }}>
 
-
-
-            <TouchableOpacity style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}
-              onPress={() => this.openModalTaille()}>
-              <Text style={styles.title_text}>Taille</Text>
-              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>{this.state.Taille} cm</Text>
-            </TouchableOpacity>
-
-            <Modal isVisible={this.state.ismodalTailleVisible}
-              onBackdropPress={() => this.closeModalTaille()}
-              animationIn="slideInLeft"
-              animationOut="slideOutLeft"
-              style={{ flex: 1, backgroundColor: 'white', maxHeight: SCREEN_HEIGHT / 2, marginTop: SCREEN_HEIGHT * 0.25, alignItems: 'center', }}>
-
-              <View style={{ flex: 1, paddingTop: SCREEN_HEIGHT * 0.1 }}>
-                <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 28, marginBottom: SCREEN_HEIGHT * 0.04 }}>Votre Taille</Text>
-                <Text style={{ fontWeight: 'bold', fontSize: 40, textAlign: 'center', marginBottom: SCREEN_HEIGHT * 0.07 }}>{this.state.Taille} cm</Text>
-                <Slider
-                  value={this.state.Taille}
-                  onValueChange={value => this.setState({ Taille: value })}
-                  minimumValue={0}
-                  maximumValue={300}
-                  step={1}
-                  minimumTrackTintColor='#93eafe'
-                  thumbTintColor='#93eafe'
-                  style={{ width: SCREEN_WIDTH * 0.7 }}
-                />
+              <View style={styles.edit_button}>
+                <View style={styles.edit_button_inside}>
+                  <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>Informations personnelles</Text>
+                </View>
               </View>
 
-              <View style={{ justifyContent: 'center', position: 'absolute', bottom: 0 }}>
-                <View style={{ flexDirection: 'row', }}>
-                  <TouchableOpacity style={{ backgroundColor: '#93eafe', width: '50%' }}>
-                    <Text style={{ color: 'white', textAlign: 'center', padding: 10 }} onPress={() => {
-                             REFS.users.doc(firebase.auth().currentUser.uid).update({'Taille': this.state.Taille})
-                             .then(()=> this.closeModalTaille())
-                             .catch((err)=> console.error(err)) }}>Confirmer</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={{ borderColor: 'light gray', borderWidth: 0.45, width: '50%' }} onPress={() => this.closeModalTaille()}>
-                    <Text style={{ color: 'black', textAlign: 'center', padding: 10 }}>Annuler</Text>
-                  </TouchableOpacity>
+              {/* sexe */}
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.onPress1('isSexe')}>
+                <Text style={fieldStyle.title_text}>Sexe</Text>
+                <Text style={fieldStyle.value}>{this.state.Sexe}</Text>
+              </TouchableOpacity>
+
+              {line}
+
+              {/* poids */}
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.onPress1('isPoids')}>
+                <Text style={fieldStyle.title_text}>Poids</Text>
+                <Text style={fieldStyle.value}>{this.state.Poids} kgs</Text>
+              </TouchableOpacity>
+
+              {line}
+
+              {/* taille */}
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.onPress1('isTaille')}>
+                <Text style={fieldStyle.title_text}>Taille</Text>
+                <Text style={fieldStyle.value}>{this.state.Taille} cm</Text>
+              </TouchableOpacity>
+
+              {line}
+
+              {/* date naissance */}
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => {
+                  if (this.props.role === 'isPatient' || this.props.role === 'isAdmin')
+                    this.props.navigation.navigate('DateNaissance', { user_id: this.user_id, dateNaissance: this.state.dateNaissance })
+                }}>
+                <Text style={fieldStyle.title_text}>Date de naissance</Text>
+                {this.props.role === 'isPatient' || this.props.role === 'isAdmin' ?
+                  <Text style={fieldStyle.value}>{this.state.dateNaissance}</Text>
+                  :
+                  <Text style={fieldStyle.value}>{this.state.dateNaissance}</Text>
+                }
+              </TouchableOpacity>
+
+              {line}
+
+              {/* profession */}
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.onPress1('isProfession')}>
+                <Text style={fieldStyle.title_text}>Profession</Text>
+                <Text style={fieldStyle.value}>{this.state.Profession}</Text>
+              </TouchableOpacity>
+
+              {line}
+
+              {/* GS */}
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.onPress1('isGS')}>
+                <Text style={fieldStyle.title_text}>Groupe sanguin</Text>
+                <Text style={fieldStyle.value}>{this.state.GS}</Text>
+              </TouchableOpacity>
+            </Card>
+
+            {/*Allergies*/}
+            <Card style={{ padding: SCREEN_HEIGHT * 0.02, marginBottom: SCREEN_HEIGHT * 0.03 }}>
+              <View style={styles.edit_button}>
+                <View style={styles.edit_button_inside}>
+                  <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>Allergies</Text>
+                </View>
+              </View>
+
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.onPress2()}>
+                <Text style={fieldStyle.title_text}>Avez-vous déja eu des allergies médicamenteuses ?</Text>
+                <Text style={fieldStyle.value}>{this.state.Allergies}</Text>
+              </TouchableOpacity>
+
+              {line}
+
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.onPress2()}>
+                <Text style={fieldStyle.title_text}>A quels types d'allergies médicamenteuses êtes-vous sujet ?</Text>
+                <View>
+                  <Text style={{ flex: 1, flexWrap: 'wrap' }}>
+                    {this.state.ListAllergies.map((allergy, key) => {
+                      if (key !== this.state.ListAllergies.length - 1)
+                        return (<Text style={fieldStyle.value}>{allergy}, </Text>)
+                      else
+                        return (<Text style={fieldStyle.value}>{allergy}</Text>)
+                    })}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </Card>
+
+            {/*Antécédants médicaux*/}
+            <Card style={{ padding: SCREEN_HEIGHT * 0.02, marginBottom: SCREEN_HEIGHT * 0.03 }}>
+              <View style={styles.edit_button}>
+                <View style={styles.edit_button_inside}>
+                  <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>Antécédants médicaux</Text>
+                </View>
+              </View>
+
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.onPress3()}>
+                <Text style={fieldStyle.title_text}>Etes-vous sujet à une ou plusieurs maladies cardiovasculaires (infarctus, AVC) ?</Text>
+                <Text style={fieldStyle.value}>{this.state.isCardioDisease}</Text>
+              </TouchableOpacity>
+
+              {line}
+
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.onPress3()}>
+                <Text style={fieldStyle.title_text}>Avez-vous des Antécédents cardiovasculaires familiaux (infarctus, AVC) ?</Text>
+                <Text style={fieldStyle.value}>{this.state.isCardioDiseaseFamily}</Text>
+              </TouchableOpacity>
+
+              {line}
+
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.onPress3()}>
+                <Text style={fieldStyle.title_text}>Vous sentez-vous stressé(e) ?</Text>
+                <Text style={fieldStyle.value}>{this.state.isStress}</Text>
+              </TouchableOpacity>
+
+              {line}
+
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.onPress3()}>
+                <Text style={fieldStyle.title_text}>Avez-vous le moral ?</Text>
+                <Text style={fieldStyle.value}>{this.state.isNoMoral}</Text>
+              </TouchableOpacity>
+
+              {line}
+
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.onPress3()}>
+                <Text style={fieldStyle.title_text}>Avez-vous accès à un suivi dentaire régulier ?</Text>
+                <Text style={fieldStyle.value}>{this.state.isFollowUp}</Text>
+              </TouchableOpacity>
+
+              {line}
+
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.onPress3()}>
+                <Text style={fieldStyle.title_text}>Etes-vous asthmatique ?</Text>
+                <Text style={fieldStyle.value}>{this.state.isAsthme}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.onPress1('isMedication')}>
+                <Text style={fieldStyle.title_text}>Quels médicaments prenez-vous actuellement ?</Text>
+                <View>
+                  <Text style={{ flex: 1, flexWrap: 'wrap' }}>
+                    {this.state.Medication}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </Card>
+
+            {/*Infos sup*/}
+            <Card style={{ padding: SCREEN_HEIGHT * 0.02, marginBottom: SCREEN_HEIGHT * 0.03 }}>
+              <View style={styles.edit_button}>
+                <View style={styles.edit_button_inside}>
+                  <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>Informations supplémentaires</Text>
                 </View>
               </View>
 
 
-            </Modal>
-
-
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-            <View style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Date de naissance</Text>
-              {// <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>01.01.1990</Text> 
-              }
-              <DatePicker
-                style={{ width: 200, borderWidth: 0 }}
-                date={this.state.dateNaissance}
-                mode="date"
-                placeholder={this.state.dateNaissance}
-                format="DD-MM-YYYY"
-                minDate="01-01-1990"
-                maxDate="01-01-2030"
-                confirmBtnText="Confirm"
-                cancelBtnText="Cancel"
-                customStyles={{
-                  dateIcon: {
-                    position: 'absolute',
-                    left: 0,
-                    top: 4,
-                    marginLeft: 0
-                  },
-                  dateInput: {
-                    marginLeft: 36
-                  }}}
-                
-                onDateChange={(dateNaissance) => {
-                  REFS.users.doc(firebase.auth().currentUser.uid).update({'dateNaissance': this.state.dateNaissance})
-                  .then(()=> {this.setState({dateNaissance : dateNaissance})})
-                  .catch((err)=> console.error(err)) }}
-              />
-            </View>
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-            <View style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Profession</Text>
-              <View style={{
-                borderRadius: 30,
-                borderWidth: 0,
-                borderColor: '#bdc3c7',
-                overflow: 'hidden',
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 5 },
-                shadowOpacity: 0.32,
-                shadowRadius: 5.46,
-                elevation: 9,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: 'white',
-                marginHorizontal: SCREEN_WIDTH * 0.02, marginBottom: 10, paddingVertical: 0, width: SCREEN_WIDTH * 0.35
-              }}>
-
-                <Picker mode="dropdown" selectedValue={this.state.Profession}  style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.35, textAlign: "left" }} 
-                onValueChange={(Profession) => {
-                  REFS.users.doc(firebase.auth().currentUser.uid).update({'Profession': this.state.Profession})
-                  .then(()=> {this.setState({Profession : Profession})} ).then(()=> {console.log('updated : ' + this.state.Profession)})
-                  .catch((err)=> console.error(err)) }}
-                >
-                  <Picker.Item value='Enseignant' label='Enseignant' />
-                  <Picker.Item value='Salarié' label='Salarié' />
-                  <Picker.Item value='Commercant' label='Commercant' />
-                  <Picker.Item value='Etudiant' label='Etudiant' />
-                  <Picker.Item value='Retraité' label='Retraité' />
-                  <Picker.Item value='Sans_Profession' label='Sans Profession' />
-                  <Picker.Item value='Fonctionnaire' label='Fonctionnaire' />
-                  <Picker.Item value='Artisan' label='Artisan' />
-                </Picker></View>
-            </View>
-
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-            <View style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Groupe sanguin</Text>
-
-              <View style={{
-                borderRadius: 30,
-                borderWidth: 0,
-                borderColor: '#bdc3c7',
-                overflow: 'hidden',
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 5 },
-                shadowOpacity: 0.32,
-                shadowRadius: 5.46,
-                elevation: 9,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: 'white',
-                marginHorizontal: SCREEN_WIDTH * 0.02, marginBottom: 10, paddingVertical: 0, width: SCREEN_WIDTH * 0.35
-              }}>
-
-                <Picker mode="dropdown" selectedValue={this.state.Sanguin} onValueChange={this.updateDays} style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.35, textAlign: "left" }}>
-                  <Picker.Item value='O' label='O' />
-                  <Picker.Item value='A' label='A' />
-                  <Picker.Item value='B' label='B' />
-                  <Picker.Item value='AB' label='AB' />
-
-                </Picker></View>
-
-            </View>
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth, marginBottom: SCREEN_HEIGHT * 0.04 }} />
-
-{/* This Section need a function that update the database valus*/}
-
-            <View
-              style={styles.edit_button}
-              onPress={() => displayDetailForDoctor(doctor.uid)}>
-              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' }}>
-                <Text style={{ color: 'black', fontWeight: 'bold' }}>Allergies</Text>
-                <Icon name="pencil"
-                  size={SCREEN_WIDTH * 0.04}
-                  color="#93eafe" />
-              </View>
-            </View>
-
-            <Content>
-              <Card>
-
-                <CardItem header>
-                <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}></View>
-              <Text style={styles.title_text}>Avez-vous déja eu des allergies médicamenteuses ?</Text>
-                </CardItem>
-                <CardItem body>
-                <CheckBox checked={this.state.oui} onPress={() => this.PressOui()} style={{marginRight:20}}/><Text>Oui</Text>
-
-                <CheckBox checked={this.state.non} onPress={() => this.PressNon()} style={{marginRight:20}} /><Text>Non</Text>
-                </CardItem>
-
-              </Card>
-
-            </Content>
-
-            
-     {/*       <Content>
-              <Card>
-                <CardItem header><Text style={styles.title_text} >A quels types d'allergies médicamenteuses étes-vous sujet?</Text></CardItem>
-                <CardItem body style={{flexDirection:'column', flexWrap: 'wrap'}}>
-                <CheckBox checked={this.state.oui} onPress={() => this.PressOui()} style={{marginRight:20,borderRadius:10}}/><Text style={{flexDirection:'row', flexWrap: 'wrap', alignItems:'baseline',textAlign:'left'}}>Antibiotique</Text>
-
-                <CheckBox checked={this.state.non} onPress={() => this.PressNon()} style={{marginRight:20,borderRadius:10}} /><Text>Anti-inflammatoires non-stéroidiens (AINS)</Text>
-
-                <CheckBox checked={this.state.non} onPress={() => this.PressOui()} style={{marginRight:20,borderRadius:10}} /><Text>Aspirine</Text>
-
-                <CheckBox checked={this.state.non} onPress={() => this.PressNon()} style={{marginRight:20,borderRadius:10}} /><Text>Autres</Text>
-                </CardItem>
-              </Card>
-     </Content> */}
-
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>A quels types d'allergies médicamenteuses étes-vous sujet?</Text>
-
-            </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingVertical: SCREEN_HEIGHT * 0.02 }}>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Antibiotique</Text>
-            </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingVertical: SCREEN_HEIGHT * 0.02 }}>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Anti-inflammatoires non-stéroidiens (AINS)</Text>
-            </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingVertical: SCREEN_HEIGHT * 0.02 }}>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Aspirine</Text>
-            </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingVertical: SCREEN_HEIGHT * 0.02 }}>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Autres</Text>
-            </View>
-
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth, marginBottom: SCREEN_HEIGHT * 0.04 }} />
-
-{/* This Section need a function that update the database valus*/}
-
-
-            <View
-              style={styles.edit_button}
-              onPress={() => displayDetailForDoctor(doctor.uid)}>
-              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' }}>
-                <Text style={{ color: 'black', fontWeight: 'bold' }}>Antécédents Médicaux</Text>
-                <Icon name="pencil"
-                  size={SCREEN_WIDTH * 0.04}
-                  color="#93eafe" />
-              </View>
-            </View>
-
-            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Etes-vous sujet à une ou plusieurs maladies cardiovasculaires (infarctus, AVC) ?</Text>
-
-            </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingVertical: SCREEN_HEIGHT * 0.02 }}>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Oui</Text>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Non</Text>
-            </View>
-
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Avez-vous des Antécédents cardiovasculaires familiaux (infarctus, AVC) ?</Text>
-
-            </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingVertical: SCREEN_HEIGHT * 0.02 }}>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Oui</Text>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Non</Text>
-            </View>
-
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Vous sentez-vous stressé(e) ?</Text>
-
-            </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingVertical: SCREEN_HEIGHT * 0.02 }}>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Oui</Text>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Non</Text>
-            </View>
-
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Avez-vous le moral ?</Text>
-
-            </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingVertical: SCREEN_HEIGHT * 0.02 }}>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Oui</Text>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Non</Text>
-            </View>
-
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Avez-vous accès à un suivi dentaire régulier ?</Text>
-
-            </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingVertical: SCREEN_HEIGHT * 0.02 }}>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Oui</Text>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Non</Text>
-            </View>
-
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Etes-vous asthmatique ?</Text>
-
-            </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingVertical: SCREEN_HEIGHT * 0.02 }}>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Oui</Text>
-              <CheckBox center style={{ borderRadius: 10 }} title='check box' checked={this.state.checked} onPress={() => this.setState({ checked: !this.state.checked })} />
-              <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Non</Text>
-            </View>
-
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth, marginBottom: SCREEN_HEIGHT * 0.04 }} />
-
-            <View
-              style={styles.edit_button}
-              onPress={() => displayDetailForDoctor(doctor.uid)}>
-              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center' }}>
-                <Text style={{ color: 'black', fontWeight: 'bold' }}>Informations suplémentaires</Text>
-                <Icon name="pencil"
-                  size={SCREEN_WIDTH * 0.04}
-                  color="#93eafe" />
-              </View>
-            </View>
-
-            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Numéro de sécurité sociale</Text>
-              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>00000000</Text>
-            </View>
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-            <View style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Mutuelle</Text>
-              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>-</Text>
-            </View>
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-
-
-            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Documents médicaux</Text>
-              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>-</Text>
-            </View>
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Remboursements</Text>
-              <Text style={{ color: 'black', fontWeight: 'bold', marginBottom: SCREEN_HEIGHT * 0.008 }}>-</Text>
-            </View>
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-            {/* This Section need a function that update the database valus*/}
-
-            <TouchableOpacity style={styles.uploadButton} onPress={this.myImagefunction_vital}>
-            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Carte Vitale</Text>
-             
-              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ color: 'gray' }}> Télécharger un document </Text>
-                <Icon name="upload"
-                  size={SCREEN_WIDTH * 0.04}
-                  color="#BDB7AD" />
-            </View>
-            </View>
-            <Image source={this.state.avatarSource1} style={{width:'99%',height:270,margin:0}}/>
-            </TouchableOpacity>
-
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-
-              {/*<TouchableHighlight style={styles.uploadButton} onPress={this.getImages}>
-              <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-                <Text style={styles.title_text}>Carte Vitale</Text>
-              
-                <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={{ color: 'gray' }}> Télécharger un document </Text>
+              {/* Numéro de sécurité sociale */}
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.onPress1('isNumSS')}>
+                <Text style={fieldStyle.title_text}>Numéro de sécurité sociale</Text>
+                <Text style={fieldStyle.value}>{this.state.NumSS}</Text>
+              </TouchableOpacity>
+
+              {line}
+
+              {/*Mutuelle*/}
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => {
+                  if (this.props.role === 'isPatient' || this.props.role === 'isAdmin')
+                    this.handleImage('Mutuelle')
+                }}>
+                <View style={{ flexDirection: 'row' }}>
+                  <Text style={fieldStyle.title_text}>Mutuelle</Text>
                   <Icon name="upload"
                     size={SCREEN_WIDTH * 0.04}
-                    color="#BDB7AD" />
+                    color="#BDB7AD"
+                    style={{ position: 'absolute', right: 0 }} />
                 </View>
 
-              </View>
-              </TouchableHighlight>
-                  */}
 
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-            
-            {/* This Section need a function that update the database valus*/}
+                {this.state.isUploading1 &&
+                  <View style={{ alignItems: 'flex-start' }}>
+                    <ActivityIndicator size='small' />
+                  </View>}
 
-            <TouchableOpacity style={styles.uploadButton} onPress={this.myImagefunction_mutuel}>
-            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Mutuel</Text>
-             
-              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ color: 'gray' }}> Télécharger un document </Text>
-                <Icon name="upload"
-                  size={SCREEN_WIDTH * 0.04}
-                  color="#BDB7AD" />
-              </View>
-            
-            </View>
-            <Image source={this.state.avatarSource2} style={{width:'99%',height:270,margin:0}}/>
-          </TouchableOpacity>
+                {this.state.Mutuelle !== '' &&
+                  <View>
+                    <Text style={[fieldStyle.image, { textDecorationLine: 'underline', width: '25%', padding: SCREEN_WIDTH * 0.01 }]}
+                      onPress={() => this.toggleModalImage(this.state.Mutuelle)}>Mutuelle</Text>
+                  </View>
+                }
+              </TouchableOpacity>
 
-        {/*  <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
-            
-            <TouchableHighlight style={styles.uploadButton} onPress={this.getImages}>
-            <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
-              <Text style={styles.title_text}>Mutuel</Text>
-             
-              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ color: 'gray' }}> Télécharger un document </Text>
-                <Icon name="upload"
-                  size={SCREEN_WIDTH * 0.04}
-                  color="#BDB7AD" />
-              </View>
-            
-            </View>
-          </TouchableHighlight>
-          
-          //Simple image picker
-               <TouchableOpacity style={{margin:10,padding:10}}
-     onPress={this.myImagefunction}
-     >
-       <Image source={this.state.avatarSource} style={{width:'99%',height:270,margin:0}}/>
-      <Text>Select Image</Text>
-     </TouchableOpacity>
-     */}
+              {line}
 
-            <View style={{ borderBottomColor: '#d9dbda', borderBottomWidth: StyleSheet.hairlineWidth }} />
+              {/*Carte vitale*/}
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => {
+                  if (this.props.role === 'isPatient' || this.props.role === 'isAdmin')
+                    this.handleImage('Carte Vitale')
+                }}>
+                <View style={{ flexDirection: 'row' }}>
+                  <Text style={fieldStyle.title_text}>Carte vitale</Text>
+                  <Icon name="upload"
+                    size={SCREEN_WIDTH * 0.04}
+                    color="#BDB7AD"
+                    style={{ position: 'absolute', right: 0 }} />
+                </View>
 
-      
+                {this.state.isUploading2 &&
+                  <View style={{ alignItems: 'flex-start' }}>
+                    <ActivityIndicator size='small' />
+                  </View>}
 
+                {this.state.CarteVitale !== '' &&
+                  <View>
+                    <Text style={[fieldStyle.image, { textDecorationLine: 'underline', width: '25%', padding: SCREEN_WIDTH * 0.01 }]}
+                      onPress={() => this.toggleModalImage(this.state.CarteVitale)}>Carte vitale</Text>
+                  </View>}
+
+              </TouchableOpacity>
+
+            </Card>
 
           </View>
 
         </ScrollView>
+
+        <ImageViewing
+          images={images}
+          imageIndex={0}
+          presentationStyle="overFullScreen"
+          visible={this.state.isModalImageVisible}
+          onRequestClose={() => this.setState({ isModalImageVisible: false })}
+        />
 
       </View >
 
     );
   }
 }
+
+const mapStateToProps = (state) => {
+  return {
+    role: state.roles.role,
+  }
+}
+
+export default connect(mapStateToProps)(MedicalFolder)
 
 const styles = StyleSheet.create({
   container: {
@@ -1112,7 +923,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 9,
+    elevation: 3,
     justifyContent: 'center',
     alignItems: 'center',
     //backgroundColor: 'orange'
@@ -1139,15 +950,16 @@ const styles = StyleSheet.create({
   edit_button: {
     height: SCREEN_HEIGHT * 0.045,
     width: SCREEN_WIDTH * 0.75,
-    //alignItems: 'flex-end',
-    //justifyContent: 'center',
-    //paddingRight: SCREEN_WIDTH*0.05,
-    //backgroundColor: 'green',
-    // backgroundColor: 'white',
+    backgroundColor: '#93eafe',
     borderWidth: 1,
     borderColor: '#93eafe',
     borderTopRightRadius: 25,
     borderBottomRightRadius: 25,
+  },
+  edit_button_inside: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingLeft: SCREEN_WIDTH * 0.05
   },
   info_container: {
     flex: 1,
@@ -1164,39 +976,97 @@ const styles = StyleSheet.create({
   }
 });
 
+const fieldStyle = StyleSheet.create({
+  container: {
+    paddingLeft: SCREEN_WIDTH * 0.04,
+    paddingTop: SCREEN_WIDTH * 0.025
+  },
+  title_text: {
+    color: '#333',
+    fontWeight: 'bold',
+    marginBottom: SCREEN_HEIGHT * 0.006
+  },
+  value: {
+    color: '#333',
+    marginBottom: SCREEN_HEIGHT * 0.008
+  },
+  image: {
+    color: '#333',
+    fontSize: SCREEN_HEIGHT * 0.014,
+    marginBottom: SCREEN_HEIGHT * 0.01
+  }
+});
 
 const modalStyles = StyleSheet.create({
-  item_inactive: {
-    width: SCREEN_WIDTH * 0.3,
-    height: SCREEN_HEIGHT * 0.07,
-    //borderWidth: 1, 
-    //borderColor: 'blue', 
-    marginLeft: SCREEN_WIDTH * 0.015,
-    marginRight: SCREEN_WIDTH * 0.015,
-    backgroundColor: '#ffffff',
+
+  picker_container: {
+    borderRadius: 30,
+    shadowColor: "#000",
+    shadowOffset: { width: 5, height: 5 },
+    shadowOpacity: 0.32,
+    shadowRadius: 5.46,
+    elevation: 3,
     justifyContent: 'center',
     alignItems: 'center',
-    //borderRadius: 20,
+    backgroundColor: 'white',
+    // marginVertical: 0, 
+    //marginTop: 5, 
+    height: SCREEN_HEIGHT * 0.05,
+    width: SCREEN_WIDTH * 0.6,
+    paddingLeft: 20,
+    paddingRight: 10
+  },
+  //Buttons confirme/cancel
+  modalButtons_container: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    marginBottom: 15
+  },
+  ConfirmButton: {
+    paddingTop: SCREEN_HEIGHT * 0.005,
+    paddingBottom: SCREEN_HEIGHT * 0.005,
+    borderRadius: 30,
+    width: SCREEN_WIDTH * 0.35,
+    height: SCREEN_HEIGHT * 0.06,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 5,
+    elevation: 3,
   },
-  item_active: {
-    width: SCREEN_WIDTH * 0.3,
-    height: SCREEN_HEIGHT * 0.07,
-    borderWidth: 1,
-    borderColor: '#93eafe',
-    marginLeft: SCREEN_WIDTH * 0.015,
-    marginRight: SCREEN_WIDTH * 0.015,
-    backgroundColor: '#ffffff',
-    justifyContent: 'center',
-    alignItems: 'center',
+  CancelButton: {
+    paddingTop: SCREEN_HEIGHT * 0.005,
+    paddingBottom: SCREEN_HEIGHT * 0.005,
+    borderRadius: 30,
+    width: SCREEN_WIDTH * 0.35,
+    height: SCREEN_HEIGHT * 0.06,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.32,
+    shadowRadius: 5.46,
+    elevation: 3,
+    backgroundColor: '#fff'
   },
-  item_text: {
-    //fontWeight: 'bold',
-    fontSize: SCREEN_HEIGHT * 0.016,
-    textAlign: 'center'
-  },  
+  buttonText2: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    fontFamily: 'Avenir',
+    textAlign: 'center',
+    margin: SCREEN_HEIGHT * 0.012,
+    color: '#ffffff',
+    backgroundColor: 'transparent',
+  },
+  buttonText1: {
+    fontSize: 12,
+    fontFamily: 'Avenir',
+    textAlign: 'center',
+    margin: SCREEN_HEIGHT * 0.012,
+    color: 'gray',
+    backgroundColor: 'transparent',
+  },
 })
+
+
+

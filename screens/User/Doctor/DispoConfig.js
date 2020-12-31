@@ -1,10 +1,10 @@
-//Presentation.js
-//TEST
 
 import React from 'react'
-import { View, Image, Text, TouchableHighlight, Dimensions, StyleSheet } from 'react-native'
+import { View, Image, Text, TouchableHighlight, Dimensions, ActivityIndicator, StyleSheet } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome';
-import Icon1 from 'react-native-vector-icons/FontAwesome';
+import Icon1 from 'react-native-vector-icons/AntDesign';
+import Icon2 from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import { ScrollView } from 'react-native-gesture-handler';
 import { CheckBox, CardItem, Content } from 'native-base';
 
@@ -17,7 +17,6 @@ import Item from '../../../components/DispoItem2'
 import Button from '../../../components/Button';
 
 import firebase from 'react-native-firebase';
-import { signOutUser } from '../../../DB/CRUD'
 import * as REFS from '../../../DB/CollectionsRefs'
 
 //constants
@@ -31,10 +30,11 @@ const LOGO_WIDTH = SCREEN_WIDTH * 0.25 * ratioLogo;
 export default class DispoConfig extends React.Component {
   constructor(props) {
     super(props);
+    this.counter = 0
 
     this.updateDay = this.updateDay.bind(this);
     this.addRow = this.addRow.bind(this);
-    this.signOutUser = this.signOutUser.bind(this);
+    this.verifyInputs = this.verifyInputs.bind(this)
 
     this.state = {
       nom: "",
@@ -44,7 +44,6 @@ export default class DispoConfig extends React.Component {
 
       doctorSchedule: [],
       isScheduleEmpty: true,
-      paidTimes: [], //array to keep paid (reserved) timeslots to not be shown in the doctor's calendar in case he updates his calendar
       checked: false,
 
       Lundi: [{ from: '', to: '' }, { from: '', to: '' }],
@@ -63,6 +62,8 @@ export default class DispoConfig extends React.Component {
       isDay6_On: false,
       isDay7_On: false,
 
+      errors: [false, false, false, false, false, false, false],
+
       rows_1: 0,
       rows_2: 0,
       rows_3: 0,
@@ -70,26 +71,49 @@ export default class DispoConfig extends React.Component {
       rows_5: 0,
       rows_6: 0,
       rows_7: 0,
+
+      lastday: '',
+
+      isLoading: false,
+      isEditing: false,
     }
-
-    //Menu
-    this.navigateToScreen = this.navigateToScreen.bind(this);
-    this.signOutUserandToggle = this.signOutUserandToggle.bind(this);
   }
 
-  componentWillMount() {
-    this.getDoctorMetaData()
+  async componentDidMount() {
     this.getCurrentSchedule()
+    await this.getDoctorMetaData()
+    await this.isUrgence()
   }
 
-  //Get doctor's data from DB
-  getDoctorMetaData() {
+  async isUrgence() {
+    await REFS.doctors.doc(firebase.auth().currentUser.uid).get()
+      .then((doc) => this.setState({ checked: doc.data().urgences }))
+      .catch((err) => console.error(err))
+  }
+
+  //Fetch doctor & schedule data
+  async getDoctorMetaData() {
     const { currentUser } = firebase.auth()
-    firebase.firestore().collection("Doctors").doc(currentUser.uid).get().then(doc => {
-      this.setState({ nom: doc.data().nom })
-      this.setState({ prenom: doc.data().prenom })
-      this.setState({ speciality: doc.data().speciality })
+    await REFS.doctors.doc(currentUser.uid).get().then(doc => {
+      this.setState({ nom: doc.data().nom, prenom: doc.data().prenom, speciality: doc.data().speciality })
     })
+  }
+
+  getCurrentSchedule() {
+    REFS.doctors.doc(firebase.auth().currentUser.uid).collection('ScheduleSettings').get().then(querySnapshot => {
+
+      querySnapshot.forEach(doc => {
+        this.getDaySchedule(doc.id, 'Lundi', doc.data().timerange1.from, doc.data().timerange1.to, doc.data().timerange2.from, doc.data().timerange2.to, 1)
+        this.getDaySchedule(doc.id, 'Mardi', doc.data().timerange1.from, doc.data().timerange1.to, doc.data().timerange2.from, doc.data().timerange2.to, 2)
+        this.getDaySchedule(doc.id, 'Mercredi', doc.data().timerange1.from, doc.data().timerange1.to, doc.data().timerange2.from, doc.data().timerange2.to, 3)
+        this.getDaySchedule(doc.id, 'Jeudi', doc.data().timerange1.from, doc.data().timerange1.to, doc.data().timerange2.from, doc.data().timerange2.to, 4)
+        this.getDaySchedule(doc.id, 'Vendredi', doc.data().timerange1.from, doc.data().timerange1.to, doc.data().timerange2.from, doc.data().timerange2.to, 5)
+        this.getDaySchedule(doc.id, 'Samedi', doc.data().timerange1.from, doc.data().timerange1.to, doc.data().timerange2.from, doc.data().timerange2.to, 6)
+        this.getDaySchedule(doc.id, 'Dimanche', doc.data().timerange1.from, doc.data().timerange1.to, doc.data().timerange2.from, doc.data().timerange2.to, 7)
+      })
+
+    }).then(() => this.isScheduleEmpty())
+      .catch((err) => console.error(err))
   }
 
   getDaySchedule(docId, dayName, from1, to1, from2, to2, i) {
@@ -125,76 +149,23 @@ export default class DispoConfig extends React.Component {
     }
   }
 
-  getCurrentSchedule() {
-    REFS.doctors.doc(firebase.auth().currentUser.uid).collection('ScheduleSettings').get().then(querySnapshot => {
-
-      querySnapshot.forEach(doc => {
-        this.getDaySchedule(doc.id, 'Lundi', doc.data().timerange1.from, doc.data().timerange1.to, doc.data().timerange2.from, doc.data().timerange2.to, 1)
-        this.getDaySchedule(doc.id, 'Mardi', doc.data().timerange1.from, doc.data().timerange1.to, doc.data().timerange2.from, doc.data().timerange2.to, 2)
-        this.getDaySchedule(doc.id, 'Mercredi', doc.data().timerange1.from, doc.data().timerange1.to, doc.data().timerange2.from, doc.data().timerange2.to, 3)
-        this.getDaySchedule(doc.id, 'Jeudi', doc.data().timerange1.from, doc.data().timerange1.to, doc.data().timerange2.from, doc.data().timerange2.to, 4)
-        this.getDaySchedule(doc.id, 'Vendredi', doc.data().timerange1.from, doc.data().timerange1.to, doc.data().timerange2.from, doc.data().timerange2.to, 5)
-        this.getDaySchedule(doc.id, 'Samedi', doc.data().timerange1.from, doc.data().timerange1.to, doc.data().timerange2.from, doc.data().timerange2.to, 6)
-        this.getDaySchedule(doc.id, 'Dimanche', doc.data().timerange1.from, doc.data().timerange1.to, doc.data().timerange2.from, doc.data().timerange2.to, 7)
-      })
-
-    }).then(() => this.isScheduleEmpty())
-      .catch((err) => console.error(err))
-
-  }
-
   isScheduleEmpty() {
+
     let isScheduleEmpty = true
-    isScheduleEmpty = this.state.Lundi[0].from === '' && this.state.Lundi[0].to
-      && this.state.Mardi[0].from === '' && this.state.Mardi[0].to
-      && this.state.Mercredi[0].from === '' && this.state.Mercredi[0].to
-      && this.state.Jeudi[0].from === '' && this.state.Jeudi[0].to
-      && this.state.Vendredi[0].from === '' && this.state.Vendredi[0].to
-      && this.state.Samedi[0].from === '' && this.state.Samedi[0].to
-      && this.state.Dimanche[0].from === '' && this.state.Dimanche[0].to
+
+    isScheduleEmpty = this.state.Lundi[0].from === '' && this.state.Lundi[0].to === ''
+      && this.state.Mardi[0].from === '' && this.state.Mardi[0].to === ''
+      && this.state.Mercredi[0].from === '' && this.state.Mercredi[0].to === ''
+      && this.state.Jeudi[0].from === '' && this.state.Jeudi[0].to === ''
+      && this.state.Vendredi[0].from === '' && this.state.Vendredi[0].to === ''
+      && this.state.Samedi[0].from === '' && this.state.Samedi[0].to === ''
+      && this.state.Dimanche[0].from === '' && this.state.Dimanche[0].to === ''
 
     this.setState({ isScheduleEmpty })
   }
 
-  updateDaySchedule(dayName, dayArray) {
-    REFS.doctors.doc(firebase.auth().currentUser.uid).collection('ScheduleSettings').doc(dayName)
-      .update({
-        timerange1: { from: dayArray[0].from, to: dayArray[0].to },
-        timerange2: { from: dayArray[1].from, to: dayArray[1].to }
-      }).then(() => console.log('setted succesfully!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'))
-      .catch((err) => console.error(err))
-  }
+  /************************   Form functions   *****************************/
 
-  setDaySchedule(dayName, dayArray) {
-    REFS.doctors.doc(firebase.auth().currentUser.uid).collection('ScheduleSettings').doc(dayName)
-      .set({
-        timerange1: { from: dayArray[0].from, to: dayArray[0].to },
-        timerange2: { from: dayArray[1].from, to: dayArray[1].to }
-      }).then(() => console.log('setted succesfully!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'))
-      .catch((err) => console.error(err))
-  }
-
-  //LeftSideMenu functions
-  toggleLeftSideMenu = () => {
-    this.month = ''
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible, appId: null });
-  }
-
-  navigateToScreen(screen) {
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      () => this.props.navigation.navigate(screen));
-  }
-
-  signOutUser() {
-    signOutUser();
-  }
-
-  signOutUserandToggle() {
-    this.setState({ isLeftSideMenuVisible: !this.state.isLeftSideMenuVisible },
-      this.signOutUser())
-  }
-
-  //Form functions
   toggleDay = (i, previousState) => {
 
     let day = []
@@ -363,186 +334,348 @@ export default class DispoConfig extends React.Component {
     else console.log('nombre maximum de lignes = 2 ou selectionnez les heures dans la ligne au dessus ')
   }
 
-  handleConfirm = async () => {
-
-    //update 'urgences'
-    REFS.doctors.doc(firebase.auth().currentUser.uid).update({ urgences: this.state.checked })
-      .then(() => console.log('urgences mis à jour'))
-      .catch((err) => console.error(err))
+  /***************************************************************************/
 
 
-    //set schedule to json format
-    const daysSelected = [['lundi', this.state.isDay1_On, this.state.Lundi], ['mardi', this.state.isDay2_On, this.state.Mardi], ['mercredi', this.state.isDay3_On, this.state.Mercredi], ['jeudi', this.state.isDay4_On, this.state.Jeudi], ['vendredi', this.state.isDay5_On, this.state.Vendredi], ['samedi', this.state.isDay6_On, this.state.Samedi], ['dimanche', this.state.isDay7_On, this.state.Dimanche]];
-    let doctorSchedule = []
+  /*********************   CONFIRMATION   ************************************/
 
-    await daysSelected.forEach((element) => {
-      for (let j = 0; j < 60; j++) {
+  verifyInputs() {
+    const daysSelected = [
+      ['lundi', this.state.isDay1_On, this.state.Lundi],
+      ['mardi', this.state.isDay2_On, this.state.Mardi],
+      ['mercredi', this.state.isDay3_On, this.state.Mercredi],
+      ['jeudi', this.state.isDay4_On, this.state.Jeudi],
+      ['vendredi', this.state.isDay5_On, this.state.Vendredi],
+      ['samedi', this.state.isDay6_On, this.state.Samedi],
+      ['dimanche', this.state.isDay7_On, this.state.Dimanche]
+    ]
 
-        let currentDay = moment().add(j, 'days').startOf('day').format()
-        let day = moment().add(j, 'days').format('dddd')
+    console.log(daysSelected)
 
-        if (element[1] === true) {
+    const { errors } = this.state
+    let isValid = true
 
-          if (day === element[0]) {
-            element[2].forEach(timerange => {
+    for (let i = 0; i < daysSelected.length; i++) {
+      let length1
+      let length2
 
-              currentDay = moment().add(j, 'days').startOf('day').format()
-              for (let h = 0; h < 24; h++) {
-                let currentHour = moment(currentDay).format('HH:mm')
-                let currentHour2 = moment(currentHour, 'HH:mm')
+      if (daysSelected[i][1]) {
+        const from1 = daysSelected[i][2][0].from
+        const to1 = daysSelected[i][2][0].to
+        const from2 = daysSelected[i][2][1].from
+        const to2 = daysSelected[i][2][1].to
 
-                let from = moment(timerange.from, 'HH:mm');
-                let to = moment(timerange.to, 'HH:mm');
+        console.log(daysSelected[i][0], daysSelected[i][1])
+        length1 = this.calculateIntervals(from1, to1, true)
+        length2 = this.calculateIntervals(from2, to2, true)
 
-                if ((currentHour2.isBefore(to) || currentHour2.isSame(to)) && (currentHour2.isAfter(from) || currentHour2.isSame(from))) {
-                  doctorSchedule.push(currentDay)
-                  this.setState({ doctorSchedule: doctorSchedule }) // <-- array containing all times available for the doctor
-                }
-                currentDay = moment(currentDay).add(1, 'hours').format()
-              }
-            })
-          }
+        console.log(length1, length2)
+
+        if (length1 < 0 || length2 < 0) {
+          errors[i] = true
+          isValid = false
+        }
+
+        else {
+          errors[i] = false
         }
       }
-    });
+    }
 
-    //if not 1st time setting schedule: delete all documents
-    if (this.state.isScheduleEmpty === false) {
-      await REFS.doctors.doc(firebase.auth().currentUser.uid).collection('DoctorSchedule').get().then((querySnapshot) => {
-        let paidTimes = []
+    this.setState({ errors })
+    return isValid
+  }
+
+  handleConfirm = async () => {
+    this.setState({ isLoading: true })
+
+    const isValid = this.verifyInputs()
+    if (!isValid) {
+      this.setState({ isLoading: false })
+      console.log('input invalid...')
+      return
+    }
+
+    const { currentUser } = firebase.auth()
+    const { isScheduleEmpty, Lundi, isDay1_On, Mardi, isDay2_On, Mercredi, isDay3_On, Jeudi, isDay4_On, Vendredi, isDay5_On, Samedi, isDay6_On, Dimanche, isDay7_On } = this.state
+
+    const doctorSchedule = this.setDoctorSchedule()
+
+    //if a schedule already exists: delete it (from today to next days...)
+    if (!isScheduleEmpty) {
+      let promises = []
+      await REFS.doctors.doc(currentUser.uid).collection('DoctorSchedule').where('date', '>=', moment().format('LL')).get().then((querySnapshot) => {
         querySnapshot.forEach((doc) => {
-          //keep timeslot if already paid/booked
-          if (doc.data().paid === true) {
-            paidTimes.push(doc.data().ts)
-            this.setState({ paidTimes: paidTimes })
-          }
-          doc.ref.delete();
+          const promise = doc.ref.delete().then(() => console.log(doc.id + ' deleted'))
+          promises.push(promise)
         })
       })
 
-      //update schedule settings in DB
-      this.updateDaySchedule('Lundi', this.state.Lundi)
-      this.updateDaySchedule('Mardi', this.state.Mardi)
-      this.updateDaySchedule('Mercredi', this.state.Mercredi)
-      this.updateDaySchedule('Jeudi', this.state.Jeudi)
-      this.updateDaySchedule('Vendredi', this.state.Vendredi)
-      this.updateDaySchedule('Samedi', this.state.Samedi)
-      this.updateDaySchedule('Dimanche', this.state.Dimanche)
+      await Promise.all(promises)
+        .then(() => console.log('All documents deleted...'))
+        .catch((err) => this.setState({ isLoading: false }))
     }
 
-    this.setDaySchedule('Lundi', this.state.Lundi)
-    this.setDaySchedule('Mardi', this.state.Mardi)
-    this.setDaySchedule('Mercredi', this.state.Mercredi)
-    this.setDaySchedule('Jeudi', this.state.Jeudi)
-    this.setDaySchedule('Vendredi', this.state.Vendredi)
-    this.setDaySchedule('Samedi', this.state.Samedi)
-    this.setDaySchedule('Dimanche', this.state.Dimanche)
+    await this.setDaySchedule('Lundi', Lundi, isDay1_On)
+    await this.setDaySchedule('Mardi', Mardi, isDay2_On)
+    await this.setDaySchedule('Mercredi', Mercredi, isDay3_On)
+    await this.setDaySchedule('Jeudi', Jeudi, isDay4_On)
+    await this.setDaySchedule('Vendredi', Vendredi, isDay5_On)
+    await this.setDaySchedule('Samedi', Samedi, isDay6_On)
+    await this.setDaySchedule('Dimanche', Dimanche, isDay7_On)
 
-    //set new Schedule (after the deleting old one) & keeping the state 'paid' = true for timeslots already paid/booked
-    this.state.doctorSchedule.forEach(ts => {
-      //check if ts is paid
-      let isPaid = false
-      this.state.paidTimes.forEach(paidTime => {
-        if (ts === paidTime)
-          isPaid = true
-      })
-
-      let counter = 0 //counter to detect end of setting schedule (not working)
-
-      REFS.doctors.doc(firebase.auth().currentUser.uid).collection('DoctorSchedule').doc().set({
-        date: moment(ts).format('LL'),
-        ts: ts,
-        paid: isPaid
-      }).then(() => {
-        counter++;
-        console.log('doctor schedule is building...')
-        console.log(counter)
-        if (counter === this.state.doctorSchedule) alert('Votre calendrier à été mis à jour.')
-      })
-        .catch((err) => console.error(err))
-
-    })
-
+    await this.persistSchedule(doctorSchedule)
   }
 
-  render() {
+  setDoctorSchedule() {
+    //set schedule to json format
+    const daysSelected = [
+      ['lundi', this.state.isDay1_On, this.state.Lundi],
+      ['mardi', this.state.isDay2_On, this.state.Mardi],
+      ['mercredi', this.state.isDay3_On, this.state.Mercredi],
+      ['jeudi', this.state.isDay4_On, this.state.Jeudi],
+      ['vendredi', this.state.isDay5_On, this.state.Vendredi],
+      ['samedi', this.state.isDay6_On, this.state.Samedi],
+      ['dimanche', this.state.isDay7_On, this.state.Dimanche]
+    ]
 
-    // console.log(this.state.paidTimes)
-    //console.log('s: '+this.state.isScheduleEmpty)
-    //console.log(this.state.doctorSchedule)
-    // console.log(this.state.rows_1)
-    console.log(this.state.Lundi)
-    //console.log(this.state.Mardi)
-    /* console.log(this.state.Mercredi)
-     console.log(this.state.Jeudi)
-     console.log(this.state.Vendredi)
-     console.log(this.state.Samedi)
-     console.log(this.state.Dimanche)*/
-    // console.log(this.state.Lundi)
-    //console.log(this.state.Mardi)
+    let doctorSchedule = []
 
-    return (
-      <View style={styles.container}>
+    for (let j = 0; j < 60; j++) {
 
-        <View style={styles.header_container}>
-          <Image source={require('../../../assets/header-image.png')} style={styles.headerIcon} />
-        </View>
+      let currentDay = moment().add(j, 'days').format()
+      let readableCurrentDay = moment().add(j, 'days').format('LL')
+      let dayName = moment().add(j, 'days').format('dddd')
+
+      let myElement = daysSelected.find((element) => element[0] === dayName)
+      var item = []
+
+      if (myElement[1]) { //available
+
+        item.push(true)
+        item.push(readableCurrentDay)
+
+        for (const timerange of myElement[2]) {
+          if (timerange.from !== '' && timerange.to !== '') {
+            const fromHour = timerange.from.split(':')[0]
+            const fromMinute = timerange.from.split(':')[1]
+
+            currentDay = moment(currentDay).set('hour', fromHour).set('minute', Number(fromMinute)).set('second', '00').format()
+            const length = this.calculateIntervals(timerange.from, timerange.to, false)
+
+            for (let h = 0; h < length; h++) {
+              let currentHour = moment(currentDay).format('HH:mm')
+              let currentHour2 = moment(currentHour, 'HH:mm')
+              const from = moment(timerange.from, 'HH:mm');
+              const to = moment(timerange.to, 'HH:mm');
+
+              if ((currentHour2.isBefore(to) || currentHour2.isSame(to)) && (currentHour2.isAfter(from) || currentHour2.isSame(from))) {
+                item.push({ timeslot: currentDay, paid: false })
+              }
+              currentDay = moment(currentDay).add(30, 'minutes').format()
+            }
+
+          }
+        }
+
+        doctorSchedule.push(item)
+      }
+
+      else { //not available
+        item.push(false)
+        item.push(readableCurrentDay)
+        doctorSchedule.push(item)
+      }
+
+      if (j === 59) {
+        this.setState({ lastday: moment(currentDay).format('YYYY-MM-DD') })
+      }
+
+    }
+
+    return doctorSchedule
+  }
+
+  calculateIntervals(from, to, onlyDiff) {
+    const startHour = Number(from.split(':')[0])
+    const endHour = Number(to.split(':')[0])
+
+    const startMinute = Number(from.split(':')[1])
+    const endMinute = Number(to.split(':')[1])
+
+    let x = 0
+    const diffHours = endHour - startHour
+
+    //input verification
+    if (onlyDiff) {
+      if (diffHours === 0) {
+        const diffMinutes = endMinute - startMinute
+        return diffMinutes
+      }
+
+      else if (diffHours < 0) {
+        return diffHours
+      }
+    }
+
+    if (startMinute === endMinute)
+      x = 1
+
+    else if (startMinute === 30 && endMinute === 0)
+      x = 0
+
+    else if (startMinute === 0 && endMinute === 30)
+      x = 2
+
+    const result = diffHours * 2 + x
+    return result
+  }
+
+  async setDaySchedule(dayName, dayArray, available) {
+    const { currentUser } = firebase.auth()
+    await REFS.doctors.doc(currentUser.uid).collection('ScheduleSettings').doc(dayName)
+      .set({
+        timerange1: { from: dayArray[0].from, to: dayArray[0].to },
+        timerange2: { from: dayArray[1].from, to: dayArray[1].to },
+        available: available,
+        timezone: moment().format('ZZ'),
+        lastday: this.state.lastday
+      }, { merge: true })
+      .then(() => console.log(`Schedule set for ${dayName}`))
+      .catch((err) => this.setState({ isLoading: false, isEditing: false }))
+  }
+
+  async persistSchedule(doctorSchedule) {
+    doctorSchedule.forEach(async ts => {
+
+      let date = {
+        date: ts[1],
+        available: ts[0],
+      }
+
+      const docId = ts[1]
+
+      //Set timeslots
+      let timeslots = ts
+      timeslots.splice(0, 2)
+      date.timeslots = timeslots
+
+      await REFS.doctors.doc(firebase.auth().currentUser.uid).collection('DoctorSchedule').doc(docId)
+        .set(date)
+        .then(() => console.log(`Date ${date.date} persisted...`))
+        .catch((e) => console.error(e))
+
+      this.counter = this.counter + 1
+      if (this.counter === doctorSchedule.length)
+        this.setState({ isLoading: false, isEditing: false }, () => {
+          this.counter = 0
+          this.isScheduleEmpty()
+        })
+    })
+  }
+
+  /****************************************************************************/
 
 
-        <LeftSideMenu
-          isSideMenuVisible={this.state.isLeftSideMenuVisible}
-          toggleSideMenu={this.toggleLeftSideMenu}
-          nom={this.state.nom}
-          prenom={this.state.prenom}
-          email={this.state.email}
-          navigateToProfile={() => this.navigateToScreen('Profile')}
-          navigateToDispoConfig={() => this.navigateToScreen('DispoConfig')}
-          navigateToAppointments={() => this.navigateToScreen('TabScreenDoctor')}
-          navigateToMyPatients={() => this.navigateToScreen('MyPatients')}
-          signOutUser={this.signOutUserandToggle}
-          navigate={this.props.navigation} />
+  updateUrgence() {
+    //update 'urgences'
+    REFS.doctors.doc(firebase.auth().currentUser.uid).update({ urgences: this.state.checked })
+      .then(() => console.log('urgences mis à jour'))
+      .catch((err) => {
+        console.error(err)
+      })
+  }
 
-        <View style={{ position: 'absolute', top: SCREEN_HEIGHT * 0.05 }}>
-          <TouchableHighlight
-            style={{
-              width: SCREEN_WIDTH * 0.12,
-              height: SCREEN_WIDTH * 0.12,
-              borderRadius: 25,
-              backgroundColor: '#ffffff',
-              justifyContent: 'center',
-              alignItems: 'center',
-              position: 'relative',
-              left: SCREEN_WIDTH * 0.05
-            }}
+  renderForm() {
+    let days = [this.state.Lundi, this.state.Mardi, this.state.Mercredi, this.state.Jeudi, this.state.Vendredi, this.state.Samedi, this.state.Dimanche]
 
-            onPress={this.toggleLeftSideMenu}>
-            <Icon1 name="bars" size={25} color="#93eafe" />
-          </TouchableHighlight>
-        </View>
+    if (!this.state.isEditing)
+      return (
+        <View style={styles.data_container}>
 
-        <View style={styles.metadata_container}>
-          <View style={styles.Avatar_box}>
-            <Icon name="user"
-              size={SCREEN_WIDTH * 0.06}
-              color="#93eafe" />
-          </View>
-          <View style={styles.metadata_box}>
-            <Text style={styles.metadata_text1}>{this.state.nom} {this.state.prenom}</Text>
-            <Text style={styles.metadata_text2}>{this.state.speciality}</Text>
-          </View>
-        </View>
-
-        <View style={styles.dispos_container}>
-          <View style={{ width: SCREEN_WIDTH * 0.42, borderBottomWidth: 3, borderBottomColor: '#83E7FE', marginHorizontal: SCREEN_WIDTH * 0.02, paddingVertical: SCREEN_HEIGHT * 0.003 }}>
-            <Text style={{ fontSize: SCREEN_WIDTH * 0.04, fontWeight: 'bold', textAlign: 'center' }}>Mes disponibilités</Text>
-          </View>
-
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingVertical: SCREEN_HEIGHT * 0.02 }}>
+          <View style={{ flexDirection: 'row', alignSelf: 'flex-start', flexWrap: 'wrap', paddingVertical: SCREEN_HEIGHT * 0.02 }}>
             <CheckBox color="#93eafe" style={{ borderRadius: 10, borderColor: '#93eafe' }}
               title='check box'
               checked={this.state.checked}
-              onPress={() => this.setState({ checked: !this.state.checked })} />
+              onPress={() => {
+                this.setState({ checked: !this.state.checked }, () => this.updateUrgence())
+              }} />
+            {/* onPress={() => this.setState({ checked: !this.state.checked })} /> */}
             <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}> Accepter les urgences</Text>
+          </View>
+
+          <ScrollView style={{ marginTop: 15 }}>
+            {days.map((day, key) => {
+              let dayName = ''
+              let i = key
+              switch (i) {
+                case 0: dayName = 'Lundi'
+                  break;
+                case 1: dayName = 'Mardi'
+                  break;
+                case 2: dayName = 'Mercredi'
+                  break;
+                case 3: dayName = 'Jeudi'
+                  break;
+                case 4: dayName = 'Vendredi'
+                  break;
+                case 5: dayName = 'Samedi'
+                  break;
+                case 6: dayName = 'Dimanche'
+                  break;
+              }
+
+              return (
+                <View>
+                  <View style={{ flex: 1, flexDirection: 'row', width: SCREEN_WIDTH, height: SCREEN_HEIGHT * 0.05, alignItems: 'center', marginBottom: StyleSheet.hairlineWidth * 3, borderLeftWidth: 5, borderLeftColor: '#93eafe' }}>
+
+                    <View style={{ flex: 0.2, justifyContent: 'center', marginLeft: 20 }}>
+                      <Text style={{ fontWeight: 'bold' }}>{dayName}</Text>
+                    </View>
+
+                    {day[0].from !== '' && day[0].to !== '' &&
+                      <View style={{ flex: 0.3, flexDirection: 'row', justifyContent: 'flex-end' }}>
+                        <Text>{day[0].from}</Text>
+                        <Text> - </Text>
+                        <Text>{day[0].to}</Text>
+                      </View>
+                    }
+
+                    {day[1].from !== '' && day[1].to !== '' &&
+                      <View style={{ flex: 0.1, alignItems: 'center' }}>
+                        <Text style={{ color: 'gray' }}>|</Text>
+                      </View>
+                    }
+
+                    {day[1].from !== '' && day[1].to !== '' &&
+                      <View style={{ flex: 0.3, flexDirection: 'row', justifyContent: 'flex-start' }}>
+                        <Text>{day[1].from}</Text>
+                        <Text> - </Text>
+                        <Text>{day[1].to}</Text>
+                      </View>
+                    }
+                  </View>
+                </View>
+              )
+            })
+            }
+
+          </ScrollView>
+        </View>
+      )
+
+    else {
+      if (this.state.isLoading)
+        return (
+          <View style={styles.loading_container}>
+            <ActivityIndicator size='large' />
+          </View>
+        )
+
+      else return (
+        <View style={styles.dispos_container}>
+          <View style={{ width: SCREEN_WIDTH * 0.42, borderBottomWidth: 3, borderBottomColor: '#83E7FE', marginVertical: 10 }}>
+            <Text style={{ fontSize: 15, fontWeight: 'bold', textAlign: 'center' }}>Mes disponibilités</Text>
           </View>
 
           <View style={{ flex: 10, alignItems: 'center' }} >
@@ -560,7 +693,7 @@ export default class DispoConfig extends React.Component {
                   <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Lundi</Text>
                 </CardItem>
 
-                {this.state.isDay1_On ?
+                {this.state.isDay1_On &&
                   <Item
                     fromHour1={this.state.Lundi[0].from}
                     toHour1={this.state.Lundi[0].to}
@@ -575,8 +708,10 @@ export default class DispoConfig extends React.Component {
                     isDayOn={this.state.isDay1_On}
                     dayIndex={1}
                     removeRow={this.removeRow}
+
+                    error={this.state.errors[0]}
                   />
-                  : null}
+                }
 
                 {/*Tuesday =========================================================================================================================*/}
 
@@ -588,7 +723,7 @@ export default class DispoConfig extends React.Component {
                   <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Mardi</Text>
                 </CardItem>
 
-                {this.state.isDay2_On ?
+                {this.state.isDay2_On &&
                   <Item
                     fromHour1={this.state.Mardi[0].from}
                     toHour1={this.state.Mardi[0].to}
@@ -603,8 +738,10 @@ export default class DispoConfig extends React.Component {
                     isDayOn={this.state.isDay2_On}
                     dayIndex={2}
                     removeRow={this.removeRow}
+
+                    error={this.state.errors[1]}
                   />
-                  : null}
+                }
 
 
                 {/*Wednesday =========================================================================================================================*/}
@@ -617,7 +754,7 @@ export default class DispoConfig extends React.Component {
                   <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Mercredi</Text>
                 </CardItem>
 
-                {this.state.isDay3_On ?
+                {this.state.isDay3_On &&
                   <Item
                     fromHour1={this.state.Mercredi[0].from}
                     toHour1={this.state.Mercredi[0].to}
@@ -632,8 +769,10 @@ export default class DispoConfig extends React.Component {
                     isDayOn={this.state.isDay3_On}
                     dayIndex={3}
                     removeRow={this.removeRow}
+
+                    error={this.state.errors[2]}
                   />
-                  : null}
+                }
 
                 {/*Thursday =========================================================================================================================*/}
 
@@ -645,7 +784,7 @@ export default class DispoConfig extends React.Component {
                   <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Jeudi</Text>
                 </CardItem>
 
-                {this.state.isDay4_On ?
+                {this.state.isDay4_On &&
                   <Item
                     fromHour1={this.state.Jeudi[0].from}
                     toHour1={this.state.Jeudi[0].to}
@@ -660,8 +799,10 @@ export default class DispoConfig extends React.Component {
                     isDayOn={this.state.isDay4_On}
                     dayIndex={4}
                     removeRow={this.removeRow}
+
+                    error={this.state.errors[3]}
                   />
-                  : null}
+                }
 
 
                 {/*Friday =========================================================================================================================*/}
@@ -675,7 +816,7 @@ export default class DispoConfig extends React.Component {
                   <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Vendredi</Text>
                 </CardItem>
 
-                {this.state.isDay5_On ?
+                {this.state.isDay5_On &&
                   <Item
                     fromHour1={this.state.Vendredi[0].from}
                     toHour1={this.state.Vendredi[0].to}
@@ -690,8 +831,10 @@ export default class DispoConfig extends React.Component {
                     isDayOn={this.state.isDay5_On}
                     dayIndex={5}
                     removeRow={this.removeRow}
+
+                    error={this.state.errors[4]}
                   />
-                  : null}
+                }
 
                 {/*Saturday =========================================================================================================================*/}
 
@@ -703,7 +846,7 @@ export default class DispoConfig extends React.Component {
                   <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Samedi</Text>
                 </CardItem>
 
-                {this.state.isDay6_On ?
+                {this.state.isDay6_On &&
                   <Item
                     fromHour1={this.state.Samedi[0].from}
                     toHour1={this.state.Samedi[0].to}
@@ -718,8 +861,10 @@ export default class DispoConfig extends React.Component {
                     isDayOn={this.state.isDay6_On}
                     dayIndex={6}
                     removeRow={this.removeRow}
+
+                    error={this.state.errors[5]}
                   />
-                  : null}
+                }
 
                 {/*Sunday =========================================================================================================================*/}
 
@@ -731,7 +876,7 @@ export default class DispoConfig extends React.Component {
                   <Text style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>Dimanche</Text>
                 </CardItem>
 
-                {this.state.isDay7_On ?
+                {this.state.isDay7_On &&
                   <Item
                     fromHour1={this.state.Dimanche[0].from}
                     toHour1={this.state.Dimanche[0].to}
@@ -746,8 +891,10 @@ export default class DispoConfig extends React.Component {
                     isDayOn={this.state.isDay7_On}
                     dayIndex={7}
                     removeRow={this.removeRow}
+
+                    error={this.state.errors[6]}
                   />
-                  : null}
+                }
 
               </Content>
 
@@ -757,9 +904,50 @@ export default class DispoConfig extends React.Component {
 
 
         </View>
+      )
+    }
+  }
+
+  render() {
+
+    return (
+
+      <View style={styles.container}>
+
+        <View style={styles.header_container}>
+          <Image source={require('../../../assets/header-image.png')} style={styles.headerIcon} />
+        </View>
+
+        <View style={{ position: 'absolute', top: SCREEN_HEIGHT * 0.05 }}>
+          <LeftSideMenu />
+        </View>
+
+        <View style={styles.metadata_container}>
+          <View style={styles.Avatar_box}>
+            <Icon name="user"
+              size={SCREEN_WIDTH * 0.06}
+              color="#93eafe" />
+          </View>
+          <View style={styles.metadata_box}>
+            <Text style={styles.metadata_text1}>{this.state.nom} {this.state.prenom}</Text>
+            <Text style={styles.metadata_text2}>{this.state.speciality}</Text>
+          </View>
+        </View>
+
+        {this.renderForm()}
 
         <View style={styles.confirmButton_container}>
-          <Button width={SCREEN_WIDTH * 0.8} text="confirmer" onPress={this.handleConfirm} />
+          {!this.state.isLoading && this.state.isEditing &&
+            <Button contained={false} width={SCREEN_WIDTH * 0.4} text="Annuler" onPress={() => this.setState({ isEditing: false })} />
+          }
+
+          {!this.state.isLoading && this.state.isEditing &&
+            <Button width={SCREEN_WIDTH * 0.4} text="Confirmer" onPress={this.handleConfirm} />
+          }
+
+          {!this.state.isLoading && !this.state.isEditing &&
+            <Button width={SCREEN_WIDTH * 0.8} text="Modifier mes disponibilités" onPress={() => this.setState({ isEditing: true })} />
+          }
         </View>
 
 
@@ -787,17 +975,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'flex-start',
-    //backgroundColor: 'red',
+    //backgroundColor: 'pink',
   },
   dispos_container: {
     flex: 0.5,
-    //backgroundColor: 'blue',
+    //backgroundColor: 'yellow',
     paddingHorizontal: SCREEN_WIDTH * 0.05
+  },
+  data_container: {
+    flex: 0.5,
+    //backgroundColor: 'yellow',
+    paddingHorizontal: SCREEN_WIDTH * 0.05,
+    alignItems: 'center'
   },
   confirmButton_container: {
     flex: 0.2,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-evenly',
     //backgroundColor: 'green'
   },
 
@@ -814,7 +1009,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 5,
+    elevation: 3,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'white'
@@ -862,16 +1057,27 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 5, height: 5 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 5,
+    elevation: 3,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'white',
-    // marginVertical: 0, 
-    //marginTop: 5, 
+    // marginVertical: 0,
+    //marginTop: 5,
     height: SCREEN_HEIGHT * 0.05,
     width: SCREEN_WIDTH * 0.3,
     paddingLeft: 20,
     paddingRight: 10
+  },
+  loading_container: {
+    //position: 'absolute',
+    //left: 0,
+    //right: 0,
+    //top: 0,
+    //bottom: 0,
+    flex: 0.5,
+    //backgroundColor: 'black',
+    alignItems: 'center',
+    justifyContent: 'center',
   }
 
 });

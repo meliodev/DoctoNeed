@@ -64,7 +64,7 @@ const colors = {
   BLACK_COLOR: '#333', //black
   WHITE_COLOR: '#ffffff',
   GRAY_COLOR: '#b4c1c2',  //gray
-  THEME_COLOR: '#5fdefd',  //blue light
+  THEME_COLOR: '#93eafe',  //blue light
   FONT_WEIGHT_LIGHT: 200,
   FONT_WEIGHT_MEDIUM: 600,
   FONT_WEIGHT_HEAVY: 800

@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
 
-const allHours = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00']
+const allHours = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30']
 
 class DispoItem2 extends React.Component {
 
@@ -13,12 +13,11 @@ class DispoItem2 extends React.Component {
     render() {
 
         return (
-            <View>
+            <View style={styles.container}>
                 <View style={styles.pickers_container}>
-
                     <Text style={{ textAlignVertical: 'center', paddingHorizontal: 5 }}>De</Text>
                     <View style={styles.picker_container} >
-                        <Picker selectedValue={this.props.fromHour1} onValueChange={(value) => this.props.updateDay(this.props.day, value, 0, 'from')} style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.25, textAlign: "center" }}>
+                        <Picker selectedValue={this.props.fromHour1} onValueChange={(value) => this.props.updateDay(this.props.day, value, 0, 'from')} style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.3, textAlign: "center" }}>
                             <Picker.Item value='' label='-' />
                             {allHours.map((hour, key) => {
                                 return (<Picker.Item key={key} value={hour} label={hour} />);
@@ -28,7 +27,7 @@ class DispoItem2 extends React.Component {
 
                     <Text style={{ textAlignVertical: 'center', paddingHorizontal: 5 }}>à</Text>
                     <View style={styles.picker_container} >
-                        <Picker selectedValue={this.props.toHour1} onValueChange={(value) => this.props.updateDay(this.props.day, value, 0, 'to')} style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.25, textAlign: "center" }}>
+                        <Picker selectedValue={this.props.toHour1} onValueChange={(value) => this.props.updateDay(this.props.day, value, 0, 'to')} style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.3, textAlign: "center" }}>
                             <Picker.Item value='' label='-' />
                             {allHours.map((hour, key) => {
                                 return (<Picker.Item key={key} value={hour} label={hour} />);
@@ -45,11 +44,11 @@ class DispoItem2 extends React.Component {
 
                 </View>
 
-                {this.props.fromHour1 !== '' && this.props.toHour1 !== '' && this.props.rowsDay === 2 ?
-                    <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', paddingLeft: SCREEN_WIDTH * 0.1, marginBottom: SCREEN_HEIGHT * 0.02 }}>
+                {this.props.fromHour1 !== '' && this.props.toHour1 !== '' && this.props.rowsDay === 2 &&
+                    <View style={styles.pickers_container}>
                         <Text style={{ textAlignVertical: 'center', paddingHorizontal: 5 }}>De</Text>
                         <View style={styles.picker_container} >
-                            <Picker selectedValue={this.props.fromHour2} onValueChange={(value) => this.props.updateDay(this.props.day, value, 1, 'from')} style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.25, textAlign: "center" }}>
+                            <Picker selectedValue={this.props.fromHour2} onValueChange={(value) => this.props.updateDay(this.props.day, value, 1, 'from')} style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.3, textAlign: "center" }}>
                                 <Picker.Item value='' label='-' />
                                 {allHours.map((hour, key) => {
                                     return (<Picker.Item key={key} value={hour} label={hour} />);
@@ -59,7 +58,7 @@ class DispoItem2 extends React.Component {
 
                         <Text style={{ textAlignVertical: 'center', paddingHorizontal: 5 }}>à</Text>
                         <View style={styles.picker_container} >
-                            <Picker selectedValue={this.props.toHour2} onValueChange={(value) => this.props.updateDay(this.props.day, value, 1, 'to')} style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.25, textAlign: "center" }}>
+                            <Picker selectedValue={this.props.toHour2} onValueChange={(value) => this.props.updateDay(this.props.day, value, 1, 'to')} style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.3, textAlign: "center" }}>
                                 <Picker.Item value='' label='-' />
                                 {allHours.map((hour, key) => {
                                     return (<Picker.Item key={key} value={hour} label={hour} />);
@@ -74,13 +73,18 @@ class DispoItem2 extends React.Component {
                                 color="#93E7FF" />
                         </TouchableOpacity>
 
-                    </View> : null}
+                    </View>}
 
-                {this.props.rowsDay > 0 && this.props.rowsDay < 2 ?
+                {this.props.rowsDay > 0 && this.props.rowsDay < 2 &&
                     <TouchableHighlight onPress={() => this.props.addRow(this.props.dayIndex, this.props.day, this.props.rowsDay)} style={styles.buttonPlus}>
                         <Text style={{ color: '#93eafe', fontSize: SCREEN_WIDTH * 0.04 }}> + </Text>
                     </TouchableHighlight>
-                    : null}
+                }
+
+                {this.props.error &&
+                    <Text style={styles.error}>L'heure de fin est inférieur à l'heure du début.</Text>
+                }
+
             </View>
 
         )
@@ -88,6 +92,34 @@ class DispoItem2 extends React.Component {
 }
 
 const styles = StyleSheet.create({
+    container: {
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: '#BDBDBD',
+        paddingLeft: SCREEN_WIDTH * 0.075,
+        marginBottom: 10,
+        paddingBottom: 10
+    },
+    pickers_container: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 5
+    },
+    picker_container: {
+        borderRadius: 30,
+        shadowColor: "#000",
+        shadowOffset: { width: 5, height: 5 },
+        shadowOpacity: 0.32,
+        shadowRadius: 5.46,
+        elevation: 3,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'white',
+        height: SCREEN_HEIGHT * 0.05,
+        width: SCREEN_WIDTH * 0.3,
+        paddingLeft: 20,
+        paddingRight: 10
+    },
     buttonPlus: {
         width: SCREEN_WIDTH * 0.07,
         height: SCREEN_WIDTH * 0.07,
@@ -100,30 +132,12 @@ const styles = StyleSheet.create({
         elevation: 3,
         justifyContent: 'center',
         alignItems: 'center',
-        marginLeft: SCREEN_WIDTH * 0.1,
-        marginBottom: SCREEN_WIDTH * 0.1,
-        marginTop: SCREEN_WIDTH * 0.05
+        marginVertical: SCREEN_WIDTH * 0.02
     },
-    pickers_container: {
-        flex: 1, flexDirection: 'row', alignItems: 'center', paddingLeft: SCREEN_WIDTH * 0.1, marginBottom: SCREEN_HEIGHT * 0.02
-    },
-
-    picker_container: {
-        borderRadius: 30,
-        shadowColor: "#000",
-        shadowOffset: { width: 5, height: 5 },
-        shadowOpacity: 0.32,
-        shadowRadius: 5.46,
-        elevation: 5,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'white',
-        // marginVertical: 0, 
-        //marginTop: 5, 
-        height: SCREEN_HEIGHT * 0.05,
-        width: SCREEN_WIDTH * 0.3,
-        paddingLeft: 20,
-        paddingRight: 10
+    error: {
+        color: 'red',
+        fontSize: 10,
+        marginTop: 5
     }
 })
 

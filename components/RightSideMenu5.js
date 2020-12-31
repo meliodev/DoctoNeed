@@ -2,8 +2,7 @@
 import React, { Component, Children } from 'react';
 import { StyleSheet, Text, TouchableHighlight, View, Dimensions, SafeAreaView, Slider, Picker } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import CountryPicker, { getAllCountries, getCallingCode } from 'react-native-country-picker-modal';
-import RNPickerSelect from 'react-native-picker-select';
+import theme from '../constants/theme'
 import DatePicker from 'react-native-datepicker'
 
 import firebase from 'react-native-firebase'
@@ -44,7 +43,6 @@ export default class RightSideMenu5 extends Component {
         query.get()
             .then(querySnapshot => {
                 querySnapshot.forEach(doc => {
-                    console.log(doc.data().nom)
                     patientName = doc.data().nom + ' ' + doc.data().prenom
                     patientCountry = doc.data().country
 
@@ -56,7 +54,7 @@ export default class RightSideMenu5 extends Component {
                 this.setState({
                     patientNames: patientNames,
                     patientsCountries: patientsCountries
-                }, () => console.log(this.state.patientsCountries))
+                })
 
             })
             .catch(error => console.log('Error getting documents:' + error))
@@ -98,19 +96,18 @@ export default class RightSideMenu5 extends Component {
 
 
     render({ onPress } = this.props) {
-        let TodayDay = new Date().getDate()
-        let TodayMonth = new Date().getMonth() + 1
-        let TodayYear = new Date().getFullYear()
-        let Today = TodayYear + '-' + TodayMonth + '-' + TodayDay
 
-        //  console.log(this.state.doctorNames)
-        const bool = true
+        const { main, isSideMenuVisible, toggleSideMenu, clearAllFilters, isNextAppointments } = this.props
+        const { doctor, doctorNames, patient, country, appointmentState } = this.props
+        const { speciality, doctorSpecialities } = this.props
+        const { dateFrom, dateTo } = this.props
+
         return (
             <Modal
-                isVisible={this.props.isSideMenuVisible}
+                isVisible={isSideMenuVisible}
                 coverScreen='true'
-                onBackdropPress={this.props.toggleSideMenu} // Android back press
-                onSwipeComplete={this.props.toggleSideMenu} // Swipe to discard
+                onBackdropPress={toggleSideMenu} // Android back press
+                onSwipeComplete={toggleSideMenu} // Swipe to discard
                 animationIn="slideInRight" // Has others, we want slide in from the left
                 animationOut="slideOutRight" // When discarding the drawer
                 swipeDirection="right" // Discard the drawer with swipe to left
@@ -121,9 +118,9 @@ export default class RightSideMenu5 extends Component {
             >
                 <SafeAreaView style={styles.safeAreaView}>
                     <View style={styles.header_container}>
-                        <Text style={styles.header_text}>Filter par</Text>
+                        <Text style={styles.header_text}>Filtrer par</Text>
                         <TouchableHighlight style={styles.filter_button}
-                            onPress={this.props.toggleSideMenu}>
+                            onPress={toggleSideMenu}>
                             <Icon name="filter" size={25} color="#93eafe" />
                         </TouchableHighlight>
                     </View>
@@ -131,8 +128,9 @@ export default class RightSideMenu5 extends Component {
                     <View style={styles.doctor_container}>
                         <Text style={styles.title_text}>Médecin</Text>
                         <View style={styles.picker}>
-                            <Picker selectedValue={this.props.doctor}
-                                onValueChange={(doctor) => this.props.onSelectDoctor(doctor)}>
+                            <Picker selectedValue={doctor}
+
+                                onValueChange={(doctor) => main.setState({ doctor })}>
                                 <Picker.Item value='' label='Choisissez un médecin' />
                                 {this.state.doctorNames.map((doctorName, key) => {
                                     return (<Picker.Item key={key} value={doctorName} label={doctorName} />);
@@ -144,8 +142,8 @@ export default class RightSideMenu5 extends Component {
                     <View style={styles.speciality_container}>
                         <Text style={styles.title_text}>Spécialité</Text>
                         <View style={styles.picker}>
-                            <Picker selectedValue={this.props.speciality}
-                                onValueChange={(speciality) => this.props.onSelectSpeciality(speciality)}>
+                            <Picker selectedValue={speciality}
+                                onValueChange={(speciality) => main.setState({ speciality })}>
                                 <Picker.Item value='' label='Choisissez une spécialité' />
                                 {this.state.doctorSpecialities.map((doctorSpeciality, key) => {
                                     return (<Picker.Item key={key} value={doctorSpeciality} label={doctorSpeciality} />);
@@ -157,8 +155,8 @@ export default class RightSideMenu5 extends Component {
                     <View style={styles.patient_container}>
                         <Text style={styles.title_text}>Patient</Text>
                         <View style={styles.picker}>
-                            <Picker selectedValue={this.props.patient}
-                                onValueChange={(patient) => this.props.onSelectPatient(patient)}>
+                            <Picker selectedValue={patient}
+                                onValueChange={(patient) => main.setState({ patient })}>
                                 <Picker.Item value='' label='Choisissez un patient' />
                                 {this.state.patientNames.map((patientName, key) => {
                                     return (<Picker.Item key={key} value={patientName} label={patientName} />);
@@ -167,34 +165,34 @@ export default class RightSideMenu5 extends Component {
                         </View>
                     </View>
 
-                    <View style={styles.speciality_container}>
+                    <View style={styles.country_container}>
                         <Text style={styles.title_text}>Pays</Text>
                         <View style={styles.picker}>
-                            <Picker selectedValue={this.props.country}
-                                onValueChange={(country) => this.props.onSelectCountry(country)}>
+                            <Picker selectedValue={country}
+                                onValueChange={(country) => main.setState({ country })}>
                                 <Picker.Item value='' label='Pays des patients' />
                                 {this.state.patientsCountries.map((patientsCountry, key) => {
                                     return (<Picker.Item key={key} value={patientsCountry} label={patientsCountry} />);
                                 })}
                             </Picker>
-                           
+
                         </View>
                     </View>
 
 
-                    {this.props.isNextAppointments ?
-                        <View style={styles.speciality_container}>
+                    {isNextAppointments &&
+                        <View style={styles.state_container}>
                             <Text style={styles.title_text}>Etat</Text>
-                            <Picker selectedValue={this.props.appointmentState}
-                                onValueChange={(state) => this.props.onSelectState(state)}>
-                                <Picker.Item value='' label='Choisissez un état' />
-                                <Picker.Item value='pending' label='En attente' />
-                                <Picker.Item value='CBA' label='Confirmé' />
-                            </Picker>
+                            <View style={styles.picker}>
+                                <Picker selectedValue={appointmentState}
+                                    onValueChange={(appointmentState) => main.setState({ appointmentState })}>
+                                    <Picker.Item value='' label='Choisissez un état' />
+                                    <Picker.Item value='pending' label='En attente' />
+                                    <Picker.Item value='CBA' label='Confirmé' />
+                                </Picker>
+                            </View>
                         </View>
-                        : null}
-
-
+                    }
 
                     <View style={styles.date_container}>
                         <Text style={styles.title_text}>Date</Text>
@@ -202,7 +200,7 @@ export default class RightSideMenu5 extends Component {
                             <Text style={[styles.title_text, { color: 'gray' }]}>Du</Text>
                             <DatePicker
                                 style={{ width: SCREEN_WIDTH * 0.5, marginTop: SCREEN_WIDTH * 0.03, marginLeft: SCREEN_WIDTH * 0.03 }}
-                                date={this.props.dateFrom}
+                                date={dateFrom}
                                 mode="date"
                                 placeholder="Jour - Mois - Année"
                                 format="YYYY-MM-DD"
@@ -210,7 +208,7 @@ export default class RightSideMenu5 extends Component {
                                 //maxDate= {Today}
                                 confirmBtnText="Confirm"
                                 cancelBtnText="Cancel"
-                                onDateChange={(date) => this.props.onSelectDateFrom(date)}
+                                onDateChange={(dateFrom) => main.setState({ dateFrom })}
                             />
                         </View>
 
@@ -218,7 +216,7 @@ export default class RightSideMenu5 extends Component {
                             <Text style={[styles.title_text, { color: 'gray' }]}>Au</Text>
                             <DatePicker
                                 style={{ width: SCREEN_WIDTH * 0.5, marginTop: SCREEN_WIDTH * 0.03, marginLeft: SCREEN_WIDTH * 0.03 }}
-                                date={this.props.dateTo}
+                                date={dateTo}
                                 mode="date"
                                 placeholder="Jour - Mois - Année"
                                 format="YYYY-MM-DD"
@@ -226,19 +224,19 @@ export default class RightSideMenu5 extends Component {
                                 //maxDate={Today}
                                 confirmBtnText="Confirm"
                                 cancelBtnText="Cancel"
-                                onDateChange={(date) => this.props.onSelectDateTo(date)}
+                                onDateChange={(dateTo) => main.setState({ dateTo })}
                             />
                         </View>
 
                     </View>
 
                     <View style={styles.buttons_container}>
-                        <TouchableHighlight onPress={this.props.toggleSideMenu} style={styles.CancelButton}>
-                            <Text style={styles.buttonText1}>Annuler</Text>
+                        <TouchableHighlight onPress={clearAllFilters} style={styles.CancelButton}>
+                            <Text style={styles.buttonText1}>Réinitialiser</Text>
                         </TouchableHighlight>
 
                         <TouchableHighlight
-                            onPress={this.props.toggleSideMenu}>
+                            onPress={toggleSideMenu}>
                             <LinearGradient
                                 start={{ x: 0, y: 0 }}
                                 end={{ x: 1, y: 0 }}
@@ -267,26 +265,12 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 5 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         backgroundColor: 'white',
-        marginHorizontal: SCREEN_WIDTH * 0.02,
-        marginTop: 10,
+        marginHorizontal: SCREEN_WIDTH * 0.01,
+        //marginTop: 10,
         paddingVertical: 0,
         width: SCREEN_WIDTH * 0.55
-    },
-    pageLink_button: {
-        height: SCREEN_HEIGHT * 0.045,
-        width: SCREEN_WIDTH * 0.7,
-        //alignItems: 'flex-end',
-        //justifyContent: 'center',
-        //paddingRight: SCREEN_WIDTH*0.05,
-        //backgroundColor: 'green',
-        // backgroundColor: 'white',
-        backgroundColor: '#ffffff',
-        //backgroundColor: '#93eafe',
-        borderTopRightRadius: 25,
-        borderBottomRightRadius: 25,
-        marginBottom: SCREEN_WIDTH * 0.08
     },
     sideMenuStyle: {
         flex: 1,
@@ -308,7 +292,7 @@ const styles = StyleSheet.create({
         backgroundColor: "white"
     },
     header_container: {
-        flex: 0.15,
+        flex: 0.75,
         flexDirection: 'row',
         justifyContent: 'space-between',
         paddingLeft: SCREEN_WIDTH * 0.13,
@@ -316,6 +300,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         //backgroundColor: 'green'
     },
+    //Filtrer par
     header_text: {
         color: '#7c807f',
         fontWeight: 'bold',
@@ -331,47 +316,55 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         justifyContent: 'center',
         alignItems: 'center'
     },
-    patient_container: {
-        flex: 0.2,
+
+    //Filters labels
+    title_text: {
+        // marginTop: SCREEN_HEIGHT * 0.06,
+        fontSize: theme.FONT_SIZE_SMALL * 1.2,
+    },
+    //Filter pickers containers
+    doctor_container: {
+        flex: 1.25,
+        // justifyContent: 'flex-start',
+        //alignItems: 'center',
+        paddingLeft: SCREEN_WIDTH * 0.1,
+        //backgroundColor: 'brown'
+    },
+    speciality_container: {
+        flex: 1.25,
         paddingLeft: SCREEN_WIDTH * 0.1,
         //backgroundColor: 'blue'
     },
-    title_text: {
-        marginTop: SCREEN_HEIGHT * 0.02,
-        fontSize: 17,
-        //fontWeight: "bold"
-    },
-
-    speciality_container: {
-        flex: 0.2,
+    patient_container: {
+        flex: 1.25,
         paddingLeft: SCREEN_WIDTH * 0.1,
-        //backgroundColor: 'brown'
+        //backgroundColor: 'orange'
     },
-    doctor_container: {
-        flex: 0.2,
+    country_container: {
+        flex: 1.25,
         paddingLeft: SCREEN_WIDTH * 0.1,
-        //backgroundColor: 'brown'
+        //backgroundColor: 'yellow'
     },
-
+    state_container: {
+        flex: 1.25,
+        paddingLeft: SCREEN_WIDTH * 0.1,
+        //backgroundColor: 'pink'
+    },
     date_container: {
-        flex: 0.25,
+        flex: 2.25,
         paddingLeft: SCREEN_WIDTH * 0.1,
-        // backgroundColor: 'purple'
-    },
-    slider: {
-        marginTop: SCREEN_HEIGHT * 0.07,
-        //marginRight: SCREEN_HEIGHT*0.07
+        //backgroundColor: 'purple'
     },
     buttons_container: {
-        flex: 0.2,
+        flex: 0.75,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        //backgroundColor: 'orange'
+        //backgroundColor: 'green'
     },
     CancelButton: {
         textAlignVertical: 'top',
@@ -387,7 +380,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 5,
+        elevation: 3,
         fontSize: 16,
         alignItems: 'center',
         justifyContent: 'space-between'
@@ -402,8 +395,9 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 5,
+        elevation: 3,
     },
+    //Annuler
     buttonText1: {
         fontSize: SCREEN_HEIGHT * 0.016,
         fontFamily: 'Avenir',
@@ -413,6 +407,7 @@ const styles = StyleSheet.create({
         color: 'black',
         backgroundColor: 'transparent',
     },
+    //Appliquer
     buttonText2: {
         fontSize: SCREEN_HEIGHT * 0.017,
         fontWeight: 'bold',
@@ -421,39 +416,6 @@ const styles = StyleSheet.create({
         margin: SCREEN_HEIGHT * 0.012,
         color: '#ffffff',
         backgroundColor: 'transparent',
-    },
-    searchText: {
-        color: '#b2bbbc',
-        fontSize: SCREEN_WIDTH * 0.025,
-        marginLeft: SCREEN_WIDTH * 0.03
-    },
-    filters_selected_container: {
-        flex: 0.1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        //justifyContent: 'space-between',
-        //backgroundColor: 'brown'
-    },
-    filterItem: {
-        width: SCREEN_WIDTH * 0.21,
-        textAlignVertical: 'top',
-        textAlign: 'center',
-        backgroundColor: '#ffffff',
-        borderRadius: 50,
-        padding: SCREEN_WIDTH * 0.03,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.32,
-        shadowRadius: 5.46,
-        elevation: 5,
-        marginLeft: SCREEN_WIDTH * 0.03,
-        //margin: 15,
-        //marginTop: 15,
-        //marginBottom: 15,
-        fontSize: 16,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between'
     },
 });
 
@@ -469,7 +431,7 @@ const pickerSelectStyles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         marginTop: SCREEN_WIDTH * 0.03,
         fontSize: 16,
     },
@@ -485,7 +447,7 @@ const pickerSelectStyles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         //margin: 15,
         marginTop: SCREEN_WIDTH * 0.03,
         //marginBottom: 15,

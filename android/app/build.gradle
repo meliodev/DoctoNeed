@@ -128,7 +128,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.firebase"
+        applicationId "com.doctoneed"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -149,7 +149,7 @@ android {
             storePassword 'android'
             keyAlias 'androiddebugkey'
             keyPassword 'android'
-        }
+        } 
 
         release {
             if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
@@ -171,7 +171,7 @@ android {
             checkReleaseBuilds false
             abortOnError false
             }
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
@@ -193,23 +193,52 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-agora')
+    // implementation project(':react-native-payments')
     implementation project(':react-native-localize')
     implementation project(':react-native-gesture-handler')
     implementation fileTree(dir: "libs", include: ["*.jar"])
   //implementation project(path: ":@react-native-firebase_firestore")
-  
+    // implementation 'com.github.tipsi:CreditCardEntry:1.5.1'
     implementation "com.facebook.react:react-native:+"  // From node_modules
     //implementation 'com.google.firebase:firebase-analytics:17.2.1'
     implementation 'com.google.firebase:firebase-auth:19.2.0'
-    implementation "com.google.android.gms:play-services-base:17.1.0"
+    implementation "com.google.android.gms:play-services-base:16.0.1" //#edits changed from 17.1.0 to 16.0.1
+
+    implementation "com.google.android.gms:play-services-auth-api-phone:17.3.0"  //#edits added this line
+    implementation 'com.google.android.gms:play-services-auth:16.0.1'  //#edits added this line
+
     //implementation 'com.google.firebase:firebase-storage:19.1.0'
     //implementation "com.google.firebase:firebase-core:19.2.0"
     //implementation 'com.google.firebase:firebase-firestore:21.3.1'
     implementation "com.google.firebase:firebase-firestore:19.0.0"
     implementation "com.google.firebase:firebase-storage:19.1.1"
     implementation 'com.google.firebase:firebase-functions:19.0.2'
-    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'com.google.firebase:firebase-analytics:17.4.4'
+    implementation 'com.google.firebase:firebase-messaging:20.2.4' //was 20.2.3 but not working in release mode
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation "androidx.annotation:annotation:1.1.0"
+    //implementation 'com.android.support:support-annotations:28.0.0'
+    //implementation 'androidx.annotation:annotation:1.1.0'
     implementation group: 'io.grpc', name: 'grpc-core', version: '1.16.1'
+    implementation 'com.android.support:design:27.1.0'
+    compile (project(':tipsi-stripe')) {
+    exclude group: 'com.google.android.gms'
+    exclude group: 'com.google.firebase'
+    }
+  //  compile project(':react-native-callkeep')
+
+    compile(project(':react-native-firebase')) {   
+       transitive = false
+    }
+    
+    // implementation 'com.android.support:design:27.1.0'
+    // compile 'com.android.support:multidex:1.0.3'
+    // compile (project(':tipsi-stripe')) {
+    //     exclude group: 'com.google.android.gms'
+    //     exclude group: 'com.google.firebase'
+    //     }
+    // implementation project(':react-native-google-pay')
 
     if (enableHermes) {
         def hermesPath = "../../node_modules/hermes-engine/android/";
@@ -230,4 +259,4 @@ task copyDownloadableDepsToLibs(type: Copy) {
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
 apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 
-apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.gms.google-services' 

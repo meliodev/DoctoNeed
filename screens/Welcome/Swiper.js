@@ -245,7 +245,7 @@ export default class OnboardingScreens extends Component {
       {lastScreen
         // Show this button on the last screen
         // TODO: Add a handler that would send a user to your app after onboarding is complete
-        ? <Button text="Commencer" onPress={() =>  { this.props.navigate.navigate('LandingScreen')}} />
+        ? <Button text="Commencer" onPress={() =>  { this.props.navigate.navigate('Home')}} />
         // Or this one otherwise
         : <Button text="Suivant" onPress={() => this.swipe()} />
       }
@@ -265,7 +265,7 @@ export default class OnboardingScreens extends Component {
              Connectez-vous</Text> 
              </Text>
           // Or this one otherwise
-          : <Text onPress={() => this.props.navigate.navigate('LandingScreen')} style={{ textDecorationLine: 'underline', color: '#70e2f9', fontFamily: 'Avenir', }}>Passer</Text>
+          : <Text onPress={() => this.props.navigate.navigate('Home')} style={{ textDecorationLine: 'underline', color: '#70e2f9', fontFamily: 'Avenir', }}>Passer</Text>
         }
       </View>
 

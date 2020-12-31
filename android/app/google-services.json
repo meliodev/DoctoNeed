@@ -8,6 +8,50 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:175838696437:android:4cd3e3a3f0488d0f62c6bc",
+        "android_client_info": {
+          "package_name": "com.doctoneed"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "175838696437-dtko39gfg88mih8fhesdgf1hn0m8o1n7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.doctoneed",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "175838696437-2vafi8sg7h9mvmgjmius5jgi9tgrpss5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCccbplW_PFhXvl3HB4uCnCHBnTdC85v8g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "175838696437-2vafi8sg7h9mvmgjmius5jgi9tgrpss5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "175838696437-81890og836ntp4cl2rs3ccn3a17m0ovj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.eqxsoftware.UrgencePharma"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:175838696437:android:4045c7490ace64c062c6bc",
         "android_client_info": {
           "package_name": "com.firebase"
@@ -30,6 +74,13 @@
             {
               "client_id": "175838696437-2vafi8sg7h9mvmgjmius5jgi9tgrpss5.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "175838696437-81890og836ntp4cl2rs3ccn3a17m0ovj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.eqxsoftware.UrgencePharma"
+              }
             }
           ]
         }

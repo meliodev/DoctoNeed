@@ -18,7 +18,7 @@ export const itemStyle = StyleSheet.create({
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.32,
       shadowRadius: 5.46,
-      elevation: 4,
+      elevation: 3,
       //backgroundColor: 'green'
     },
     main_container: {

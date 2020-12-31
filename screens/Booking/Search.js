@@ -15,9 +15,13 @@ moment.locale('fr')
 
 import DoctorItem from '../../components/DoctorItem'
 import RightSideMenu from '../../components/RightSideMenu1'
+import EmptyList from '../../components/EmptyList'
 
 import firebase from 'react-native-firebase';
 import * as REFS from '../../DB/CollectionsRefs'
+
+import { connect } from 'react-redux'
+import { Alert } from 'react-native';
 
 const KEYS_TO_FILTERS_COUNTRY = ['country'];
 const KEYS_TO_FILTERS_URGENCES = ['urgences'];
@@ -28,25 +32,25 @@ const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
 
 const ratioLogo = 420 / 244;
-const LOGO_WIDTH = SCREEN_WIDTH * 0.25 * ratioLogo;
+const LOGO_WIDTH = SCREEN_WIDTH * 0.15 * ratioLogo;
 
-const specialities = ['Ophtalmologue', 'Médecin généraliste', 'Psychologue', 'Cardiologue', 'Rhumatologue', 'Neurologue', 'Gynécologue']
+const specialities = ['Médecin généraliste', 'Pédiatre', 'Psychologue', 'Ophtalmologue', 'Rhumatologue']
 
 class Search extends React.Component {
   constructor(props) {
     super(props);
-    this.filteredDoctors1 = []
+    this.filteredDoctors = []
     this.isUrgence = false
-    this.urgenceSpeciality = ''
-    this.nextAvailableTime = ''
     this.doctorList = []
-    this.doctorItemWidth = SCREEN_WIDTH * 0.95
     this.appId = ''
 
-    this.toggleUrgence = this.toggleUrgence.bind(this);
+    this.isUrgence = this.props.navigation.getParam('isUrgence', false)
+    this.urgenceSpeciality = this.props.navigation.getParam('urgenceSpeciality', '')
+    this.appId = this.props.navigation.getParam('appId', '')
+
     this.toggleModalUrgence = this.toggleModalUrgence.bind(this);
-    this.handleConfirm = this.handleConfirm.bind(this);
     this.countryPlaceHolder = this.countryPlaceHolder.bind(this);
+    this.handleConfirm = this.handleConfirm.bind(this);
     this.inviteDoctors = this.inviteDoctors.bind(this);
 
     this.state = {
@@ -55,11 +59,10 @@ class Search extends React.Component {
       searchTerm: '',
 
       //Filters
-      isSideMenuVisible: false,
       country: "",
       urgences: "",
       speciality: "",
-      price: 50,
+      price: 100,
       isCountrySelected: false,
       isUrgencesSelected: false,
       isSpecialitySelected: false,
@@ -70,7 +73,7 @@ class Search extends React.Component {
 
       //patient: URG2
       isModalUrgenceVisible: false,
-      selectedSpeciality: '',
+      urgenceSpeciality: '',
 
       //admin: URG2
       selectedDoctors: []
@@ -78,190 +81,105 @@ class Search extends React.Component {
   }
 
   componentDidMount() {
-    this.displayLoading()
-
-    this.isUrgence = this.props.navigation.getParam('isUrgence', '')
-    this.urgenceSpeciality = this.props.navigation.getParam('urgenceSpeciality', '')
-    this.appId = this.props.navigation.getParam('appId', '')
-
-    if (this.urgenceSpeciality !== '')
-      this.doctorItemWidth = SCREEN_WIDTH * 0.7
-
-    this._loadDoctors()
+    this.loadDoctors()
   }
 
-  displayLoading() {
-    this.setState({ isLoading: true }, () => setTimeout(() => this.setState({ isLoading: false }), 1315))
-  }
-
-  //Load doctors data
-  _loadDoctors() {
-    let doctor = {
-      uid: '',
-      name: '',
-      timeLeft: '',
-      urgences: false,
-    }
-
-    //this.setState({ isLoading: true })
+  loadDoctors() {
+    this.setState({ isLoading: true })
 
     REFS.doctors.get().then(querySnapshot => {
+      let doctorList = []
 
-      querySnapshot.forEach(doc => {
-        let maxTimeLeft = 5  //The value 60 slows down the doctor loading.. Solution: retrieve only the doctors available in the next 30min
-
-        if (this.isUrgence === true) {
-          maxTimeLeft = 31
+      querySnapshot.forEach(async doc => {
+        let doctor = {
+          id: '',
+          name: '',
+          timeLeft: '',
+          urgences: false,
         }
+
+        doctor = doc.data()
+        doctor.id = doc.id
+        doctor.isSelected = false  //Urgence2: Admin select doctors 
 
         //Retrieve the next available timeslot for each doctor
-        this.findNextAvailability(doc.id, maxTimeLeft).then(() => {
-          const id = doc.id
-          doctor = doc.data()
-          doctor.uid = id
-          doctor.isSelected = false
+        let maxTimeLeft = 31
+        let timeLeft = ''
+        let status = ''
 
+        const response = await this.findNextAvailability(doc.id, maxTimeLeft)
 
-          //Disponible dans X min: Fin X for each doctor
-          let timeLeft = this.calculateTimeLeft(this.nextAvailableTime)
-          doctor.timeLeft = timeLeft
+        console.log(response.nextAvailableTime)
+        if (response.nextAvailableTime)
+          timeLeft = this.calculateTimeLeft(response.nextAvailableTime) //time left for next appointment
 
-          this.doctorList.push(doctor)
-          this.setState({ doctorList: this.doctorList })
-        })
+        doctor.timeLeft = timeLeft
+        doctor.status = response.status
+        doctorList.push(doctor)
+
+        this.setState({ doctorList })
       })
 
-    }) //.then(() => this.setState({ isLoading: false }))
-      .catch(error => console.log('Error getting doctors data:' + error))
+    }).then(() => this.setState({ isLoading: false }))
   }
 
+  //Check today next availability
   async findNextAvailability(doctorId, maxTimeLeft) {
+    const today = moment().format('LL')
 
-    await REFS.doctors.doc(doctorId).collection('DoctorSchedule').get().then(querySnapshot => {
-
-      let currentDay = moment().seconds(0).milliseconds(0).format()
-
-      let currentTime = ''
-      let docTime = ''
+    return REFS.doctors.doc(doctorId).collection('DoctorSchedule').where('date', '==', today).get().then(querySnapshot => {
       let nextAvailableTime = ''
 
-      for (let m = 0; m < maxTimeLeft; m++) {
-
-        if (nextAvailableTime === '') {
-
-          currentTime = moment(currentDay).format()
-
-          querySnapshot.forEach(doc => {
-            docTime = moment(doc.data().ts).format()
-
-            if (currentTime === docTime && doc.data().paid === false) {
-
-              if (nextAvailableTime === '') {
-                nextAvailableTime = docTime
-                this.nextAvailableTime = docTime
-              }
-
-            }
-          })
-
-          currentDay = moment(currentDay).add(1, 'minutes').format()
-        }
-
+      //Pas de calendrier
+      if (querySnapshot.empty) {
+        return { nextAvailableTime, status: 'Indisponible' } //Indisponible (no schedule available)
       }
+
+      //Aucun créneau aujourd'hui
+      const doc = querySnapshot.docs[0]
+      const todaySchedule = doc.data()
+      if (!todaySchedule.available) {
+        return { nextAvailableTime, status: "Indisponible aujourd'hui" } //Indisponible aujourd'hui
+      }
+
+      //Disponible aujourd'hui
+      let timeslots = todaySchedule.timeslots.filter((item) => item.paid === false && moment(item.timeslot).isAfter(moment()))
+      timeslots = timeslots.map((item) => item.timeslot)
+
+      //Aucun créneau ajourd'hui (pendant les heures qui viennent)
+      if (timeslots.length === 0) {
+        return { nextAvailableTime, status: "Indisponible aujourd'hui" }
+      }
+
+      nextAvailableTime = timeslots[0]
+      let i = 1
+
+      while (i < timeslots.length) {
+        if (moment(timeslots[i]).isBefore(moment(nextAvailableTime)))
+          nextAvailableTime = moment(timeslots[i])
+        i = i + 1
+      }
+
+      //Disponible
+      return { nextAvailableTime: nextAvailableTime, status: "Disponible" }
+
     })
 
   }
 
   calculateTimeLeft(nextAvailableTime) {
-    let nextTimeslot = moment(nextAvailableTime).format()
     let now = moment().format()
-    let timeLeft = ''
-
-    timeLeft = moment.utc(moment(nextTimeslot).diff(moment(now))).format("mm")
+    nextAvailableTime = moment(nextAvailableTime).format()
+    const timeLeft = moment.utc(moment(nextAvailableTime).diff(moment(now))).format("HH:mm")
     return timeLeft
-  }
-
-  //Search bar
-  searchUpdated(term) {
-    this.setState({ searchTerm: term })
-  }
-
-  //Filters: Get data
-  toggleSideMenu = () => {
-    this.setState({ isSideMenuVisible: !this.state.isSideMenuVisible });
-  }
-
-  onSelectCountry = (childData) => {
-    this.setState({ country: childData.name, isCountrySelected: true })
   }
 
   countryPlaceHolder = () => {
     return this.state.country ? <Text style={styles.pays1}> {this.state.country} </Text> : <Text style={styles.placeHolder}> Choisir un pays </Text>
   }
 
-  onSelectSpeciality = (speciality) => {
-    if (speciality === "")
-      this.setState({ speciality: speciality, isSpecialitySelected: false })
-    else
-      this.setState({ speciality: speciality, isSpecialitySelected: true })
-  }
-
-  onSelectPriceMax = (value) => {
-    this.setState({ price: value, isPriceSelected: true })
-  }
-
-  toggleUrgence = () => {
-    if (this.state.urgences === 'true' || this.state.urgences === '')
-      this.setState({ urgences: 'false', isUrgencesSelected: false })
-    if (this.state.urgences === 'false' || this.state.urgences === '')
-      this.setState({ urgences: 'true', isUrgencesSelected: true })
-  }
-
-  //Filters: filtering...
-  filter(filteredDoctors1, field, isUrgence, keysToFilters) {
-    if (field === 'price')
-      return filteredDoctors1.filter((doctor) => { return doctor.price <= this.state.price })
-
-    else
-      return filteredDoctors1.filter(createFilter(field, keysToFilters))
-  }
-
-  filterDoctors(country, urgences, speciality) {
-    this.filteredDoctors1 = this.state.doctorList
-
-    this.filteredDoctors1 = this.filter(this.filteredDoctors1, 'price')
-
-    if (country) {
-      this.filteredDoctors1 = this.filter(this.filteredDoctors1, country, KEYS_TO_FILTERS_COUNTRY)
-    }
-    if (urgences === 'true') {
-      this.filteredDoctors1 = this.filter(this.filteredDoctors1, speciality, KEYS_TO_FILTERS_URGENCES)
-    }
-    if (speciality) {
-      this.filteredDoctors1 = this.filter(this.filteredDoctors1, speciality, KEYS_TO_FILTERS_SPECIALITY)
-    }
-
-    if (this.isUrgence === true) {
-      this.filteredDoctors1 = this.filteredDoctors1.filter((doctor) => { return doctor.timeLeft !== 'Invalid date' })
-    }
-
-    this.filteredDoctors1 = this.filteredDoctors1.filter(createFilter(this.state.searchTerm, KEYS_TO_FILTERS))
-
-    /*URG2: show only doctors with the chosen speciality*/
-    if (this.urgenceSpeciality !== '') {
-      this.filteredDoctors1 = this.filteredDoctors1.filter((doctor) => {
-        return doctor.speciality === this.urgenceSpeciality
-      })
-    }
-  }
-
-  //handle doctor click
-  onDoctorClick(doctor) {
-    this.props.navigation.navigate('Booking', { doctorId: doctor.uid, isUrgence: this.isUrgence })
-  }
-
   displayDoctorDetails(doctor) {
-    this.props.navigation.navigate('DoctorFile', { doctor: doctor, isUrgence: this.isUrgence })
+    this.props.navigation.navigate('DoctorFile', { doctor: doctor, isUrgence: this.isUrgence, doctorStatus: doctor.status })
   }
 
   //Patient functions: URG2
@@ -270,59 +188,130 @@ class Search extends React.Component {
   }
 
   handleConfirm() {
-    this.setState({ isModalUrgenceVisible: !this.state.isModalUrgenceVisible }, () =>
-      this.props.navigation.navigate('Symptomes', { isUrgence: true, doctorId: '', speciality: this.state.selectedSpeciality, date: moment().startOf('day').format() })
+    this.setState({ isModalUrgenceVisible: false }, () =>
+      this.props.navigation.navigate('Symptomes', {
+        doctorId: '',
+        isUrgence: true,
+        speciality: this.state.urgenceSpeciality,
+        date: moment().startOf('day').format()
+      })
     )
-
   }
 
   //Admin functions: URG2 
   selectDoctor(doctorId) {
-    this.filteredDoctors1.forEach((doc) => {
-      if (doc.uid === doctorId) {
+    this.filteredDoctors.forEach((doc) => {
+      if (doc.id === doctorId) {
         doc.isSelected = !doc.isSelected
         this.forceUpdate()
       }
     })
   }
 
-  inviteDoctors() {
+  async inviteDoctors() {
     let doctorsId = []
-    this.filteredDoctors1.forEach((doc) => {
-      if (doc.isSelected === true) {
-        doctorsId.push(doc.uid)
-      }
+    this.filteredDoctors.forEach((doc) => {
+      if (doc.isSelected)
+        doctorsId.push(doc.id)
     })
 
-    REFS.appointments.doc(this.appId).update({ doctor_id: doctorsId, state: { CBA: true } }).then(() => {
-      alert('Les médecins que vous avez selectionné ont reçu une demande de confirmation de rendez-vous avec succès !')
-      this.props.navigation.navigate('TabScreenAdmin')
-    })
+    if (doctorsId === []) return
+
+    await REFS.appointments.doc(this.appId).update({ doctor_id: doctorsId, state: { CBP: true, CBA: true, CBD: false } })
+    Alert.alert('', 'Les médecins que vous avez selectionné ont reçu une demande de confirmation de rendez-vous avec succès ! Le premier ayant confirmer prendra en charge le rendez-vous.')
+    this.props.navigation.navigate('TabScreenAdmin')
+  }
+
+  //Handle filters
+  filterDoctors(doctorList) {
+    const { country, urgences, speciality, price, searchTerm } = this.state
+
+    this.filteredDoctors = doctorList
+
+    const fields = [{ label: 'country', value: country }, { label: 'urgences', value: urgences }, { label: 'speciality', value: speciality }]
+    const KEYS_TO_FILTERS = ['country', 'urgences', 'speciality']
+    this.filteredDoctors = this.handleFilter(doctorList, this.filteredDoctors, fields, searchTerm, KEYS_TO_FILTERS)
+
+    if (this.urgenceSpeciality !== '')
+      this.filteredDoctors = this.filteredDoctors.filter((doctor) => { return doctor.speciality === this.urgenceSpeciality })
+
+    if (this.isUrgence)
+      this.filteredDoctors = this.filteredDoctors.filter((doctor) => { return doctor.timeLeft !== 'Invalid date' })
+  }
+
+  handleFilter = (inputList, outputList, fields, searchTerm, KEYS_TO_FILTERS) => {
+
+    const { price } = this.state
+
+    outputList = inputList
+
+    for (const field of fields) {
+      outputList = outputList.filter(createFilter(field.value, field.label))
+    }
+
+    if (price) {
+      outputList = outputList.filter((doctor) => {
+        if (this.isUrgence)
+          return (doctor.urgencePrice <= price)
+        else
+          return (doctor.regularPrice <= price)
+      })
+    }
+
+    outputList = outputList.filter(createFilter(searchTerm, KEYS_TO_FILTERS))
+
+    return outputList
+  }
+
+  renderFiltersApplied() {
+    return (
+      <View style={styles.filters_selected_container}>
+        {this.state.country !== '' &&
+          <TouchableOpacity style={styles.filterItem} onPress={() => this.setState({ country: '' })}>
+            <Text style={styles.filterItem_text}>Pays</Text>
+            <Icon name="close"
+              //size= {20}
+              color="#93eafe" />
+          </TouchableOpacity>
+        }
+
+        {/* {this.state.urgences !== '' &&
+      <TouchableOpacity style={styles.filterItem}>
+        <Text style={styles.filterItem_text}>Urgences</Text>
+        <Icon name="close"
+          size={SCREEN_WIDTH * 0.05}
+          color="#93eafe"
+          onPress={() => this.setState({ urgences: '' })} />
+      </TouchableOpacity>
+    } */}
+
+        {this.state.speciality !== '' &&
+          < TouchableOpacity style={styles.filterItem} onPress={() => this.setState({ speciality: '' })}>
+            <Text style={styles.filterItem_text}>Specialité</Text>
+            <Icon name="close"
+              size={SCREEN_WIDTH * 0.05}
+              color="#93eafe" />
+          </TouchableOpacity>
+        }
+
+        {this.state.price < 100 &&
+          <TouchableOpacity style={styles.filterItem} onPress={() => this.setState({ price: 100 })}>
+            <Text style={styles.filterItem_text}>Tarifs</Text>
+            <Icon name="close"
+              size={SCREEN_WIDTH * 0.05}
+              color="#93eafe" />
+          </TouchableOpacity>
+        }
+      </View>
+    )
   }
 
   render() {
-    console.log('loading: ' + this.state.isLoading)
-    this.filterDoctors(this.state.country, this.state.urgences, this.state.speciality)
+    const { doctorList } = this.state
+    this.filterDoctors(doctorList)
 
     return (
-
       <View style={styles.container}>
-
-        <RightSideMenu
-          isSideMenuVisible={this.state.isSideMenuVisible}
-          toggleSideMenu={this.toggleSideMenu}
-          isUrgence={this.isUrgence}
-          countryPlaceHolder={this.countryPlaceHolder()}
-          toggleUrgence={this.toggleUrgence}
-          urgences={this.state.urgences}
-          price={this.state.price}
-          onSelectCountry={this.onSelectCountry}
-          onSelectSpeciality={this.onSelectSpeciality}
-          onSelectPriceMax={this.onSelectPriceMax} />
-
-        <View style={styles.logo_container}>
-          <Image source={require('../../assets/doctoneedLogoIcon.png')} style={styles.logoIcon} />
-        </View>
 
         {/* Search Bar + Filter button */}
         <View style={styles.search_container}>
@@ -330,103 +319,62 @@ class Search extends React.Component {
             <Icon name="search" size={20} color="#afbbbc" style={{ flex: 0.07, paddingRight: 1 }} />
             <TextInput
               style={{ flex: 0.93 }}
-              onChangeText={(term) => { this.searchUpdated(term) }}
+              onChangeText={(term) => this.setState({ searchTerm: term })}
               placeholder="Rechercher un médecin ou une spécialité"
             />
           </View>
 
-          <TouchableOpacity style={styles.filter_button}
-            onPress={this.toggleSideMenu}>
-            <Icon name="filter" size={25} color="#93eafe" />
-          </TouchableOpacity>
+          <RightSideMenu
+            main={this}
+            countryPlaceHolder={this.countryPlaceHolder()}
+            speciality={this.state.speciality}
+            price={this.state.price} />
         </View>
 
         {/* Display the filters applied */}
-        <View style={styles.filters_selected_container}>
-          {this.state.isCountrySelected ?
-            <View style={styles.filterItem}>
-              <Text style={styles.filterItem_text}>Pays</Text>
-              <Icon name="close"
-                //size= {20}
-                color="#93eafe"
-                onPress={() => this.setState({ country: '', isCountrySelected: false })} />
-            </View>
-            : null}
-
-          {this.state.isUrgencesSelected ?
-            <View style={styles.filterItem}>
-              <Text style={styles.filterItem_text}>Urgences</Text>
-              <Icon name="close"
-                size={SCREEN_WIDTH * 0.05}
-                color="#93eafe"
-                onPress={() => this.setState({ urgences: '', isUrgencesSelected: false })} />
-            </View>
-            : null}
-
-          {this.state.isSpecialitySelected ?
-            <View style={styles.filterItem}>
-              <Text style={styles.filterItem_text}>Specialité</Text>
-              <Icon name="close"
-                size={SCREEN_WIDTH * 0.05}
-                color="#93eafe"
-                onPress={() => this.setState({ speciality: '', isSpecialitySelected: false })} />
-            </View>
-            : null}
-
-          {this.state.isPriceSelected ?
-            <View style={styles.filterItem}>
-              <Text style={styles.filterItem_text}>Tarifs</Text>
-              <Icon name="close"
-                size={SCREEN_WIDTH * 0.05}
-                color="#93eafe"
-                onPress={() => this.setState({ price: 50, isPriceSelected: false })} />
-            </View>
-            : null}
-        </View>
+        {this.renderFiltersApplied()}
 
         {/* Doctors List */}
-
-        {this.state.isLoading === true ?
+        {this.state.isLoading ?
           <View style={styles.loading_container}>
             <ActivityIndicator size='large' />
           </View>
           :
-          <ScrollView style={styles.doctorList_container} >
+          this.filteredDoctors.length > 0 ?
+            <ScrollView style={styles.doctorList_container} contentContainerStyle={{ paddingTop: 5 }}>
 
-            {this.filteredDoctors1.map((doctor, key) => {
-              return (
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly', paddingLeft: 5 }}>
-                  {/* Admin: URG2: doctors selection */}
-                  {this.urgenceSpeciality !== '' &&
-                    <CheckBox color="#93eafe" style={{ borderColor: '#93eafe' }}
-                      title='check box'
-                      checked={doctor.isSelected}
-                      onPress={() => this.selectDoctor(doctor.uid)} />}
+              {this.filteredDoctors.map((doctor, key) => {
+                return (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly', paddingLeft: 5 }}>
+                    {/* Admin: URG2: doctors selection */}
+                    {this.urgenceSpeciality !== '' &&
+                      <CheckBox color="#93eafe" style={{ borderColor: '#93eafe' }}
+                        title='check box'
+                        checked={doctor.isSelected}
+                        onPress={() => this.selectDoctor(doctor.id)} />}
 
-                  <DoctorItem
-                    doctor={doctor}
-                    itemWidth={this.doctorItemWidth}
-                    timeLeft={doctor.timeLeft}
-                    displayDoctorCalendar={() => this.onDoctorClick(doctor)}
-                    displayDoctorDetails={() => this.displayDoctorDetails(doctor)} />
-                </View>
-              )
-            })}
+                    <DoctorItem
+                      doctor={doctor}
+                      itemWidth={this.urgenceSpeciality === '' ? SCREEN_WIDTH * 0.95 : SCREEN_WIDTH * 0.8}
+                      displayDoctorDetails={() => this.displayDoctorDetails(doctor)} />
+                  </View>
+                )
+              })}
 
-          </ScrollView>
+            </ScrollView>
+            :
+            <EmptyList iconName='account-search' header={this.isUrgence ? 'Aucun médecin disponible pour un rendez-vous en urgence' : 'Aucun médecin disponible'} description='' />
         }
 
-
-        {/* Patient: URG2 interface */}
-        {this.isUrgence === true && this.urgenceSpeciality === '' ?
-          <View style={{ flex: 0.2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+        {/* URG2: Patient interface */}
+        {this.isUrgence && this.props.role === 'isPatient' &&
+          <View style={{ flex: 0.2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: SCREEN_HEIGHT * 0.025 }}>
             <Button width={SCREEN_WIDTH * 0.7} text="Rendez-vous en urgence par choix de spécialité" onPress={this.toggleModalUrgence} />
 
-            <TouchableOpacity style={{ marginLeft: SCREEN_WIDTH * 0.025 }} onPress={() => alert('Explication du concept de la prise de rendez-vous en urgence par choix de spécialité...')}>
+            <TouchableOpacity style={{ marginLeft: SCREEN_WIDTH * 0.025, marginTop: SCREEN_HEIGHT * 0.02 }} onPress={() => alert('Explication du concept de la prise de rendez-vous en urgence par choix de spécialité...')}>
               <Icon1 name="info" size={20} color="#8febfe" />
             </TouchableOpacity>
-          </View>
-          : null}
+          </View>}
 
         <Modal
           isVisible={this.state.isModalUrgenceVisible}
@@ -435,11 +383,13 @@ class Search extends React.Component {
           animationOut="fadeInDown"
           onSwipeComplete={() => this.setState({ isModalUrgenceVisible: false })}
           // swipeDirection="right"
-          style={{ backgroundColor: 'white', height: 100, width: SCREEN_WIDTH * 0.9 }}>
+          style={{ backgroundColor: 'white', height: 100, maxHeight: SCREEN_HEIGHT * 0.35, marginTop: SCREEN_HEIGHT * 0.35, width: SCREEN_WIDTH * 0.9 }}>
 
-          <View style={{ justifyContent: 'center', alignItems: 'center', backgroundColor: 'green' }}>
+          <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ fontWeight: 'bold', alignSelf: 'center', fontSize: 18, marginBottom: SCREEN_HEIGHT * 0.033 }}>Choix de spécialité</Text>
+
             <View style={styles.picker_container} >
-              <Picker selectedValue={this.state.selectedSpeciality} onValueChange={(value) => this.setState({ selectedSpeciality: value })} style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.8, textAlign: "center" }}>
+              <Picker selectedValue={this.state.urgenceSpeciality} onValueChange={(value) => this.setState({ urgenceSpeciality: value })} style={{ flex: 1, color: '#445870', width: SCREEN_WIDTH * 0.8, textAlign: "center" }}>
                 <Picker.Item value='' label='Selectionnez une spécialité' />
                 {specialities.map((spec, key) => {
                   return (<Picker.Item key={key} value={spec} label={spec} />);
@@ -458,41 +408,48 @@ class Search extends React.Component {
 
         </Modal>
 
-        {/* Admin: URG2 interface */}
-        {this.isUrgence === true && this.urgenceSpeciality !== '' ?
+        {/* URG2: Admin interface */}
+        { this.isUrgence && this.props.role === 'isAdmin' &&
           <View style={{ flex: 0.2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-            <Button width={SCREEN_WIDTH * 0.5} text="Confirmer" onPress={this.inviteDoctors} />
+            <Button width={SCREEN_WIDTH * 0.7} text="Inviter les médecins" onPress={this.inviteDoctors} />
           </View>
-          : null}
-      </View>
+        }
+      </View >
     );
   }
 }
 
-export default Search;
+
+const mapStateToProps = (state) => {
+  return {
+    role: state.roles.role,
+  }
+}
+
+export default connect(mapStateToProps)(Search)
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
   },
-  logo_container: {
-    flex: 0.3,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    //backgroundColor: 'orange',
-  },
-  logoIcon: {
-    height: SCREEN_WIDTH * 0.25,
-    width: LOGO_WIDTH,
-    marginTop: SCREEN_WIDTH * 0.05
-  },
+  // logo_container: {
+  //   flex: 0.3,
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  //   backgroundColor: 'orange',
+  // },
+  // logoIcon: {
+  //   height: SCREEN_WIDTH * 0.15,
+  //   width: LOGO_WIDTH,
+  //   marginTop: SCREEN_WIDTH * 0.05
+  // },
   search_container: {
-    flex: 0.2,
+    paddingTop: 10,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    //backgroundColor: 'green',
+    // backgroundColor: 'green',
   },
   search_button: {
     textAlignVertical: 'top',
@@ -506,7 +463,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 10,
-    elevation: 5,
+    elevation: 3,
     marginTop: SCREEN_HEIGHT * 0.01,
     marginBottom: SCREEN_HEIGHT * 0.01,
     fontSize: 16,
@@ -527,15 +484,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 9,
+    elevation: 3,
     justifyContent: 'center',
     alignItems: 'center'
   },
   filters_selected_container: {
-    flex: 0.1,
+    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    //backgroundColor: 'brown'
+    // backgroundColor: 'brown'
   },
   filterItem: {
     width: SCREEN_WIDTH * 0.21,
@@ -548,7 +505,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 5,
+    elevation: 3,
     marginLeft: SCREEN_WIDTH * 0.03,
     fontSize: 16,
     flexDirection: 'row',
@@ -560,10 +517,11 @@ const styles = StyleSheet.create({
   },
   doctorList_container: {
     flex: 1,
-    //backgroundColor: 'yellow'
+    // backgroundColor: 'yellow'
   },
   loading_container: {
     flex: 1,
+    justifyContent: 'center'
   },
   picker_container: {
     borderRadius: 30,
@@ -571,37 +529,14 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 5, height: 5 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 5,
+    elevation: 3,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'white',
     height: SCREEN_HEIGHT * 0.05,
     width: SCREEN_WIDTH * 0.8,
     paddingLeft: 20,
-    paddingRight: 10
+    paddingRight: 10,
+    marginBottom: SCREEN_HEIGHT * 0.03
   }
 });
-
-
-
-/*  clearAllFilters = () => {
-    this.setState({
-        country: '', urgences: '', speciality: '', price: 50,
-        isCountrySelected: false, isUrgencesSelected: false, isSpecialitySelected: false, isPriceSelected: false,
-      isSideMenuVisible: false
-    })
-  }*/
-
-          //Check if there is at least one doctor available "in the next 30min for an urgent consultation"
-        //util pour afficher: 'Aucun medecin disponible' 
-/*  if (this.isUrgence === true) {
-    if (doc.data().urgences === true) {
-      if (timeLeft !== 'Invalid date') {
-        this.setState({ noDoctors: false })
-      }
-    }
-  }*/
-
-        //let currentDay = moment().startOf('hours').format() //Jeudi 07 mai 2020 00:00
-
-              //let currentDay = moment().startOf("hours").format() //Jeudi 07 mai 2020 00:00

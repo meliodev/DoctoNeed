@@ -3,6 +3,8 @@
  * Renders a button and calls a function passed via onPress prop once tapped
  */
 
+//dashboard filter
+
 import React, { Component, Children } from 'react';
 import { StyleSheet, Text, TouchableHighlight, View, Dimensions, SafeAreaView, Slider } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -147,7 +149,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         justifyContent: 'center',
         alignItems: 'center'
     },
@@ -187,7 +189,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 5,
+        elevation: 3,
         fontSize: 16,
         alignItems: 'center',
         justifyContent: 'space-between'
@@ -202,7 +204,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 5,
+        elevation: 3,
     },
     buttonText1: {
         fontSize: SCREEN_HEIGHT * 0.016,
@@ -245,7 +247,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 5,
+        elevation: 3,
         marginLeft: SCREEN_WIDTH * 0.03,
         //margin: 15,
         //marginTop: 15,
@@ -269,7 +271,7 @@ const pickerSelectStyles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         //margin: 15,
         marginTop: 15,
         marginBottom: 15,
@@ -288,7 +290,7 @@ const pickerSelectStyles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         //margin: 15,
         marginTop: SCREEN_WIDTH * 0.03,
         //marginBottom: 15,

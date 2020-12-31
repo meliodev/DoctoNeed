@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 9,
+    elevation: 3,
   },
   placeHolder1: {
     color: '#d5d5d5'

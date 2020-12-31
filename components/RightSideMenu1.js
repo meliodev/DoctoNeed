@@ -1,3 +1,4 @@
+//Search filter
 
 import React, { Component, Children } from 'react';
 import { StyleSheet, Text, TouchableHighlight, View, Dimensions, SafeAreaView, Slider } from 'react-native';
@@ -12,35 +13,56 @@ import LinearGradient from 'react-native-linear-gradient';
 import Modal from "react-native-modal";
 
 export default class RightSideMenu extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            isSideMenuVisible: false
+        }
+    }
+
+    toggleSideMenu = () => {
+        this.setState({ isSideMenuVisible: !this.state.isSideMenuVisible });
+    }
 
     render({ onPress } = this.props) {
 
-        return (
-            <Modal
-                isVisible={this.props.isSideMenuVisible}
-                coverScreen='true'
-                onBackdropPress={this.props.toggleSideMenu} // Android back press
-                onSwipeComplete={this.props.toggleSideMenu} // Swipe to discard
-                animationIn="slideInRight" // Has others, we want slide in from the left
-                animationOut="slideOutRight" // When discarding the drawer
-                swipeDirection="right" // Discard the drawer with swipe to left
-                useNativeDriver // Faster animation 
-                hideModalContentWhileAnimating // Better performance, try with/without
-                propagateSwipe // Allows swipe events to propagate to children components (eg a ScrollView inside a modal)
-                style={styles.sideMenuStyle} // Needs to contain the width, 75% of screen width in our case
-            >
-                <SafeAreaView style={styles.safeAreaView}>
-                    <View style={styles.header_container}>
-                        <Text style={styles.header_text}>Trier par</Text>
-                        <TouchableHighlight style={styles.filter_button}
-                            onPress={this.props.toggleSideMenu}>
-                            <Icon name="filter" size={25} color="#93eafe" />
-                        </TouchableHighlight>
-                    </View>
+        const { main } = this.props
 
-                    <View style={styles.pays_container}>
-                        <Text style={styles.title_text}>Pays</Text>
-                        <View style={{ borderRadius: 30,
+        return (
+            <View style={{}}>
+
+                <TouchableHighlight style={styles.filter_button}
+                    onPress={this.toggleSideMenu}>
+                    <Icon name="filter" size={25} color="#93eafe" />
+                </TouchableHighlight>
+
+                <Modal
+                    isVisible={this.state.isSideMenuVisible}
+                    coverScreen='true'
+                    onBackdropPress={this.toggleSideMenu} // Android back press
+                    onSwipeComplete={this.toggleSideMenu} // Swipe to discard
+                    animationIn="slideInRight" // Has others, we want slide in from the left
+                    animationOut="slideOutRight" // When discarding the drawer
+                    swipeDirection="right" // Discard the drawer with swipe to left
+                    useNativeDriver // Faster animation 
+                    hideModalContentWhileAnimating // Better performance, try with/without
+                    propagateSwipe // Allows swipe events to propagate to children components (eg a ScrollView inside a modal)
+                    style={styles.sideMenuStyle} // Needs to contain the width, 75% of screen width in our case
+                >
+                    <SafeAreaView style={styles.safeAreaView}>
+                        <View style={styles.header_container}>
+                            <Text style={styles.header_text}>Trier par</Text>
+                            <TouchableHighlight style={styles.filter_button}
+                                onPress={this.toggleSideMenu}>
+                                <Icon name="filter" size={25} color="#93eafe" />
+                            </TouchableHighlight>
+                        </View>
+
+                        <View style={styles.pays_container}>
+                            <Text style={styles.title_text}>Pays</Text>
+                            <View style={{
+                                borderRadius: 30,
                                 borderWidth: 0,
                                 borderColor: '#bdc3c7',
                                 overflow: 'hidden',
@@ -48,27 +70,30 @@ export default class RightSideMenu extends Component {
                                 shadowOffset: { width: 0, height: 5 },
                                 shadowOpacity: 0.32,
                                 shadowRadius: 5.46,
-                                elevation: 9,
-                                backgroundColor: 'white', 
+                                elevation: 3,
+                                backgroundColor: 'white',
                                 marginHorizontal: SCREEN_WIDTH * 0.00,
-                                 marginTop: 10,
-                                 paddingVertical: 0,
-                                  width: SCREEN_WIDTH * 0.55}}>
-                        <CountryPicker
-                            withFilter
-                            withEmoji
-                            withCountryNameButton
-                            withAlphaFilter
-                            translation="fra"
-                            placeholder={this.props.countryPlaceHolder}  
-                            containerButtonStyle= {{width: SCREEN_WIDTH *0.6, height: SCREEN_HEIGHT*0.065, borderRadius: 30, marginTop: SCREEN_HEIGHT*0.00,paddingVertical:SCREEN_HEIGHT * 0.02
-                            , paddingHorizontal: SCREEN_WIDTH * 0.05 }} 
-                            onSelect={country => this.props.onSelectCountry(country)}   
-                        />
+                                marginTop: 10,
+                                paddingVertical: 0,
+                                width: SCREEN_WIDTH * 0.55
+                            }}>
+                                <CountryPicker
+                                    withFilter
+                                    withEmoji
+                                    withCountryNameButton
+                                    withAlphaFilter
+                                    translation="fra"
+                                    placeholder={this.props.countryPlaceHolder}
+                                    containerButtonStyle={{
+                                        width: SCREEN_WIDTH * 0.6, height: SCREEN_HEIGHT * 0.065, borderRadius: 30, marginTop: SCREEN_HEIGHT * 0.00, paddingVertical: SCREEN_HEIGHT * 0.02
+                                        , paddingHorizontal: SCREEN_WIDTH * 0.05
+                                    }}
+                                    onSelect={country => main.setState({ country: country.name })}
+                                />
+                            </View>
                         </View>
-                    </View>
 
-                    {/*
+                        {/*
                        {this.props.isUrgence ?
                          null :
                         <View style= {styles.urgence_container}>
@@ -88,65 +113,62 @@ export default class RightSideMenu extends Component {
                         </View>}
                                */}
 
+                        <View style={styles.speciality_container}>
+                            <Text style={styles.title_text}>Spécialité</Text>
+                            <RNPickerSelect
+                                onValueChange={(speciality) => main.setState({ speciality })}
+                                value={this.props.speciality}
+                                style={pickerSelectStyles}
+                                useNativeAndroidPickerStyle={false}
+                                items={[
+                                    { label: 'Médecin généraliste', value: 'Médecin généraliste' },
+                                    { label: 'Pédiatre', value: 'Pédiatre' },
+                                    { label: 'Ophtalmologue', value: 'Ophtalmologue' },
+                                    { label: 'Psychologue', value: 'Psychologue' },
+                                    { label: 'Rhumatologue', value: 'Rhumatologue' },
+                                ]}
+                                placeholder={{
+                                    label: 'Choisissez une spécialité',
+                                    value: ''
+                                }}
+                            />
+                        </View>
 
+                        <View style={styles.price_container}>
+                            <Text style={styles.title_text}>Tarifs</Text>
+                            <Slider
+                                value={this.props.price}
+                                onValueChange={price => main.setState({ price })}
+                                minimumValue={0}
+                                maximumValue={100}
+                                step={5}
+                                minimumTrackTintColor='#93eafe'
+                                thumbTintColor='#93eafe'
+                                style={styles.slider}
+                            />
+                            <Text style={styles.title_text}>Maximum: {this.props.price} €</Text>
+                        </View>
 
-                    <View style={styles.speciality_container}>
-                        <Text style={styles.title_text}>Spécialité</Text>
-                        <RNPickerSelect
-                            onValueChange={(speciality) => this.props.onSelectSpeciality(speciality)}
-                            style={pickerSelectStyles}
-                            useNativeAndroidPickerStyle={false}
-                            items={[
-                                { label: 'Ophtalmologue', value: 'Ophtalmologue' },
-                                { label: 'Médecin généraliste', value: 'Médecin généraliste' },
-                                { label: 'Psychologue', value: 'Psychologue' },
-                                { label: 'Cardiologue', value: 'Cardiologue' },
-                                { label: 'Rhumatologue', value: 'Rhumatologue' },
-                                { label: 'Neurologue', value: 'Neurologue' },
-                                { label: 'Gynécologue', value: 'Gynécologue' }
-                            ]}
-                            placeholder={{
-                                label: 'Choisissez une spécialité',
-                                value: ''
-                            }}
-                        />
-                    </View>
+                        <View style={styles.buttons_container}>
+                            <TouchableHighlight onPress={this.toggleSideMenu} style={styles.CancelButton}>
+                                <Text style={styles.buttonText1}>Annuler</Text>
+                            </TouchableHighlight>
 
-                    <View style={styles.price_container}>
-                        <Text style={styles.title_text}>Tarifs</Text>
-                        <Slider
-                            value={this.props.price}
-                            onValueChange={value => this.props.onSelectPriceMax(value)}
-                            minimumValue={0}
-                            maximumValue={50}
-                            step={5}
-                            minimumTrackTintColor='#93eafe'
-                            thumbTintColor='#93eafe'
-                            style={styles.slider}
-                        />
-                        <Text style={styles.title_text}>Maximum: {this.props.price} €</Text>
-                    </View>
+                            <TouchableHighlight
+                                onPress={this.toggleSideMenu}>
+                                <LinearGradient
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    colors={['#b3f3fd', '#84e2f4', '#5fe0fe']}
+                                    style={styles.linearGradient}>
+                                    <Text style={styles.buttonText2}>Appliquer</Text>
+                                </LinearGradient>
+                            </TouchableHighlight>
+                        </View>
+                    </SafeAreaView>
+                </Modal>
 
-                    <View style={styles.buttons_container}>
-                        <TouchableHighlight onPress={this.props.toggleSideMenu} style={styles.CancelButton}>
-                            <Text style={styles.buttonText1}>Annuler</Text>
-                        </TouchableHighlight>
-
-                        <TouchableHighlight
-                            onPress={this.props.toggleSideMenu}>
-                            <LinearGradient
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                                colors={['#b3f3fd', '#84e2f4', '#5fe0fe']}
-                                style={styles.linearGradient}>
-                                <Text style={styles.buttonText2}>Appliquer</Text>
-                            </LinearGradient>
-                        </TouchableHighlight>
-                    </View>
-
-
-                </SafeAreaView>
-            </Modal>
+            </View>
         );
     }
 }
@@ -203,7 +225,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         justifyContent: 'center',
         alignItems: 'center'
     },
@@ -243,7 +265,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         justifyContent: 'center',
         alignItems: 'center'
     },
@@ -289,7 +311,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 5,
+        elevation: 3,
         fontSize: 16,
         alignItems: 'center',
         justifyContent: 'space-between'
@@ -304,7 +326,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 5,
+        elevation: 3,
     },
     buttonText1: {
         fontSize: SCREEN_HEIGHT * 0.016,
@@ -346,7 +368,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 5,
+        elevation: 3,
         marginLeft: SCREEN_WIDTH * 0.03,
         fontSize: 16,
         flexDirection: 'row',
@@ -367,7 +389,7 @@ const pickerSelectStyles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         marginTop: 15,
         marginBottom: 15,
         fontSize: 11,
@@ -385,7 +407,7 @@ const pickerSelectStyles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         marginTop: SCREEN_WIDTH * 0.03,
         fontSize: 11,
         color: '#333',

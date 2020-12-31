@@ -19,8 +19,9 @@ const db = firebase.firestore()
 export default class Main extends React.Component {
   constructor(props) {
     super(props);
-    this.doctor = this.props.navigation.getParam('doctor', 'nothing sent')
-    this.date = this.props.navigation.getParam('date', 'nothing sent') 
+    this.doctor = this.props.navigation.getParam('doctor', '')
+    this.speciality = this.props.navigation.getParam('speciality', '')
+    this.date = this.props.navigation.getParam('date', 'nothing sent')
     this.symptomes = this.props.navigation.getParam('symptomes', 'nothing sent')
     this.comment = this.props.navigation.getParam('comment', 'nothing sent')
 
@@ -35,7 +36,8 @@ export default class Main extends React.Component {
 
   }
 
-  componentWillMount() {
+  componentDidMount() {
+    console.log('DOC ::::::::::' + this.doctor)
     const { currentUser } = firebase.auth()
     this.setState({ currentUser })
     firebase.firestore().collection("users").doc(currentUser.uid).get().then(doc => {
@@ -88,6 +90,48 @@ export default class Main extends React.Component {
     await firebase.auth().currentUser.updateProfile(update);
   }
 
+  renderConfirmationMessage() {
+    if (this.doctor === '')
+      return (
+        <ScrollView contentContainerStyle={styles.appointments_container} >
+          <Text style={styles.paragraph}>
+            Votre rendez-vous avec un
+            </Text>
+          <Text style={styles.paragraph}>
+            <Text style={[styles.paragraph, { color: '#93eafe' }]}>{this.speciality}</Text> a été fixé.
+           </Text>
+
+          <Text style={styles.text_details1}>
+            Un spécialiste vous contactera dans les plus
+          </Text>
+          <Text style={[styles.text_details1, {marginTop: 0}]}>
+            brefs délais. Nous vous prions de patienter.
+          </Text>
+
+        </ScrollView>
+      )
+
+    else {
+      return (
+        <ScrollView contentContainerStyle={styles.appointments_container} >
+          <Text style={styles.paragraph}>
+            Votre rendez-vous avec Dr. <Text style={[styles.paragraph, { color: '#93eafe' }]}>{this.doctor}</Text> est fixé
+          </Text>
+          <Text style={styles.paragraph}>
+            pour le <Text style={[styles.paragraph, { color: '#93eafe' }]}>{moment(this.date).format("Do MMMM YYYY")}</Text> à <Text style={[styles.paragraph, { color: '#93eafe' }]}>{moment(this.date).format('HH:mm')}</Text>
+          </Text>
+          <Text style={styles.text_details1}>
+            Une notification de rappel vous sera envoyée
+          </Text>
+          <Text style={styles.text_details2}>
+            30 min avant la consultation.
+          </Text>
+        </ScrollView>
+      )
+    }
+
+  }
+
   render() {
     const { currentUser } = this.state
     //console.log(users)
@@ -107,20 +151,7 @@ export default class Main extends React.Component {
         </Text>
         </View>
 
-        <ScrollView contentContainerStyle={styles.appointments_container} >
-          <Text style={styles.paragraph}>
-            Votre rendez-vous avec Dr. <Text style={[styles.paragraph, {color: '#93eafe'}]}>{this.doctor.nom} {this.doctor.prenom}</Text> est fixé
-            </Text>
-          <Text style={styles.paragraph}>
-            pour le <Text style={[styles.paragraph, {color: '#93eafe'}]}>{moment(this.date).format("Do MMMM YYYY")}</Text> à <Text style={[styles.paragraph, {color: '#93eafe'}]}>{moment(this.date).format('HH:mm')}</Text>
-          </Text>
-          <Text style={styles.text_details1}>
-            Une notification de rappel vous sera envoyée
-            </Text>
-          <Text style={styles.text_details2}>
-            30 min avant la consultation.
-            </Text>
-        </ScrollView>
+        {this.renderConfirmationMessage()}
 
         <View style={styles.button_container}>
           <TouchableOpacity
@@ -165,12 +196,14 @@ const styles = StyleSheet.create({
   appointments_container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingTop: SCREEN_HEIGHT*0.1
+    //justifyContent: 'center',
     //backgroundColor: 'green'
   },
   paragraph: {
     fontSize: SCREEN_HEIGHT * 0.017,
     fontWeight: 'bold',
+    textAlign: 'center'
   },
   text_details1: {
     marginTop: 20,

@@ -18,6 +18,7 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 import LinearGradient from 'react-native-linear-gradient';
 import Modal from "react-native-modal";
+import Main from 'react-native-country-picker-modal';
 
 export default class RightSideMenu4 extends Component {
     constructor(props) {
@@ -30,53 +31,12 @@ export default class RightSideMenu4 extends Component {
         }
     }
 
-    componentDidMount() {
-        console.log('didmount')
-        this._loadPatients()
-    }
-
-    _loadPatients() {
-        const patientNames = []
-        const patientsCountries = []
-        let patientName = ''
-        let patientCountry = ''
-
-        var query = REFS.users
-        query = query.where("myDoctors", "array-contains", firebase.auth().currentUser.uid) //the doctor id is added to this array By Admin right after Admin confirms the 1st appointment between the User & Doctor
-
-        query.get()
-            .then(querySnapshot => {
-                querySnapshot.forEach(doc => {
-                    console.log(doc.data().nom)
-                    patientName = doc.data().nom + ' ' + doc.data().prenom
-                    patientCountry = doc.data().country
-
-                    patientNames.push(patientName)
-                    patientsCountries.push(patientCountry)
-
-                })
-
-                this.setState({
-                    patientNames: patientNames,
-                    patientsCountries: patientsCountries
-                })
-
-            })
-            .catch(error => console.log('Error getting documents:' + error))
-    }
-
-
     render({ onPress } = this.props) {
-        let TodayDay = new Date().getDate()
-        let TodayMonth = new Date().getMonth() + 1
-        let TodayYear = new Date().getFullYear()
-        let Today = TodayYear + '-' + TodayMonth + '-' + TodayDay
 
+        const { main, isSideMenuVisible, toggleSideMenu, clearAllFilters, isNextAppointments } = this.props
+        const { patient, country, appointmentState } = this.props
+        const { dateFrom, dateTo } = this.props
 
-        console.log(this.state.patientsCountries)
-
-        //  console.log(this.state.doctorNames)
-        const bool = true
         return (
             <Modal
                 isVisible={this.props.isSideMenuVisible}
@@ -102,59 +62,64 @@ export default class RightSideMenu4 extends Component {
 
                     <View style={styles.patient_container}>
                         <Text style={styles.title_text}>Patient</Text>
-                <View style={{ borderRadius: 30,
-                                borderWidth: 0,
-                                borderColor: '#bdc3c7',
-                                overflow: 'hidden',
-                                shadowColor: "#000",
-                                shadowOffset: { width: 0, height: 5 },
-                                shadowOpacity: 0.32,
-                                shadowRadius: 5.46,
-                                elevation: 9,
-                                backgroundColor: 'white', 
-                                marginHorizontal: SCREEN_WIDTH * 0.02,
-                                 marginTop: 10,
-                                 paddingVertical: 0,
-                                  width: SCREEN_WIDTH * 0.55}}>
-                        <Picker selectedValue={this.props.patient} 
-                            onValueChange={(patient) => this.props.onSelectPatient(patient)}>
-                            <Picker.Item value='' label='Choisissez votre patient' />
-                            {this.state.patientNames.map((patientName, key) => {
-                                return (<Picker.Item key={key} value={patientName} label={patientName} />);
-                            })}
-                        </Picker>
+                        <View style={{
+                            borderRadius: 30,
+                            borderWidth: 0,
+                            borderColor: '#bdc3c7',
+                            overflow: 'hidden',
+                            shadowColor: "#000",
+                            shadowOffset: { width: 0, height: 5 },
+                            shadowOpacity: 0.32,
+                            shadowRadius: 5.46,
+                            elevation: 3,
+                            backgroundColor: 'white',
+                            marginHorizontal: SCREEN_WIDTH * 0.02,
+                            marginTop: 10,
+                            paddingVertical: 0,
+                            width: SCREEN_WIDTH * 0.55
+                        }}>
+                            <Picker selectedValue={this.props.patient}
+                                onValueChange={(patient) => main.setState({ patient })}>
+                                <Picker.Item value='' label='Choisissez votre patient' />
+                                {this.props.patientNames.map((patientName, key) => {
+                                    return (<Picker.Item key={key} value={patientName} label={patientName} />);
+                                })}
+                            </Picker>
                         </View>
-                    </View> 
+                    </View>
 
                     <View style={styles.speciality_container}>
                         <Text style={styles.title_text}>Pays</Text>
-                        <View style={{ borderRadius: 30,
-                                borderWidth: 0,
-                                borderColor: '#bdc3c7',
-                                overflow: 'hidden',
-                                shadowColor: "#000",
-                                shadowOffset: { width: 0, height: 5 },
-                                shadowOpacity: 0.32,
-                                shadowRadius: 5.46,
-                                elevation: 9,
-                                backgroundColor: 'white', 
-                                marginHorizontal: SCREEN_WIDTH * 0.02,
-                                 marginTop: 10,
-                                 paddingVertical: 0,
-                                  width: SCREEN_WIDTH * 0.55}}>
-                        <Picker selectedValue={this.props.country}
-                            onValueChange={(country) => this.props.onSelectCountry(country)}>
-                            <Picker.Item value='' label='Choisissez un pays' />
-                            {this.state.patientsCountries.map((patientsCountry, key) => {
-                                return (<Picker.Item key={key} value={patientsCountry} label={patientsCountry} />);
-                            })}
-                        </Picker></View>
+                        <View style={{
+                            borderRadius: 30,
+                            borderWidth: 0,
+                            borderColor: '#bdc3c7',
+                            overflow: 'hidden',
+                            shadowColor: "#000",
+                            shadowOffset: { width: 0, height: 5 },
+                            shadowOpacity: 0.32,
+                            shadowRadius: 5.46,
+                            elevation: 3,
+                            backgroundColor: 'white',
+                            marginHorizontal: SCREEN_WIDTH * 0.02,
+                            marginTop: 10,
+                            paddingVertical: 0,
+                            width: SCREEN_WIDTH * 0.55
+                        }}>
+                            <Picker selectedValue={this.props.country}
+                                onValueChange={(country) => main.setState({ country })}>
+                                <Picker.Item value='' label='Choisissez un pays' />
+                                {this.props.patientsCountries.map((patientsCountry, key) => {
+                                    return (<Picker.Item key={key} value={patientsCountry} label={patientsCountry} />);
+                                })}
+                            </Picker></View>
                     </View>
 
-                     {this.props.isNextAppointments ? 
+                    {this.props.isNextAppointments ?
                         <View style={styles.speciality_container}>
                             <Text style={styles.title_text}>Etat</Text>
-                            <View style={{ borderRadius: 30,
+                            <View style={{
+                                borderRadius: 30,
                                 borderWidth: 0,
                                 borderColor: '#bdc3c7',
                                 overflow: 'hidden',
@@ -162,21 +127,21 @@ export default class RightSideMenu4 extends Component {
                                 shadowOffset: { width: 0, height: 5 },
                                 shadowOpacity: 0.32,
                                 shadowRadius: 5.46,
-                                elevation: 9,
-                                backgroundColor: 'white', 
+                                elevation: 3,
+                                backgroundColor: 'white',
                                 marginHorizontal: SCREEN_WIDTH * 0.02,
-                                 marginTop: 10,
-                                 paddingVertical: 0,
-                                  width: SCREEN_WIDTH * 0.55}}>
-                            <Picker selectedValue={this.props.appointmentState}
-                                onValueChange={(state) => this.props.onSelectState(state)}>
-                                <Picker.Item value='' label='Choisissez un état' />
-                                <Picker.Item value='pending' label='En attente' />
-                                <Picker.Item value='CBD' label='Confirmé' />
-                            </Picker></View>
+                                marginTop: 10,
+                                paddingVertical: 0,
+                                width: SCREEN_WIDTH * 0.55
+                            }}>
+                                <Picker selectedValue={this.props.appointmentState}
+                                    onValueChange={(appointmentState) => main.setState({ appointmentState })}>
+                                    <Picker.Item value='' label='Choisissez un état' />
+                                    <Picker.Item value='pending' label='En attente' />
+                                    <Picker.Item value='CBD' label='Confirmé' />
+                                </Picker></View>
                         </View>
-                     : null} 
-
+                        : null}
 
 
                     <View style={styles.date_container}>
@@ -190,10 +155,10 @@ export default class RightSideMenu4 extends Component {
                                 placeholder="Jour - Mois - Année"
                                 format="YYYY-MM-DD"
                                 //minDate="1920-01-01"
-                                //maxDate= {Today}
+                                //maxDate= {Today} 
                                 confirmBtnText="Confirm"
                                 cancelBtnText="Cancel"
-                                onDateChange={(date) => this.props.onSelectDateFrom(date)}
+                                onDateChange={(dateFrom) => main.setState({ dateFrom })}
                             />
                         </View>
 
@@ -209,7 +174,7 @@ export default class RightSideMenu4 extends Component {
                                 //maxDate={Today}
                                 confirmBtnText="Confirm"
                                 cancelBtnText="Cancel"
-                                onDateChange={(date) => this.props.onSelectDateTo(date)}
+                                onDateChange={(dateTo) => main.setState({ dateTo })}
                             />
                         </View>
 
@@ -217,9 +182,9 @@ export default class RightSideMenu4 extends Component {
 
                     <View style={styles.buttons_container}>
                         <TouchableHighlight onPress={this.props.clearAllFilters} style={styles.CancelButton}>
-                            <Text style={styles.buttonText1}>Annuler</Text>
+                            <Text style={styles.buttonText1}>Réinitialiser</Text>
                         </TouchableHighlight>
- 
+
                         <TouchableHighlight
                             onPress={this.props.toggleSideMenu}>
                             <LinearGradient
@@ -234,7 +199,7 @@ export default class RightSideMenu4 extends Component {
 
 
                 </SafeAreaView>
-            </Modal>
+            </Modal >
         );
     }
 }
@@ -297,7 +262,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         justifyContent: 'center',
         alignItems: 'center'
     },
@@ -347,7 +312,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 5,
+        elevation: 3,
         fontSize: 16,
         alignItems: 'center',
         justifyContent: 'space-between'
@@ -362,7 +327,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 5,
+        elevation: 3,
     },
     buttonText1: {
         fontSize: SCREEN_HEIGHT * 0.016,
@@ -405,7 +370,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 5,
+        elevation: 3,
         marginLeft: SCREEN_WIDTH * 0.03,
         //margin: 15,
         //marginTop: 15,
@@ -429,7 +394,7 @@ const pickerSelectStyles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         marginTop: SCREEN_WIDTH * 0.03,
         fontSize: 16,
     },
@@ -445,7 +410,7 @@ const pickerSelectStyles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.32,
         shadowRadius: 5.46,
-        elevation: 9,
+        elevation: 3,
         //margin: 15,
         marginTop: SCREEN_WIDTH * 0.03,
         //marginBottom: 15,

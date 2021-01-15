@@ -120,12 +120,12 @@ export default class Main extends React.Component {
           <Text style={styles.paragraph}>
             pour le <Text style={[styles.paragraph, { color: '#93eafe' }]}>{moment(this.date).format("Do MMMM YYYY")}</Text> à <Text style={[styles.paragraph, { color: '#93eafe' }]}>{moment(this.date).format('HH:mm')}</Text>
           </Text>
-          <Text style={styles.text_details1}>
+          {/* <Text style={styles.text_details1}>
             Une notification de rappel vous sera envoyée
           </Text>
           <Text style={styles.text_details2}>
             30 min avant la consultation.
-          </Text>
+          </Text> */}
         </ScrollView>
       )
     }

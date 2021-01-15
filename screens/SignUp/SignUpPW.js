@@ -26,8 +26,9 @@ const ratioLogo = 420 / 244;
 const LOGO_WIDTH = SCREEN_WIDTH * 0.2 * ratioLogo;
 
 class SignUpPW extends ValidationComponent {
+
   constructor(props) {
-    super(props);
+    super(props)
     this.isDoctor = this.props.signupData.isDoctor
     this.email = this.props.signupData.email
     this.country = this.props.signupData.country
@@ -47,44 +48,49 @@ class SignUpPW extends ValidationComponent {
 
   handleSignUp = () => {
     this.setState({ isLoading: true })
+    const { email, phone, country, nom, prenom, dateNaissance, speciality, codeFinesse } = this.props.signupData
 
     if (this.isDoctor) {
       var credential = firebase.auth.EmailAuthProvider.credential(this.email, this.state.password);
 
-      firebase.auth().currentUser.linkWithCredential(credential).then((usercred) => {
-        console.log('0')
-        console.log(usercred.user)
+      firebase.auth().currentUser.linkWithCredential(credential).then(async (usercred) => {
 
         const doctor = {
-          email: this.email,
-          phoneNumber: this.phone,
-          country: this.country,
-          nom: this.nom,
-          prenom: this.prenom,
-          name: this.prenom + ' ' + this.nom,
-          dateNaissance: this.dateNaissance,
-          speciality: this.speciality,
-          codeFinesse: this.codeFinesse,
-          regularPrice: 40, //setted depending on the speciality 
-          urgencePrice: 60, //setted depending on the speciality
-          urgences: 'false',
-          Avatar: '',
-          Sexe: '',
-          bio: '',
-          diplomes: [],
-          myPatients: [],
+          email: email,
+          phoneNumber: phone,
+          country: country,
+          nom: nom,
+          prenom: prenom,
+          name: prenom + ' ' + nom,
+          dateNaissance: dateNaissance,
+          speciality: speciality,
+          codeFinesse: codeFinesse,
+          regularPrice: 40, //default
+          urgencePrice: 60, //default
+          urgences: 'false', //default
+          Avatar: '', //default
+          Sexe: '', //default
+          bio: '', //default
+          diplomes: [], //default
+          myPatients: [], //default
         }
 
-        let signuprequest = doctor
-        signuprequest.email = this.email
+        const signuprequest = doctor
+        signuprequest.email = email
         signuprequest.password = this.state.password
-        signuprequest.phone = this.phone
+        signuprequest.phone = phone
         signuprequest.disabled = true
 
         //#task: Use batch
-        REFS.emails.add({ email: this.email }).then(() => console.log('email added'))
-        REFS.phones.add({ phone: this.phone }).then(() => console.log('phone added'))
-        REFS.signuprequests.doc(usercred.user.uid).set(signuprequest).then(() => console.log('signuprequest set'))
+        try {
+          await REFS.emails.add({ email: email }).catch((e) => console.error(e))
+          await REFS.phones.add({ phone: phone }).catch((e) => console.error(e))
+          await REFS.signuprequests.doc(usercred.user.uid).set(signuprequest).catch((e) => console.error(e))
+        }
+
+        catch (e) {
+          console.error(e)
+        }
       })
         .then(() => this.props.navigation.navigate('SignUpRequestFinished'))
         .catch((e) => console.error(e))
@@ -92,22 +98,22 @@ class SignUpPW extends ValidationComponent {
     }
 
     else {
-      var credential = firebase.auth.EmailAuthProvider.credential(this.email, this.state.password);
+      var credential = firebase.auth.EmailAuthProvider.credential(email, this.state.password);
 
       firebase.auth().currentUser.linkWithCredential(credential)
         .then(async (usercred) => {
 
           const user = {
             //MetaData
-            email: this.email,
-            phoneNumber: this.phone,
-            country: this.country,
-            nom: this.nom,
-            prenom: this.prenom,
-            dateNaissance: this.dateNaissance,
-            Avatar: '',
+            email: email,
+            phoneNumber: phone,
+            country: country,
+            nom: nom,
+            prenom: prenom,
+            dateNaissance: dateNaissance,
 
             //Infos personnelles
+            Avatar: '',
             Sexe: '-',
             Poids: 0,
             Taille: 0,
@@ -134,11 +140,10 @@ class SignUpPW extends ValidationComponent {
             myDoctors: []
           }
 
-          //Update user's data on FIRESTORE
           try {
-            await REFS.users.doc(usercred.user.uid).set(user)
-            await REFS.emails.add({ email: this.email })
-            await REFS.phones.add({ phone: this.phone })
+            await REFS.users.doc(usercred.user.uid).set(user).catch((e) => console.error(e))
+            await REFS.emails.add({ email: email }).catch((e) => console.error(e))
+            await REFS.phones.add({ phone: phone }).catch((e) => console.error(e))
           }
 
           catch (e) {
@@ -152,7 +157,7 @@ class SignUpPW extends ValidationComponent {
 
   }
 
-  _onPressButton() {
+  onSubmit() {
     if (this.state.isValid)
       this.handleSignUp()
 
@@ -160,19 +165,8 @@ class SignUpPW extends ValidationComponent {
       console.log("Le format du mot de passe n'est pas valide")
   }
 
-  _displayLoading() {
-    if (this.state.isLoading) {
-      return (
-        <View style={styles.loading_container}>
-          <ActivityIndicator size='large' />
-        </View>
-      )
-    }
-  }
-
   render() {
-
-    const { isValid } = this.state;
+    const { isValid } = this.state
 
     return (
       <View style={styles.container}>
@@ -236,7 +230,7 @@ class SignUpPW extends ValidationComponent {
             </View>
 
             <View style={styles.button_container}>
-              <Button width={SCREEN_WIDTH * 0.65} text="Soumettre" onPress={this._onPressButton.bind(this)} />
+              <Button width={SCREEN_WIDTH * 0.65} text="Soumettre" onPress={this.onSubmit.bind(this)} />
             </View>
           </View>}
       </View>

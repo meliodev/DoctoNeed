@@ -15,6 +15,7 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
+import Main from 'react-native-country-picker-modal';
 
 import Button from '../../components/Button';
 
@@ -242,41 +243,33 @@ export default class OnboardingScreens extends Component {
     const lastScreen = this.state.index === this.state.total - 1;
     return (
       <View pointerEvents="box-none" style={[styles.buttonWrapper, styles.fullScreen]}>
-      {lastScreen
-        // Show this button on the last screen
-        // TODO: Add a handler that would send a user to your app after onboarding is complete
-        ? <Button text="Commencer" onPress={() =>  { this.props.navigate.navigate('Home')}} />
-        // Or this one otherwise
-        : <Button text="Suivant" onPress={() => this.swipe()} />
-      }
+        {lastScreen
+          ? <Button text="Commencer" onPress={() => this.props.main.setState({ isFirstLaunch: false })} />
+          : <Button text="Suivant" onPress={() => this.swipe()} />
+        }
       </View>
-    );
+    )
   }
 
   renderloginLink = () => {
-    const lastScreen = this.state.index === this.state.total - 1;
+    const lastScreen = this.state.index === this.state.total - 1
     return (
-    <View style={[styles.loginLink_container, styles.fullScreen]}>
+      <View style={[styles.loginLink_container, styles.fullScreen]}>
         <View pointerEvents="box-none" style={[styles.buttonWrapper, styles.fullScreen]}>
-        {lastScreen
-          // Show this button on the last screen
-          // TODO: Add a handler that would send a user to your app after onboarding is complete
-          ?  <Text style={styles.text}>Vous avez un compte? <Text onPress={() => this.props.navigate.navigate('Login')} style={{ textDecorationLine: 'underline', color: '#70e2f9', fontFamily: 'Avenir', }}>
-             Connectez-vous</Text> 
-             </Text>
-          // Or this one otherwise
-          : <Text onPress={() => this.props.navigate.navigate('Home')} style={{ textDecorationLine: 'underline', color: '#70e2f9', fontFamily: 'Avenir', }}>Passer</Text>
-        }
-      </View>
+          {lastScreen ?
+            <Text style={styles.text}>Vous avez un compte? <Text onPress={() => this.props.main.setState({ isFirstLaunch: false })} style={{ textDecorationLine: 'underline', color: '#70e2f9' }}>
+              Connectez-vous</Text>
+            </Text>
+            :
+            <Text onPress={() => this.props.main.setState({ isFirstLaunch: false })} style={{ textDecorationLine: 'underline', color: '#70e2f9' }}>Passer</Text>
+          }
+        </View>
 
-    </View>
-    );
+      </View>
+    )
   }
 
 
-  /**
-   * Render the component
-   */
   render = ({ children } = this.props) => {
     return (
       <View style={[styles.container, styles.fullScreen]}>
@@ -289,7 +282,7 @@ export default class OnboardingScreens extends Component {
         {/* Render Link to login screen */}
         {this.renderloginLink()}
       </View>
-    );
+    )
   }
 }
 
@@ -365,6 +358,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Avenir',
     fontSize: SCREEN_HEIGHT * 0.018,
     //textAlign: 'center',
-   //backgroundColor: 'yellow',
+    //backgroundColor: 'yellow',
   },
 });

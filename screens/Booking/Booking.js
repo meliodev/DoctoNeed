@@ -9,7 +9,6 @@ import moment from 'moment'
 import 'moment/locale/fr'  // without this line it didn't work
 moment.locale('fr')
 
-import Dates from 'react-native-dates';
 import DateTime from 'react-native-customize-selected-date'
 import _ from 'lodash'
 

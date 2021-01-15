@@ -1,25 +1,19 @@
 import React, { Component } from 'react';
-import {
-  StyleSheet,   // CSS-like styles
-  Text,         // Renders text
-  View,          // Container component
-  Dimensions,
-  Image,
-} from 'react-native';
+import { StyleSheet, Text, View, Dimensions, Image} from 'react-native'
 
-import Swiper from '../Welcome/Swiper';
-import checkIfFirstLaunch from '../../util/checkIfFirstLaunch';
-import Home from '../Home/Home';
+import Swiper from '../Welcome/Swiper'
+import checkIfFirstLaunch from '../../util/checkIfFirstLaunch'
+import Home from '../Home/Home'
 
-const SCREEN_WIDTH = Dimensions.get("window").width;
-const SCREEN_HEIGHT = Dimensions.get("window").height;
+const SCREEN_WIDTH = Dimensions.get("window").width
+const SCREEN_HEIGHT = Dimensions.get("window").height
 
 const ratio = 254 / 668; // The actaul icon footer size is 254 * 668
-const FOOTER_ICON_HEIGHT = Dimensions.get("window").width * ratio; // This is to keep the same ratio in all screen sizes (proportion between the image  width and height)
+const FOOTER_ICON_HEIGHT = Dimensions.get("window").width * ratio // This is to keep the same ratio in all screen sizes (proportion between the image  width and height)
 
 export default class RootComponent extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
 
     this.state = {
       isFirstLaunch: false,
@@ -28,19 +22,19 @@ export default class RootComponent extends React.Component {
   }
 
   async componentDidMount() {
-    const isFirstLaunch = await checkIfFirstLaunch();
-    this.setState({ isFirstLaunch, hasCheckedAsyncStorage: true });
+    const isFirstLaunch = await checkIfFirstLaunch()
+    this.setState({ isFirstLaunch, hasCheckedAsyncStorage: true })
   }
 
   render() {
     const { hasCheckedAsyncStorage, isFirstLaunch } = this.state;
 
     if (!hasCheckedAsyncStorage) {
-      return null;
+      return null
     }
 
     return isFirstLaunch ?
-      <Swiper navigate={this.props.navigation}>
+      <Swiper main= {this}>
         {/* First screen */}
         <View style={[styles.slide, { backgroundColor: '#ffffff' }]}>
           <View style={[styles.logo_container, styles.fullScreen]}>

@@ -6,28 +6,27 @@
 
 import React from 'react'
 import LinearGradient from 'react-native-linear-gradient';
-import { View, ScrollView, ActivityIndicator, TextInput, Picker, Text, Image, TouchableOpacity, TouchableHighlight, Dimensions, Slider, StyleSheet, SafeAreaView, ActionSheetIOS } from 'react-native'
+import { View, ScrollView, ActivityIndicator, TextInput, Picker, Text, Image, TouchableOpacity, TouchableHighlight, Dimensions, Slider, StyleSheet, SafeAreaView, Alert } from 'react-native'
 import Modal from 'react-native-modal';
 import RadioForm, { RadioButton, RadioButtonInput, RadioButtonLabel } from 'react-native-simple-radio-button';
-
+import Icon from 'react-native-vector-icons/FontAwesome';
+import firebase from 'react-native-firebase';
+import { Card } from 'native-base';
 import ImageViewing from "react-native-image-viewing";
+import ImagePicker from 'react-native-image-picker';
+
+import moment from 'moment'
+import 'moment/locale/fr'  // without this line it didn't work
+moment.locale('fr')
 
 import * as REFS from '../../../DB/CollectionsRefs'
 
 import { connect } from 'react-redux'
 
 import { toggleLeftSideMenu, navigateToMedicalFolder, navigateToScreen, signOutUserandToggle } from '../../../Navigation/Navigation_Functions'
-
-import Icon from 'react-native-vector-icons/FontAwesome';
-import firebase from 'react-native-firebase';
-import { Card } from 'native-base';
 import { imagePickerOptions, getFileLocalPath } from '../../../util/MediaPickerFunctions'
 
-import ImagePicker from 'react-native-image-picker';
-
 import LeftSideMenu from '../../../components/LeftSideMenu'
-import Icon1 from 'react-native-vector-icons/FontAwesome';
-import { Alert } from 'react-native';
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
@@ -64,9 +63,9 @@ class MedicalFolder extends React.Component {
     this.user_id = ''
 
     this.reRender = this.props.navigation.addListener('willFocus', () => {
-      this.fetchFirebase();
-      this.forceUpdate();
-    });
+      this.fetchFirebase()
+      this.forceUpdate()
+    })
 
 
     this.state = {
@@ -603,7 +602,7 @@ class MedicalFolder extends React.Component {
           <TouchableOpacity onPress={() => this.onPress1('isName')}>
             <View style={styles.metadata_box}>
               <Text style={styles.metadata_text1}>{this.state.prenom} {this.state.nom}</Text>
-              <Text style={styles.metadata_text2}>{this.state.dateNaissance}</Text>
+              <Text style={styles.metadata_text2}>{moment(this.state.dateNaissance).format('LL')}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -664,11 +663,7 @@ class MedicalFolder extends React.Component {
                     this.props.navigation.navigate('DateNaissance', { user_id: this.user_id, dateNaissance: this.state.dateNaissance })
                 }}>
                 <Text style={fieldStyle.title_text}>Date de naissance</Text>
-                {this.props.role === 'isPatient' || this.props.role === 'isAdmin' ?
-                  <Text style={fieldStyle.value}>{this.state.dateNaissance}</Text>
-                  :
-                  <Text style={fieldStyle.value}>{this.state.dateNaissance}</Text>
-                }
+                <Text style={fieldStyle.value}>{moment(this.state.dateNaissance).format('LL')}</Text>
               </TouchableOpacity>
 
               {line}

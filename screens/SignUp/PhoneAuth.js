@@ -29,7 +29,6 @@ class PhoneAuth extends React.Component {
     super(props);
     this.isDoctor = this.props.signupData.isDoctor
     this.phoneNumber = this.props.navigation.getParam('phoneNumber', '')
-    console.log('phone: ' + this.phoneNumber)
     this.isLogin = this.props.navigation.getParam('isLogin', false)
     this.unsubscribe = null;
 
@@ -39,7 +38,6 @@ class PhoneAuth extends React.Component {
       type: "",
       isLoading: false,
 
-      user: null,
       message: "",
       errorMessage: "",
       codeInput: '',
@@ -47,8 +45,6 @@ class PhoneAuth extends React.Component {
       confirmResult: null,
     }
 
-    this.updateInfo = this.updateInfo.bind(this);
-    //this.renderInfo = this.renderInfo.bind(this);
     this.checkIfPhoneExists = this.checkIfPhoneExists.bind(this);
   }
 
@@ -60,10 +56,7 @@ class PhoneAuth extends React.Component {
       if (user) {
         console.log('USER CONNECTED..')
 
-        this.setState({ user: user.toJSON() })
-
         this.setState({
-          user: null,
           message: '',
           errorMessage: "",
           codeInput: '',
@@ -81,7 +74,6 @@ class PhoneAuth extends React.Component {
       else {
         // User has been signed out, reset the state
         this.setState({
-          user: null,
           message: '',
           errorMessage: "",
           codeInput: '',
@@ -100,68 +92,37 @@ class PhoneAuth extends React.Component {
       this.unsubscribe();
   }
 
-  updateInfo() {
-    this.setState({
-      valid: this.phone.isValidNumber(),
-      type: this.phone.getNumberType(),
-      value: this.phone.getValue()
-    });
-  }
-
-  // renderInfo() {
-  //   if (this.state.value) {
-  //     return (
-  //       <View style={styles.info}>
-  //         <Text>
-  //           Is Valid:{" "}
-  //           <Text style={{ fontWeight: "bold" }}>
-  //             {this.state.valid.toString()}
-  //           </Text>
-  //         </Text>
-  //         <Text>
-  //           Type: <Text style={{ fontWeight: "bold" }}>{this.state.type}</Text>
-  //         </Text>
-  //         <Text>
-  //           Value:{" "}
-  //           <Text style={{ fontWeight: "bold" }}>{this.state.value}</Text>
-  //         </Text>
-  //       </View>
-  //     );
-  //   }
-  // }
-
   async checkIfPhoneExists(type) {
-    let phone_exist = false
-    await REFS.phones.where('phone', '==', this.state.value).get().then((querySnapshot) => {
-      const doc = querySnapshot.docs[0]
-      if (doc.data().phone !== '')
-        phone_exist = true
-    })
-      .then(() => {
-        if (!phone_exist)
-          setReduxState(type, this.state.value, this)
 
-        else
-          this.setState({ message: "Ce numéro de téléphone est déjà associée à un compte utilisateur." })
-      })
-      .catch((err) => {
-        this.setState({ message: "Erreur, veuillez vérifier votre connection réseau.", isLoading: false })
-      })
+    const querySnapshot = await REFS.phones.where('phone', '==', this.state.value).get()
+
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0]
+      this.setState({ errorMessage: "Ce numéro de téléphone est déjà associée à un compte utilisateur.", isLoading: false })
+      return true
+    }
+
+    else {
+      setReduxState(type, this.state.value, this)
+      return false
+    }
   }
 
-  updateInfoandSignIn(type) {
+  updateInfoandSignIn() {
 
     this.setState({
       isLoading: true,
       valid: this.phone.isValidNumber(),
       type: this.phone.getNumberType(),
       value: this.phone.getValue()
-    }, () => {
+    }, async () => {
 
       if (this.state.valid) {
-        this.setState({ errorMessage: null })
+        this.setState({ errorMessage: "" })
+
         //1. Check if the number is already linked to an existing user
-        this.checkIfPhoneExists(type)
+        const phoneExist = await this.checkIfPhoneExists("PHONE")
+        if (phoneExist) return
 
         //2. Sign in with phone auth 
         this.signIn()
@@ -169,51 +130,46 @@ class PhoneAuth extends React.Component {
 
       else
         this.setState({ errorMessage: 'Numéro de téléphone invalide', isLoading: false })
-
-    });
+    })
   }
 
   signIn = () => {
-    if (this.isLogin)
-      this.setState({ isLoading: true })
-
-    console.log('Sign in...')
     const { value } = this.state
+
+    if (this.isLogin) this.setState({ isLoading: true })
+
     this.setState({ message: 'Envoie du code ...' })
 
     firebase.auth().signInWithPhoneNumber(value)
       .then(confirmResult => this.setState({ confirmResult, message: 'Le code a été envoyé!' }))
-      .catch(error => {
-        this.setState({ errorMessage: `Erreur d'authentification, veuillez réessayer.`, value: '' })
-        this.props.navigation.goBack()
-      })
+      .catch(error => this.setState({ errorMessage: `Erreur d'authentification, veuillez réessayer.` }))
       .finally(() => this.setState({ isLoading: false }))
   }
 
   confirmCode = () => {
-    const { codeInput, confirmResult } = this.state;
+    const { codeInput, confirmResult } = this.state
 
     if (confirmResult && codeInput.length) {
       this.setState({ isLoading: true })
+
       confirmResult.confirm(codeInput)
         .then((user) => {
           this.setState({ message: 'Code Confirmé !' });
 
-          if (!this.isLogin) {
+          if (this.isLogin)
+            this.props.navigation.navigate('Home')
+
+          else {
             this.setState({
-              user: null,
               message: '',
-              errorMessage: "",
+              errorMessage: '',
               codeInput: '',
-              value: "",
+              value: '',
               confirmResult: null,
             })
 
             this.props.navigation.navigate('SignUpPW')
           }
-
-          else
-            this.props.navigation.navigate('Home')
         })
         .catch(error => this.setState({ errorMessage: `Erreur de confirmation du code, veuillez réessayer` }))
         .finally(() => this.setState({ isLoading: false }))
@@ -222,6 +178,7 @@ class PhoneAuth extends React.Component {
     else return
   }
 
+  //renderers
   renderPhoneNumberInput() {
     const { value } = this.state;
 
@@ -258,7 +215,7 @@ class PhoneAuth extends React.Component {
           <View style={styles.button_container}>
             {!this.state.isLoading &&
               <TouchableOpacity
-                onPress={() => this.updateInfoandSignIn('PHONE', this.state.phone)}>
+                onPress={() => this.updateInfoandSignIn()}>
                 <LinearGradient
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
@@ -274,9 +231,9 @@ class PhoneAuth extends React.Component {
   }
 
   renderVerificationCodeInput() {
-    const { codeInput } = this.state;
+    const { codeInput, isLoading, errorMessage } = this.state;
 
-    if (this.state.isLoading)
+    if (isLoading)
       return (
         <View style={styles.loading_container}>
           <ActivityIndicator size='large' />
@@ -294,20 +251,18 @@ class PhoneAuth extends React.Component {
             <TextInput
               autoFocus
               style={styles.search_button}
-              onChangeText={value => this.setState({ codeInput: value })}
-              placeholder={'Code ... '}
+              onChangeText={codeInput => this.setState({ codeInput })}
+              placeholder={'Code SMS... '}
               value={codeInput}
             />
           </View>
 
           <View style={styles.error_container}>
-            <Text style={{ color: 'red', textAlign: 'center' }}>
-              {this.state.errorMessage}
-            </Text>
+            <Text style={{ color: 'red', textAlign: 'center' }}>{errorMessage}</Text>
           </View>
 
           <View style={styles.button_container}>
-            {!this.state.isLoading &&
+            {!isLoading &&
               <TouchableOpacity
                 onPress={this.confirmCode} >
                 <LinearGradient
@@ -337,7 +292,7 @@ class PhoneAuth extends React.Component {
   }
 
   render() {
-    const { user, confirmResult } = this.state;
+    const { confirmResult } = this.state;
 
     return (
       <View style={styles.container}>
@@ -372,8 +327,8 @@ class PhoneAuth extends React.Component {
           </View>
         </View>
 
-        {!user && !confirmResult && this.renderPhoneNumberInput()}
-        {!user && confirmResult && this.renderVerificationCodeInput()}
+        {!confirmResult && this.renderPhoneNumberInput()}
+        {confirmResult && this.renderVerificationCodeInput()}
 
         {this.renderMessage()}
 

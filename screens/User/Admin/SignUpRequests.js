@@ -18,10 +18,10 @@ export default class SignUpRequests extends React.Component {
     }
 
     componentDidMount() {
-        this.getSignUpRequests()
+        this.fetchSignUpRequests()
     }
 
-    getSignUpRequests() {
+    fetchSignUpRequests() {
         let doctor = null
 
         REFS.signuprequests.where('disabled', '==', true).onSnapshot(querySnapshot => {
@@ -39,7 +39,7 @@ export default class SignUpRequests extends React.Component {
 
     async activateUser(doctor) {
         const doctorId = doctor.id
-        //this.setState({ isLoading: true })
+
         const activateUser = await functions.httpsCallable('activateUser')
         activateUser({ uid: doctorId }).then(async result => {
             //set disabled to false on firestore
@@ -47,6 +47,7 @@ export default class SignUpRequests extends React.Component {
             await REFS.doctors.doc(doctorId).set(doctor)
             this.setState({ isLoading: false })
         })
+            .catch((e) => console.error(e))
     }
 
     async addDoctorRole(email) {

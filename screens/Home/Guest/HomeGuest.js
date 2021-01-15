@@ -1,49 +1,32 @@
 
 import React from 'react'
-import LinearGradient from 'react-native-linear-gradient';
-import { View, Text, Image, TouchableOpacity, Dimensions, TextInput, StyleSheet, ImageBackground, BackHandler, AsyncStorage } from 'react-native'
-import Icon from 'react-native-vector-icons/FontAwesome';
-import Icon1 from 'react-native-vector-icons/Feather';
-
-import theme from '../../../constants/theme.js'
+import LinearGradient from 'react-native-linear-gradient'
+import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, ImageBackground, Alert } from 'react-native'
+import Icon from 'react-native-vector-icons/FontAwesome'
+import Icon1 from 'react-native-vector-icons/Feather'
+import firebase, { crashlytics } from 'react-native-firebase'
 
 import LeftSideMenu from '../../../components/LeftSideMenu'
-
-import firebase, { crashlytics } from 'react-native-firebase';
+import theme from '../../../constants/theme.js'
 
 //Redux
 import { connect } from 'react-redux'
 import { setReduxState } from '../../../functions/functions'
-import { withNavigation } from 'react-navigation';
+import { withNavigation } from 'react-navigation'
 
-const SCREEN_WIDTH = Dimensions.get("window").width;
-const SCREEN_HEIGHT = Dimensions.get("window").height;
+const SCREEN_WIDTH = Dimensions.get("window").width
+const SCREEN_HEIGHT = Dimensions.get("window").height
 
-const ratioFooter = 254 / 668; // The actual icon footer size is 254 * 668
-const FOOTER_ICON_HEIGHT = Dimensions.get("window").width * ratioFooter; // This is to keep the same ratio in all screen sizes (proportion between the image  width and height)
-
-const ratioLogo = 420 / 244;
-const LOGO_WIDTH = SCREEN_WIDTH * 0.25 * ratioLogo;
-
-import moment from 'moment-timezone'
-import 'moment/locale/fr'  // without this line it didn't work
-moment.locale('fr')
+const ratioFooter = 254 / 668 // The actual icon footer size is 254 * 668
+const FOOTER_ICON_HEIGHT = Dimensions.get("window").width * ratioFooter // This is to keep the same ratio in all screen sizes (proportion between the image  width and height)
+const ratioLogo = 420 / 244
+const LOGO_WIDTH = SCREEN_WIDTH * 0.25 * ratioLogo
 
 class HomeGuest extends React.Component {
   constructor(props) {
-    super(props);
-    this.navigateToDoctorPortal = this.navigateToDoctorPortal.bind(this);
-    this.navigateToPatientPortal = this.navigateToPatientPortal.bind(this);
-
-    this.state = {
-      timeslots: []
-    }
-  }
-
-  async componentDidMount() {
-    // let fcmToken = await AsyncStorage.removeItem('fcmToken').then(() => console.info('removed !!!!!!!!!!'));
-    // let fcmToken = await AsyncStorage.getItem('fcmToken').catch((err) => alert(err));
-    // console.log(fcmToken)
+    super(props)
+    this.navigateToDoctorPortal = this.navigateToDoctorPortal.bind(this)
+    this.navigateToPatientPortal = this.navigateToPatientPortal.bind(this)
   }
 
   navigateToDoctorPortal() {
@@ -55,13 +38,6 @@ class HomeGuest extends React.Component {
     setReduxState('ISDOCTOR', false, this)
     this.props.navigation.navigate('Login')
   }
-
-  // sendDataMessage() {
-  //   const sendDataMessage = functions.httpsCallable('sendDataMessage')
-  //   sendDataMessage({ fcmToken: 'c-YqG1Y2RyeKnteTjJ_uvi:APA91bEDCe9kBQg1Pi_onZznWLxeICg3xZaOiEhhMu7mk2tSJhI6e8jdFbcSy7qyL-7zB3-9h7bTxkdEI-AJKSiCgbLNsvOvAuAoIZwcS1nC5e6Cyj0TZPqFLORe0MryvSBqQWLqvQBu' })
-  //     .then((response) => console.log('11111111111111111'))
-  //     .catch((err) => console.error(err))
-  // }
 
   render() {
     return (
@@ -104,8 +80,6 @@ class HomeGuest extends React.Component {
           </View>
         </View>
 
-
-
         <ImageBackground source={require('../../../assets/footerIconReduced.png')} style={styles.footer_container}>
           <Text style={{ color: 'gray' }}>Vous êtes un professionnel ? <Text onPress={this.navigateToDoctorPortal} style={{ textDecorationLine: 'underline', color: '#ffffff' }}>
             Par ici
@@ -114,7 +88,7 @@ class HomeGuest extends React.Component {
         </ImageBackground>
 
       </View>
-    );
+    )
   }
 }
 
@@ -225,4 +199,4 @@ const styles = StyleSheet.create({
     width: SCREEN_WIDTH,
     height: FOOTER_ICON_HEIGHT,
   },
-});
+})

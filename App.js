@@ -4,7 +4,6 @@ import React, { Component } from 'react'
 import Navigation from './Navigation/Navigation'
 import { Provider } from 'react-redux'
 import Store from './Store/configureStore'
-// import ScheduleTask from './screens/ScheduleTask'
 
 class App extends Component {
   render() {
@@ -12,13 +11,12 @@ class App extends Component {
     return (
       <Provider store={Store}>
         <Navigation />
-        {/* <ScheduleTask/> */}
       </Provider>
     )
   }
 }
 
-console.disableYellowBox = true;
+console.disableYellowBox = true
 export default App;
 
 

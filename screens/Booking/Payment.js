@@ -311,7 +311,7 @@ export default class Payment extends PureComponent {
                                 <View style={styles.value_container}>
                                     <View style={{ alignItems: 'center', justifyContent: 'center' }}>
                                         <Text style={styles.value_text}>
-                                            {this.state.price} <Text style={{ fontSize: 16 }}>{this.state.currency}</Text>
+                                        <Text style={{ fontSize: 16 }}>{this.state.currency}</Text> {this.state.price} 
                                         </Text>
                                     </View>
                                 </View>
@@ -329,7 +329,7 @@ export default class Payment extends PureComponent {
                                 <View style={styles.value_container}>
                                     <View style={{ alignItems: 'center', justifyContent: 'center' }}>
                                         <Text style={styles.value_text}>
-                                            {this.state.price} <Text style={{ fontSize: 16 }}>{this.state.currency}</Text>
+                                        <Text style={{ fontSize: 16 }}>{this.state.currency}</Text> {this.state.price}
                                         </Text>
                                     </View>
                                 </View>
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
     label_text: {
         color: '#000',
         fontWeight: 'bold',
-        fontSize: 16
+        fontSize: 14
     },
 
     paymentButton_container: {

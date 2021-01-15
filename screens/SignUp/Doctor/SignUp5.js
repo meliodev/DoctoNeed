@@ -17,7 +17,7 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 const ratioLogo = 420 / 244;
 const LOGO_WIDTH = SCREEN_WIDTH * 0.2 * ratioLogo;
 
-class SignUp5D extends ValidationComponent {
+class SignUp5 extends ValidationComponent {
   constructor(props) {
     super(props);
     this.state = {
@@ -102,7 +102,7 @@ const mapStateToProps = (state) => {
   }
 }
 
-export default connect(mapStateToProps)(SignUp5D)
+export default connect(mapStateToProps)(SignUp5)
 
 const styles = StyleSheet.create({
   container: {

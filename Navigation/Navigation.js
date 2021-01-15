@@ -8,7 +8,7 @@ import SignUp1 from '../screens/SignUp/SignUp1'
 import SignUp2 from '../screens/SignUp/SignUp2'
 import SignUp3 from '../screens/SignUp/SignUp3'
 import SignUp4 from '../screens/SignUp/SignUp4'
-import SignUp5D from '../screens/SignUp/Doctor/SignUp5D'
+import SignUp5 from '../screens/SignUp/Doctor/SignUp5'
 import SignUp6 from '../screens/SignUp/Doctor/SignUp6'
 import AddDoctorClaim from '../screens/SignUp/Doctor/AddDoctorClaim'
 import SignUpPW from '../screens/SignUp/SignUpPW'
@@ -174,8 +174,8 @@ const SearchStackNavigator = createStackNavigator({
       title: 'Inscription'
     }
   },
-  SignUp5D: {
-    screen: SignUp5D,
+  SignUp5: {
+    screen: SignUp5,
     navigationOptions: {
       title: 'Inscription'
     }

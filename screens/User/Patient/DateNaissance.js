@@ -54,7 +54,7 @@ class DateNaissance extends React.Component {
     this.user_id = ''
 
     this.state = {
-      date: moment(this.dateNaissance, 'DD/MM/YYYY').add(1, 'day').format()
+      date: this.dateNaissance
     }
 
   }

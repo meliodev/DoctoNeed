@@ -293,7 +293,7 @@ class LeftSideMenu extends Component {
                                 </View>
                             </TouchableOpacity>
 
-                            <Text style={{ position: 'absolute', bottom: 0, margin: SCREEN_WIDTH * 0.02, fontSize: 10 }}>V 1.0.0</Text>
+                            <Text style={{ position: 'absolute', bottom: 0, margin: SCREEN_WIDTH * 0.02, fontSize: 10 }}>V 1.0.1</Text>
                         </View>
 
                     </SafeAreaView>

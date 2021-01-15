@@ -51,9 +51,9 @@ class SignUp4 extends ValidationComponent {
 
       this.setState({ errorMessage: null })
 
-      if (this.isDoctor === true) {
-        this.props.navigation.navigate('SignUp5D')
-      }
+      if (this.isDoctor)
+        this.props.navigation.navigate('SignUp5')
+
       else
         this.props.navigation.navigate('PhoneAuth')
     }
@@ -61,7 +61,7 @@ class SignUp4 extends ValidationComponent {
 
 
   render() {
-    console.log(this.state.date)
+
     return (
       <View style={styles.container}>
         {this.isDoctor === false ?
@@ -96,13 +96,15 @@ class SignUp4 extends ValidationComponent {
         <View style={styles.form_container}>
           <DatePicker
             date={this.state.date}
-            onDateChange={d => {
-              let date = moment(d).format('DD-MM-YYYY')
-              this.setState({ date }, () => console.log(this.state.date))
+            onDateChange={pickedDate => {
+              const date = pickedDate.toString()
+              this.setState({ date })
             }}
             mode={'date'}
-            locale='fr' />
+            locale='fr'
+          />
         </View>
+
         <View style={styles.error_container}>
           <Text style={{ color: 'red' }}>
             {this.state.errorMessage}

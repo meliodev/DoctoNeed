@@ -23,6 +23,9 @@ import * as REFS from '../../DB/CollectionsRefs'
 const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
 
+import { PermissionsAndroid } from 'react-native';
+
+
 export default class Upload extends React.Component {
   constructor(props) {
     super(props);
@@ -112,21 +115,29 @@ export default class Upload extends React.Component {
       })
   }
 
-  pickImages = () => {
-    ImagePicker.showImagePicker(imagePickerOptions, imagePickerResponse => {
-      const { didCancel, error } = imagePickerResponse;
-      if (didCancel) { console.log('Post canceled'); }
-      else if (error) { alert('Une erreur a été produite, veuillez réessayer.'); }
-      else {
-        UUIDGenerator.getRandomUUID().then((uuid) => {
-          return firebase.storage().ref('/Users/' + firebase.auth().currentUser.uid + '/Documents/' + uuid) //task: get filemname from path
-        })
-          .then((storageRef) => {
-            let fileSource = getFileLocalPath((imagePickerResponse))
-            this.setState({ ImageObjects: [...this.state.ImageObjects, { fileSource, storageRef, ImageUrl: imagePickerResponse.uri, ImageLink: '', progress: -1, isDeleting: false }] })
+  pickImages = async () => {
+    // const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, { title: "Autoriser l'utilisation de la caméra" })
+
+    // if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+
+      ImagePicker.showImagePicker(imagePickerOptions, imagePickerResponse => {
+        const { didCancel, error } = imagePickerResponse;
+        if (didCancel) { console.log('Post canceled'); }
+        //else if (error) { alert(error); }
+        else if (error) { alert('Une erreur a été produite, veuillez réessayer.'); }
+        else {
+          console.log(imagePickerResponse)
+          UUIDGenerator.getRandomUUID().then((uuid) => {
+            return firebase.storage().ref('/Users/' + firebase.auth().currentUser.uid + '/Documents/' + uuid) //task: get filemname from path
           })
-      }
-    })
+            .then((storageRef) => {
+              let fileSource = getFileLocalPath((imagePickerResponse))
+              this.setState({ ImageObjects: [...this.state.ImageObjects, { fileSource, storageRef, ImageUrl: imagePickerResponse.uri, ImageLink: '', progress: -1, isDeleting: false }] })
+            })
+        }
+      })
+
+   // }
   }
 
   pickVideo = () => {

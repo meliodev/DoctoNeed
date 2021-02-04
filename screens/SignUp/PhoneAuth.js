@@ -22,7 +22,6 @@ const SCREEN_HEIGHT = Dimensions.get("window").height;
 const ratioLogo = 420 / 244;
 const LOGO_WIDTH = SCREEN_WIDTH * 0.2 * ratioLogo;
 
-const successImageUri = 'https://cdn.pixabay.com/photo/2015/06/09/16/12/icon-803718_1280.png';
 
 class PhoneAuth extends React.Component {
   constructor(props) {
@@ -142,7 +141,8 @@ class PhoneAuth extends React.Component {
 
     firebase.auth().signInWithPhoneNumber(value)
       .then(confirmResult => this.setState({ confirmResult, message: 'Le code a été envoyé!' }))
-      .catch(error => this.setState({ errorMessage: `Erreur d'authentification, veuillez réessayer.` }))
+      .catch(error => this.setState({ errorMessage: error.toString() }))
+      // .catch(error => this.setState({ errorMessage: `Erreur d'authentification, veuillez réessayer.` }))
       .finally(() => this.setState({ isLoading: false }))
   }
 

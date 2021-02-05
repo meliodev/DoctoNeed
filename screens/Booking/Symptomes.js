@@ -22,7 +22,7 @@ const symptomsList = ['Angoisse', 'Diarrhée', 'Douleur au thorax', 'Douleur dan
 
 export default class Symptomes extends React.Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.doctorId = this.props.navigation.getParam('doctorId', '')
     this.date = this.props.navigation.getParam('date', 'nothing sent')
     this.isUrgence = this.props.navigation.getParam('isUrgence', false)
@@ -31,19 +31,31 @@ export default class Symptomes extends React.Component {
     this.isEditing = this.props.navigation.getParam('isEditing', false)
     this.appId = this.props.navigation.getParam('appId', '')
 
+    this.fetchData = this.fetchData.bind(this)
+    this.toggleModal = this.toggleModal.bind(this)
+    this.addSymptom = this.addSymptom.bind(this)
+    this.removeSymptom = this.removeSymptom.bind(this)
+    this.onConfirmClick = this.onConfirmClick.bind(this)
+    this.skip = this.skip.bind(this)
+
     this.state = {
       isModalVisible: false,
+      symptomes: [],
+      otherSymptomes: '',
       comment: '',
-      symptomsList: [{ label: 'Angoisse', value: false }, { label: 'Diarrhée', value: false }, { label: 'Douleur au thorax', value: false },
-      { label: 'Fièvre', value: false }, { label: 'Frissons', value: false }, { label: 'Douleur dans le cou', value: false },
-      { label: 'Mal au ventre', value: false }],
+
+      symptomsList: [
+        { label: 'Angoisse', value: false },
+        { label: 'Diarrhée', value: false },
+        { label: 'Douleur au thorax', value: false },
+        { label: 'Fièvre', value: false },
+        { label: 'Frissons', value: false },
+        { label: 'Douleur dans le cou', value: false },
+        { label: 'Mal au ventre', value: false }
+      ],
+
       isLoading: false,
     }
-
-    this.fetchData = this.fetchData.bind(this);
-    this.toggleModal = this.toggleModal.bind(this);
-    this.onConfirmClick = this.onConfirmClick.bind(this);
-    this.skip = this.skip.bind(this);
   }
 
   async componentDidMount() {
@@ -53,8 +65,9 @@ export default class Symptomes extends React.Component {
 
   async fetchData() {
     await REFS.appointments.doc(this.appId).get().then((doc) => {
-      var symptomes = doc.data().symptomes
-      const comment = doc.data().comment
+      const appointment = doc.data()
+      var { symptomes, otherSymptomes, comment } = appointment
+      console.log('0', doc.id)
 
       if (symptomes) {
         const { symptomsList } = this.state
@@ -69,6 +82,10 @@ export default class Symptomes extends React.Component {
         this.setState({ symptomsList })
       }
 
+      if(otherSymptomes) {
+        this.setState({ otherSymptomes })
+      }
+
       if (comment) {
         this.setState({ comment })
       }
@@ -77,8 +94,11 @@ export default class Symptomes extends React.Component {
 
   async onConfirmClick() {
     this.setState({ isLoading: true })
+    const { symptomsList, otherSymptomes, comment } = this.state
+
     let symptomes = []
-    this.state.symptomsList.forEach(symp => {
+
+    symptomsList.forEach(symp => {
       if (symp.value)
         symptomes.push(symp.label)
     })
@@ -91,12 +111,13 @@ export default class Symptomes extends React.Component {
         isUrgence: this.isUrgence,
         speciality: this.speciality, //URGENCE2
         symptomes: symptomes,
-        comment: this.state.comment,
+        otherSymptomes: otherSymptomes,
+        comment: comment,
       })
     }
 
     else {
-      await REFS.appointments.doc(this.appId).update({ symptomes, comment: this.state.comment, updatedBy: firebase.auth().currentUser.uid })
+      await REFS.appointments.doc(this.appId).update({ symptomes, otherSymptomes, comment, updatedBy: firebase.auth().currentUser.uid })
       this.setState({ isLoading: false })
       this.props.navigation.goBack()
     }
@@ -107,6 +128,7 @@ export default class Symptomes extends React.Component {
       doctorId: this.doctorId,
       date: this.date,
       symptomes: [],
+      otherSymptomes: '',
       comment: '',
       isUrgence: this.isUrgence,
       speciality: this.speciality
@@ -117,20 +139,39 @@ export default class Symptomes extends React.Component {
     this.setState({ isModalVisible: !this.state.isModalVisible })
   }
 
+  addSymptom(symp, key) {
+    let { symptomsList } = this.state
+    symptomsList[key].value = !symptomsList[key].value
+    this.setState({ symptomsList })
+  }
+
+  removeSymptom(key) {
+    let { symptomsList } = this.state
+    symptomsList[key].value = false
+    this.setState({ symptomsList })
+  }
+
   render() {
+    const { symptomsList, otherSymptomes, isLoading } = this.state
+
+    console.log('symptomsList', symptomsList)
+    console.log('otherSymptomes', otherSymptomes)
+
     return (
       <View style={{ flex: 1 }}>
-        {!this.state.isLoading ?
-          <View style={styles.container}>
+        {isLoading ?
+          <Loading />
+          :
+          <ScrollView contentContainerStyle={styles.container}>
             {this.isEditing ?
-              <View style={styles.bar_progression}>
-              </View>
+              <View style={styles.bar_progression} />
               :
               <View style={styles.bar_progression}>
                 <View style={[styles.bar, styles.activeBar]} />
                 <View style={[styles.bar, styles.activeBar]} />
                 <View style={styles.bar} />
-              </View>}
+              </View>
+            }
 
             <View style={styles.header_container}>
               <Text style={styles.header}>Que ressentez-vous ?</Text>
@@ -149,23 +190,26 @@ export default class Symptomes extends React.Component {
 
             <View style={styles.symptomesList_container}>
               <ScrollView contentContainerStyle={{ paddingTop: 15 }}>
-                {this.state.symptomsList.map((symp, key) => {
+                {symptomsList.map((symp, key) => {
                   return (
                     <View>
                       {symp.value &&
                         <View style={styles.symptom}>
                           <Text>{symp.label}</Text>
                           <Icon name="remove" size={SCREEN_WIDTH * 0.04} color="#93eafe" style={{ position: "absolute", right: SCREEN_WIDTH * 0.05, padding: 5 }}
-                            onPress={() => {
-                              let symptomsList = this.state.symptomsList
-                              symptomsList[key].value = false
-                              this.setState({ symptomsList })
-                            }} />
+                            onPress={() => this.removeSymptom(key)} />
                         </View>
                       }
                     </View>
                   )
                 })}
+
+                {otherSymptomes !== "" &&
+                  <View style={{ paddingVertical: 10, paddingHorizontal: 15 }}>
+                    <Text style={{ fontSize: 12 }}>Autres symptômes:</Text>
+                    <Text>{otherSymptomes}</Text>
+                  </View>
+                }
               </ScrollView>
             </View>
 
@@ -176,37 +220,49 @@ export default class Symptomes extends React.Component {
               style={{ backgroundColor: '#fff' }}>
 
               <Container>
-                <ScrollView>
-                  <Content>
+                <ScrollView >
+                  <Content style={{ flex: 0.85 }}>
                     {symptomsList.map((symp, key) => {
                       return (
                         <ListItem>
                           <CheckBox
                             color="#93eafe"
                             style={{ borderColor: '#93eafe' }}
-                            checked={this.state.symptomsList[key].value}
-                            onPress={() => {
-                              let symptomsList = this.state.symptomsList
-                              symptomsList[key].value = !symptomsList[key].value
-                              this.setState({ symptomsList })
-                            }}
+                            checked={symptomsList[key].value}
+                            onPress={() => this.addSymptom(symp, key)}
                             checkboxTickColor='#93eafe' />
                           <Body style={{ marginLeft: SCREEN_WIDTH * 0.03 }}>
-                            <Text>{symp}</Text>
+                            <Text>{symp.label}</Text>
                           </Body>
                         </ListItem>
                       )
                     })}
+
+                    <View style={[styles.comment_container, { paddingVertical: 10 }]}>
+                      <TextInput
+                        underlineColorAndroid="transparent"
+                        placeholder="Autres symptômes..."
+                        placeholderTextColor="grey"
+                        numberOfLines={7}
+                        multiline={true}
+                        autoCapitalize
+                        onChangeText={(otherSymptomes) => this.setState({ otherSymptomes })}
+                        value={otherSymptomes}
+                        style={styles.comment} />
+                    </View>
+
                   </Content>
+
+                  <View style={{ flex: 0.15, alignItems: 'center', paddingVertical: 10 }}>
+                    <Button width={SCREEN_WIDTH * 0.5} text="confirmer" onPress={this.toggleModal} />
+                  </View>
+
                 </ScrollView>
-                <View style={{ flex: 1, position: 'absolute', bottom: SCREEN_HEIGHT * 0.03, alignItems: 'center', width: '100%' }}>
-                  <Button width={SCREEN_WIDTH * 0.7} text="confirmer" onPress={this.toggleModal} />
-                </View>
               </Container>
             </Modal>
 
             <View style={styles.header_container}>
-              <Text style={styles.header}> Ajouter un commentaire utile : </Text>
+              <Text style={styles.header}>Ajouter un commentaire utile:</Text>
             </View>
 
             <View style={styles.comment_container}>
@@ -228,8 +284,7 @@ export default class Symptomes extends React.Component {
                   <Text style={styles.buttonText1}>Passer cette étape</Text>
                 </TouchableOpacity>}
 
-              <TouchableOpacity
-                onPress={this.onConfirmClick}>
+              <TouchableOpacity onPress={this.onConfirmClick}>
                 <LinearGradient
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
@@ -240,9 +295,7 @@ export default class Symptomes extends React.Component {
               </TouchableOpacity>
             </View>
 
-          </View>
-          :
-          <Loading />
+          </ScrollView>
         }
       </View>
 
@@ -262,11 +315,43 @@ const styles = StyleSheet.create({
     backgroundColor: 'white'
   },
   bar_progression: {
-    flex: 0.05,
+    flex: 0.025,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'flex-start',
     //backgroundColor: 'purple',
+  },
+  header_container: {
+    flex: 0.08,
+    justifyContent: 'center',
+    alignItems: 'center',
+    //backgroundColor: 'green',
+  },
+  symptomsButton_container: {
+    flex: 0.1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    //backgroundColor: 'pink'
+  },
+  symptomesList_container: {
+    flex: 0.365,
+    //backgroundColor: 'blue',
+    paddingTop: SCREEN_HEIGHT * 0.01,
+    paddingBottom: SCREEN_HEIGHT * 0.01
+  },
+  comment_container: {
+    flex: 0.25,
+    alignSelf: 'center',
+    //backgroundColor: 'yellow',
+    width: SCREEN_WIDTH * 0.78,
+  },
+  button_container: {
+    flex: 0.1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    //backgroundColor: 'orange',
+    width: SCREEN_WIDTH
   },
   bar: {
     height: SCREEN_HEIGHT * 0.01,
@@ -279,12 +364,6 @@ const styles = StyleSheet.create({
   activeBar: {
     backgroundColor: '#48d8fb',
   },
-  header_container: {
-    flex: 0.1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    //backgroundColor: 'green',
-  },
   header: {
     fontSize: SCREEN_HEIGHT * 0.025,
     fontWeight: 'bold',
@@ -293,23 +372,13 @@ const styles = StyleSheet.create({
     color: 'black',
     marginBottom: SCREEN_HEIGHT * 0.01
   },
-  symptomsButton_container: {
-    flex: 0.1,
-    //backgroundColor: 'purple'
-  },
-  symptomesList_container: {
-    flex: 0.33,
-    //backgroundColor: 'blue',
-    paddingTop: SCREEN_HEIGHT * 0.01,
-    paddingBottom: SCREEN_HEIGHT * 0.01
-  },
   symptomsButton: {
     textAlignVertical: 'top',
     textAlign: 'center',
     alignSelf: 'center',
     backgroundColor: '#ffffff',
     borderRadius: 50,
-    padding: SCREEN_WIDTH * 0.05,
+    padding: SCREEN_WIDTH * 0.03,
     width: SCREEN_WIDTH * 0.7,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
@@ -332,12 +401,6 @@ const styles = StyleSheet.create({
     borderLeftColor: '#93eafe',
     backgroundColor: '#ffffff'
   },
-  comment_container: {
-    flex: 0.27,
-    alignSelf: 'center',
-    //backgroundColor: 'yellow',
-    width: SCREEN_WIDTH * 0.78,
-  },
   comment: {
     textAlignVertical: 'top',
     backgroundColor: '#ffffff',
@@ -349,14 +412,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
     elevation: 3,
-  },
-  button_container: {
-    flex: 0.15,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    //backgroundColor: 'orange',
-    width: SCREEN_WIDTH
   },
   skipButton: {
     textAlignVertical: 'top',
@@ -381,12 +436,14 @@ const styles = StyleSheet.create({
     paddingTop: SCREEN_HEIGHT * 0.005,
     paddingBottom: SCREEN_HEIGHT * 0.005,
     borderRadius: 30,
-    width: SCREEN_WIDTH * 0.3,
+    width: SCREEN_WIDTH * 0.5,
     height: SCREEN_HEIGHT * 0.06,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
+    justifyContent: 'center',
+    alignItems: 'center',
     elevation: 3,
   },
   buttonText1: {
@@ -398,7 +455,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   buttonText2: {
-    fontSize: SCREEN_HEIGHT * 0.017,
+    fontSize: SCREEN_HEIGHT * 0.025,
     fontWeight: 'bold',
     fontFamily: 'Avenir',
     textAlign: 'center',

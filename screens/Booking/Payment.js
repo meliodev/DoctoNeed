@@ -40,6 +40,7 @@ export default class Payment extends PureComponent {
         this.doctorId = this.props.navigation.getParam('doctorId', '')
         this.date = this.props.navigation.getParam('date', 'nothing sent')
         this.symptomes = this.props.navigation.getParam('symptomes', 'nothing sent')
+        this.otherSymptomes = this.props.navigation.getParam('otherSymptomes', 'nothing sent')
         this.comment = this.props.navigation.getParam('comment', 'nothing sent')
         this.DocumentsRefs = this.props.navigation.getParam('DocumentsRefs', '')
         this.VideoRef = this.props.navigation.getParam('VideoRef', '')
@@ -50,44 +51,39 @@ export default class Payment extends PureComponent {
         this.makePayment = this.makePayment.bind(this);
         this.setRegularCase = this.setRegularCase.bind(this);
         this.setUrgence2Case = this.setUrgence2Case.bind(this);
+
+        this.state = {
+            isLoading: false,
+            token: null,
+            success: null,
+            response: null,
+
+            //doctor data including price
+            doctorName: '',
+            speciality: '',
+            Avatar: '',
+            price: '',
+            currency: '',
+
+            //patient data
+            userName: '',
+            userCountry: '',
+
+            //appointment data including date
+            stripeCustomer: ''
+        }
     }
 
-    state = {
-        isLoading: false,
-        token: null,
-        success: null,
-        response: null,
-
-        //doctor data including price
-        doctorName: '',
-        speciality: '',
-        Avatar: '',
-        price: '',
-        currency: '',
-
-        //patient data
-        userName: '',
-        userCountry: '',
-
-        //appointment data including date
-        date: '',
-        symptomes: '',
-        comment: '',
-        isUrgence: '',
-
-        stripeCustomer: ''
-    }
-
-    componentDidMount() {
-        this.getCustomerId()
+    async componentDidMount() {
+        await this.getCustomerId()
 
         //Regular appointment or Urgence1
         if (this.doctorId !== '')
-            this.setRegularCase()
+            await this.setRegularCase()
 
         //Urgence2
         else if (this.doctorId === '')
-            this.setUrgence2Case()
+            await this.setUrgence2Case()
     }
 
     //FETCH DATA
@@ -102,41 +98,34 @@ export default class Payment extends PureComponent {
 
     async setRegularCase() {
         await REFS.doctors.doc(this.doctorId).get().then((doc) => {
+            const doctor = doc.data()
             this.setState({
-                doctorName: doc.data().prenom + ' ' + doc.data().nom,
-                speciality: doc.data().speciality,
-                Avatar: doc.data().Avatar,
+                doctorName: `${doctor.prenom} ${doctor.nom}`,
+                speciality: doctor.speciality,
+                Avatar: doctor.Avatar,
                 currency: '€',            //doc.data().currency_symb,
             })
 
-            let price
-            //Regular
-            if (!this.isUrgence)
-                price = doc.data().regularPrice
-
-            //Urgence
-            else if (this.isUrgence)
-                price = doc.data().urgencePrice
-
+            const price = this.isUrgence ? doctor.urgencePrice : doctor.regularPrice
             this.setState({ price })
         })
     }
 
-    setUrgence2Case() {
+    async setUrgence2Case() {
         this.setState({
             speciality: this.speciality,
             currency: '€',
         })
-        this.getSpecialityPrice()
+        await this.getSpecialityPrice()
     }
 
-    getSpecialityPrice() {
-        REFS.specialities.doc(this.speciality).get().then((doc) => {
+    async getSpecialityPrice() {
+        await REFS.specialities.doc(this.speciality).get().then((doc) => {
             this.setState({ price: doc.data().urgencePrice })
         })
     }
 
-    //PAYMENT FLOW
+    //PAYMENT FLOW - CLIENT SIDE
     handleCardPayPress = async () => {
         console.log('Handling press...')
         this.setState({ isLoading: true })
@@ -173,6 +162,7 @@ export default class Payment extends PureComponent {
             month: moment(this.date).format("MM/YYYY"),
             speciality: this.speciality,
             symptomes: this.symptomes,
+            otherSymptomes: this.otherSymptomes,
             comment: this.comment,
             DocumentsRefs: this.DocumentsRefs,
             VideoRef: this.VideoRef
@@ -252,16 +242,15 @@ export default class Payment extends PureComponent {
         const date = moment(this.date).format("DD/MM/YYYY")
 
         const { loading, token, success, response } = this.state
+        const { doctorName, speciality, Avatar } = this.state
+
         const doctor = {
-            name: this.state.doctorName,
-            speciality: this.state.speciality,
-            Avatar: this.state.Avatar
+            name: doctorName,
+            speciality,
+            Avatar
         }
 
-        let urgence = ''
-
-        if (this.isUrgence)
-            urgence = 'urgente'
+        const urgente = this.isUrgence ? 'urgente' : ''
 
         return (
             <View style={styles.container}>
@@ -277,15 +266,11 @@ export default class Payment extends PureComponent {
 
                         <View style={styles.paymentType_container}>
                             <View style={{ flex: 1, justifyContent: 'center', paddingLeft: SCREEN_WIDTH * 0.08 }}>
-                                <Text style={[styles.label_text, { color: '#000' }]}>
-                                    Type de paiement
-                                </Text>
+                                <Text style={[styles.label_text, { color: '#000' }]}> Type de paiement </Text>
                             </View>
 
                             <View style={{ flex: 1, justifyContent: 'center', paddingRight: SCREEN_WIDTH * 0.08, alignItems: 'flex-end' }}>
-                                <Text style={[styles.label_text, { fontWeight: 'normal' }]}>
-                                    Carte bancaire
-                                </Text>
+                                <Text style={[styles.label_text, { fontWeight: 'normal' }]}> Carte bancaire</Text>
                             </View>
                         </View>
 
@@ -297,21 +282,18 @@ export default class Payment extends PureComponent {
                                 <View style={styles.label_container}>
                                     <View style={{ flex: 1 }}>
                                         <Text style={styles.label_text}>
-                                            {`Consultation `}{urgence}{`\n`}{`du `}{date}
+                                            {`Consultation `}{urgente}{`\n`}{`du `}{date}
                                         </Text>
                                         {this.speciality === '' &&
-                                            <Text style={styles.label_text}>
-                                                à {moment(this.date).format('HH:mm').replace(':', 'h')}
-                                            </Text>
+                                            <Text style={styles.label_text}> à {moment(this.date).format('HH:mm').replace(':', 'h')}</Text>
                                         }
-
                                     </View>
                                 </View>
 
                                 <View style={styles.value_container}>
                                     <View style={{ alignItems: 'center', justifyContent: 'center' }}>
                                         <Text style={styles.value_text}>
-                                        <Text style={{ fontSize: 16 }}>{this.state.currency}</Text> {this.state.price} 
+                                            <Text style={{ fontSize: 16 }}>{this.state.currency}</Text> {this.state.price}
                                         </Text>
                                     </View>
                                 </View>
@@ -320,16 +302,14 @@ export default class Payment extends PureComponent {
                             <View style={styles.price_container_row}>
                                 <View style={styles.label_container}>
                                     <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                                        <Text style={styles.label_text}>
-                                            Total
-                                        </Text>
+                                        <Text style={styles.label_text}>Total</Text>
                                     </View>
                                 </View>
 
                                 <View style={styles.value_container}>
                                     <View style={{ alignItems: 'center', justifyContent: 'center' }}>
                                         <Text style={styles.value_text}>
-                                        <Text style={{ fontSize: 16 }}>{this.state.currency}</Text> {this.state.price}
+                                            <Text style={{ fontSize: 16 }}>{this.state.currency}</Text> {this.state.price}
                                         </Text>
                                     </View>
                                 </View>

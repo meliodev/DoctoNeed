@@ -80,6 +80,7 @@ class AppointmentDetails extends React.Component {
 
       comment: '',
       symptoms: [],
+      otherSymptomes: '',
 
       //allergies: [],
       noinput: true,
@@ -171,6 +172,9 @@ class AppointmentDetails extends React.Component {
       if (doc.data().symptomes)
         this.setState({ symptoms: doc.data().symptomes })
 
+      if (doc.data().otherSymptomes)
+        this.setState({ otherSymptomes: doc.data().otherSymptomes })
+
       if (doc.data().comment)
         this.setState({ comment: doc.data().comment })
 
@@ -234,6 +238,7 @@ class AppointmentDetails extends React.Component {
     const { patientName, doctorName, doctorSpeciality, date, nature, state } = this.state
     const { price, paymentStatus, isLoading } = this.state
     const { role } = this.props
+    const { otherSymptomes, comment } = this.state
 
     const infosPatient = [{ label: 'Médecin', value: doctorName }, { label: 'Spécialité', value: doctorSpeciality }, { label: 'Date', value: date }, { label: 'Nature', value: nature }, { label: 'Etat', value: state }]
     const infosDoctor = [{ label: 'Patient', value: patientName }, { label: 'Date', value: date }, { label: 'Nature', value: nature }, { label: 'Etat', value: state }]
@@ -252,7 +257,7 @@ class AppointmentDetails extends React.Component {
 
     if (!isLoading)
       return (
-        <ScrollView style={{ flex: 1 }}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ alignItems: 'center' }}>
 
           {/* Détails */}
           <Text style={styles.mainHeader}>Détails de la consultation</Text>
@@ -260,11 +265,9 @@ class AppointmentDetails extends React.Component {
           {/* Card 1 */}
           <View style={styles.card}>
 
-            <View style={{ flexDirection: 'row' }}>
+            <View style={styles.header}>
               <Icon name="information" size={SCREEN_WIDTH * 0.05} color="#93E7FF" style={{ marginRight: SCREEN_WIDTH * 0.015 }} />
-              <Text style={styles.headerText}>
-                Informations sur la consultation
-            </Text>
+              <Text style={styles.headerText}>Informations sur la consultation</Text>
             </View>
 
             {/* Infos consultation */}
@@ -312,20 +315,60 @@ class AppointmentDetails extends React.Component {
 
 
             {/* Données de la consultation */}
-            <View style={{ flexDirection: 'row', marginTop: SCREEN_HEIGHT * 0.02 }}>
+            <View style={styles.header}>
               <Icon name="database-lock" size={SCREEN_WIDTH * 0.05} color="#93E7FF" style={{ marginRight: SCREEN_WIDTH * 0.015 }} />
-              <Text style={styles.headerText}>
-                Données de la consultation
-            </Text>
+              <Text style={styles.headerText}>Données de la consultation</Text>
             </View>
 
             {/* Symptoms */}
             <View style={{ flex: 1, flexDirection: 'row', marginBottom: SCREEN_HEIGHT * 0.019 }}>
 
               <View style={{ flex: 0.88, flexDirection: 'row' }}>
-                <Text style={{ flex: 0.35, color: '#333', fontStyle: 'italic', marginBottom: SCREEN_HEIGHT * 0.015 }}>Symptômes:</Text>
-                <View style={{ flex: 0.65, alignItems: 'flex-start', flexWrap: 'wrap', flexDirection: 'row' }}>
+                <Text style={{ flex: 0.5, color: '#333', fontStyle: 'italic', marginBottom: SCREEN_HEIGHT * 0.015 }}>Symptômes:</Text>
+                <View style={{ flex: 0.5, alignItems: 'flex-start', flexWrap: 'wrap', flexDirection: 'row' }}>
                   {this.renderSymptoms()}
+                </View>
+              </View>
+
+              <View style={{ flex: 0.12, justifyContent: 'flex-start', alignItems: 'center' }}>
+                {this.props.role === 'isAdmin' || this.props.role === 'isPatient' ?
+                  <Icon name="pen"
+                    size={SCREEN_WIDTH * 0.05}
+                    color="#93E7FF"
+                    onPress={() => this.props.navigation.navigate('Symptomes', { appId: this.appId, isEditing: true })} />
+                  : null}
+              </View>
+
+            </View>
+
+            {/* Other Symptoms */}
+            <View style={{ flex: 1, flexDirection: 'row', marginBottom: SCREEN_HEIGHT * 0.019 }}>
+
+              <View style={{ flex: 0.88, flexDirection: 'row' }}>
+                <Text style={{ flex: 0.5, color: '#333', fontStyle: 'italic', marginBottom: SCREEN_HEIGHT * 0.015 }}>Autres symptômes:</Text>
+                <View style={{ flex: 0.5, alignItems: 'flex-start', flexWrap: 'wrap', flexDirection: 'row' }}>
+                  <Text>{otherSymptomes}</Text>
+                </View>
+              </View>
+
+              <View style={{ flex: 0.12, justifyContent: 'flex-start', alignItems: 'center' }}>
+                {this.props.role === 'isAdmin' || this.props.role === 'isPatient' ?
+                  <Icon name="pen"
+                    size={SCREEN_WIDTH * 0.05}
+                    color="#93E7FF"
+                    onPress={() => this.props.navigation.navigate('Symptomes', { appId: this.appId, isEditing: true })} />
+                  : null}
+              </View>
+
+            </View>
+
+            {/* Comment */}
+            <View style={{ flex: 1, flexDirection: 'row', marginBottom: SCREEN_HEIGHT * 0.019 }}>
+
+              <View style={{ flex: 0.88, flexDirection: 'row' }}>
+                <Text style={{ flex: 0.5, color: '#333', fontStyle: 'italic', marginBottom: SCREEN_HEIGHT * 0.015 }}>Commentaire:</Text>
+                <View style={{ flex: 0.5, alignItems: 'flex-start', flexWrap: 'wrap', flexDirection: 'row' }}>
+                  <Text>{comment}</Text>
                 </View>
               </View>
 
@@ -344,8 +387,8 @@ class AppointmentDetails extends React.Component {
             <View style={{ flex: 1, flexDirection: 'row', marginBottom: SCREEN_HEIGHT * 0.019 }}>
 
               <View style={{ flex: 0.88, flexDirection: 'row' }}>
-                <Text style={{ flex: 0.35, color: '#333', fontStyle: 'italic', marginBottom: SCREEN_HEIGHT * 0.015 }}>Documents:</Text>
-                <View style={{ flex: 0.65, flexDirection: 'row', flexWrap: 'wrap' }}>
+                <Text style={{ flex: 0.5, color: '#333', fontStyle: 'italic', marginBottom: SCREEN_HEIGHT * 0.015 }}>Documents:</Text>
+                <View style={{ flex: 0.5, flexDirection: 'row', flexWrap: 'wrap' }}>
                   {this.renderPatientDocuments()}
                 </View>
               </View>
@@ -365,8 +408,8 @@ class AppointmentDetails extends React.Component {
             <View style={{ flex: 1, flexDirection: 'row' }}>
 
               <View style={{ flex: 0.88, flexDirection: 'row' }}>
-                <Text style={{ flex: 0.35, color: '#333', fontStyle: 'italic', marginBottom: SCREEN_HEIGHT * 0.015 }}>Vidéo:</Text>
-                <View style={{ flex: 0.65, flexDirection: 'row', flexWrap: 'wrap' }}>
+                <Text style={{ flex: 0.5, color: '#333', fontStyle: 'italic', marginBottom: SCREEN_HEIGHT * 0.015 }}>Vidéo:</Text>
+                <View style={{ flex: 0.5, flexDirection: 'row', flexWrap: 'wrap' }}>
                   {this.renderVideo()}
                 </View>
               </View>
@@ -423,11 +466,9 @@ class AppointmentDetails extends React.Component {
 
           {/* Card 1 */}
           <View style={styles.card}>
-            <View style={{ flexDirection: 'row' }}>
+            <View style={styles.header}>
               <Icon name="information" size={SCREEN_WIDTH * 0.05} color="#93E7FF" style={{ marginRight: SCREEN_WIDTH * 0.015 }} />
-              <Text style={styles.headerText}>
-                Informations sur le paiement
-          </Text>
+              <Text style={styles.headerText}>Informations sur le paiement</Text>
             </View>
 
             {/* Infos consultation */}
@@ -445,7 +486,7 @@ class AppointmentDetails extends React.Component {
 
           </View>
 
-        </ScrollView>
+        </ScrollView >
       )
 
     else return <Loading />
@@ -581,8 +622,8 @@ class AppointmentDetails extends React.Component {
               activeOpacity={0.8}
               style={styles.doctorDocuments}
               onPress={() => this.toggleModalImage(doc.image, true)}
-              //onLongPress={() => console.log('Hey man ! wassup ?')}
-              >
+            //onLongPress={() => console.log('Hey man ! wassup ?')}
+            >
               <Icon name="clipboard"
                 size={SCREEN_WIDTH * 0.07}
                 color="#93E7FF" />
@@ -819,31 +860,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    width: SCREEN_WIDTH * 0.9,
+    width: SCREEN_WIDTH * 0.95,
     color: '#ffffff'
   },
   card: {
     backgroundColor: '#F7F7F7',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    width: SCREEN_WIDTH * 0.9,
-    paddingLeft: SCREEN_WIDTH * 0.07,
-    margin: SCREEN_HEIGHT * 0.01,
+    width: SCREEN_WIDTH * 0.95,
+    paddingLeft: SCREEN_WIDTH * 0.03,
+    marginHorizontal: SCREEN_WIDTH * 0.05,
+    marginBottom: SCREEN_HEIGHT * 0.04,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
     elevation: 3,
-    marginHorizontal: SCREEN_WIDTH * 0.05,
-    marginBottom: SCREEN_HEIGHT * 0.04
   },
   headerText: {
     fontWeight: 'bold',
     color: '#000000',
-    marginBottom: SCREEN_HEIGHT * 0.02,
-    borderBottomWidth: 0,
-    borderBottomColor: '#93eafe',
-    width: SCREEN_WIDTH * 0.6
   },
   avatarIcon: {
     height: SCREEN_WIDTH * 0.18,
@@ -871,8 +907,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'white',
     padding: 5
+  },
+  header: {
+    flexDirection: 'row',
+    paddingVertical: 15,
+    alignItems: 'center'
   }
-});
+})
 
 const modalStyles = StyleSheet.create({
   item_inactive: {

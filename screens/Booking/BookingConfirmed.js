@@ -22,8 +22,6 @@ export default class Main extends React.Component {
     this.doctor = this.props.navigation.getParam('doctor', '')
     this.speciality = this.props.navigation.getParam('speciality', '')
     this.date = this.props.navigation.getParam('date', 'nothing sent')
-    this.symptomes = this.props.navigation.getParam('symptomes', 'nothing sent')
-    this.comment = this.props.navigation.getParam('comment', 'nothing sent')
 
     this.state = {
       currentUser: null,

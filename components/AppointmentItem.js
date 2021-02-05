@@ -26,7 +26,7 @@ class AppointmentItem extends React.Component {
   //expand or shrink item 
   toggleAppointment(main, appId, appIdState) {
     //Expand
-    if (appId !== appIdState) {
+    if (appId !== appIdState) { 
       main.month = ''
       if (main.itemHeight === SCREEN_HEIGHT * 0.4) {
         main.itemHeight = SCREEN_HEIGHT * 0.13

@@ -459,7 +459,7 @@ class Appointments extends React.Component {
 
     return { fields, KEYS_TO_FILTERS }
   }
-
+ 
   render() {
     const { appointments, isLoading } = this.state
     const { appId, ImageToShow, isModalImageVisible } = this.state

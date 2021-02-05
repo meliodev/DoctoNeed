@@ -38,6 +38,7 @@ export default class Upload extends React.Component {
     this.doctorId = this.props.navigation.getParam('doctorId', '') //empty if URG2
     this.date = this.props.navigation.getParam('date', '')
     this.symptomes = this.props.navigation.getParam('symptomes', '')
+    this.otherSymptomes = this.props.navigation.getParam('otherSymptomes', '')
     this.comment = this.props.navigation.getParam('comment', '')
 
     //Urgence details
@@ -120,24 +121,24 @@ export default class Upload extends React.Component {
 
     // if (granted === PermissionsAndroid.RESULTS.GRANTED) {
 
-      ImagePicker.showImagePicker(imagePickerOptions, imagePickerResponse => {
-        const { didCancel, error } = imagePickerResponse;
-        if (didCancel) { console.log('Post canceled'); }
-        //else if (error) { alert(error); }
-        else if (error) { alert('Une erreur a été produite, veuillez réessayer.'); }
-        else {
-          console.log(imagePickerResponse)
-          UUIDGenerator.getRandomUUID().then((uuid) => {
-            return firebase.storage().ref('/Users/' + firebase.auth().currentUser.uid + '/Documents/' + uuid) //task: get filemname from path
+    ImagePicker.showImagePicker(imagePickerOptions, imagePickerResponse => {
+      const { didCancel, error } = imagePickerResponse;
+      if (didCancel) { console.log('Post canceled'); }
+      //else if (error) { alert(error); }
+      else if (error) { alert('Une erreur a été produite, veuillez réessayer.'); }
+      else {
+        console.log(imagePickerResponse)
+        UUIDGenerator.getRandomUUID().then((uuid) => {
+          return firebase.storage().ref('/Users/' + firebase.auth().currentUser.uid + '/Documents/' + uuid) //task: get filemname from path
+        })
+          .then((storageRef) => {
+            let fileSource = getFileLocalPath((imagePickerResponse))
+            this.setState({ ImageObjects: [...this.state.ImageObjects, { fileSource, storageRef, ImageUrl: imagePickerResponse.uri, ImageLink: '', progress: -1, isDeleting: false }] })
           })
-            .then((storageRef) => {
-              let fileSource = getFileLocalPath((imagePickerResponse))
-              this.setState({ ImageObjects: [...this.state.ImageObjects, { fileSource, storageRef, ImageUrl: imagePickerResponse.uri, ImageLink: '', progress: -1, isDeleting: false }] })
-            })
-        }
-      })
+      }
+    })
 
-   // }
+    // }
   }
 
   pickVideo = () => {
@@ -323,6 +324,7 @@ export default class Upload extends React.Component {
         doctorId: this.doctorId,
         date: this.date,
         symptomes: this.symptomes,
+        otherSymptomes: this.otherSymptomes,
         comment: this.comment,
         isUrgence: this.isUrgence,
         speciality: this.speciality,
@@ -339,6 +341,7 @@ export default class Upload extends React.Component {
         doctorId: this.doctorId,
         date: this.date,
         symptomes: this.symptomes,
+        otherSymptomes: this.otherSymptomes,
         comment: this.comment,
         isUrgence: this.isUrgence,
         speciality: this.speciality,
@@ -722,7 +725,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 50,
     padding: SCREEN_WIDTH * 0.05,
-    width: SCREEN_WIDTH * 0.6,
+    width: SCREEN_WIDTH * 0.75,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,

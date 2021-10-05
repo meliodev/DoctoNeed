@@ -313,8 +313,13 @@ export default class Payment extends PureComponent {
                                         </Text>
                                     </View>
                                 </View>
-
                             </View>
+
+                            {this.isUrgence &&
+                                <View style={{ paddingHorizontal: SCREEN_WIDTH * 0.05 }}>
+                                    <Text style={styles.terms}>* Votre consultation en urgence sera traitée et réalisée de manière prioritaire. Ainsi, des frais additionnels ont été ajoutés au prix régulier.</Text>
+                                </View>
+                            }
 
                         </View>
 
@@ -322,37 +327,21 @@ export default class Payment extends PureComponent {
                             <Button
                                 text="Paiement"
                                 width={SCREEN_WIDTH * 0.6}
-                                // text="Enter you card and pay"
                                 loading={loading}
-                                // onPress={this.addAdminRole}
                                 onPress={this.handleCardPayPress}
                             />
                         </View>
 
                         <View style={styles.terms_container}>
-                            <View style={{ flex: 0.5, padding: SCREEN_WIDTH * 0.05 }}>
-                                {/* <Text style={[styles.terms, { marginBottom: SCREEN_HEIGHT * 0.02 }]}>
-                                    Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
-                        Lorem ipsum dolor sit amet <Text style={styles.termsLink} onPress={() => console.log('Conditions générales')}>Conditions générales.</Text>
-                                </Text> */}
-                                {line}
-                            </View>
+                            <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#d9dbda' }}>
+                                <View style={styles.sercurityCard_container}>
+                                    <Image source={require('../../assets/payment-secure.png')} style={{ width: SCREEN_WIDTH * 0.08, height: SCREEN_WIDTH * 0.08 }} />
+                                </View>
 
-
-                            <View style={styles.securityInfo_container}>
-                                <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
-                                    <View style={styles.sercurityCard_container}>
-                                        <Image source={require('../../assets/payment-secure.png')} style={{ width: SCREEN_WIDTH * 0.08, height: SCREEN_WIDTH * 0.08 }} />
-                                    </View>
-
-                                    <View style={styles.securityText_container}>
-                                        <Text style={styles.terms}>
-                                            Votre paiement est sécurisé, vous pouvez effectuer votre transaction en toute confiance.
-                            </Text>
-                                    </View>
+                                <View style={styles.securityText_container}>
+                                    <Text style={styles.terms}>Votre paiement est sécurisé, vous pouvez effectuer votre transaction en toute confiance.</Text>
                                 </View>
                             </View>
-
                         </View>
 
                     </View>
@@ -437,12 +426,13 @@ const styles = StyleSheet.create({
     },
 
     paymentButton_container: {
-        flex: 0.1,
+        flex: 0.2,
         alignItems: 'center',
-        //backgroundColor: 'pink'
+        justifyContent: 'space-around',
+        // backgroundColor: 'pink'
     },
     terms_container: {
-        flex: 0.2,
+        flex: 0.1,
         //backgroundColor: 'brown',
         padding: 10
     },
@@ -456,10 +446,13 @@ const styles = StyleSheet.create({
     sercurityCard_container: {
         flex: 0.2,
         alignItems: 'center',
-        //backgroundColor: 'green'
+        justifyContent: 'flex-end',
+
+        // backgroundColor: 'green'
     },
     securityText_container: {
         flex: 0.8,
+        alignItems: 'flex-end',
         //backgroundColor: 'yellow'
     },
     terms: {

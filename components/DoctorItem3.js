@@ -72,7 +72,7 @@ class DoctorItem3 extends React.Component {
 
 const styles = StyleSheet.create({
     main_container: {
-        //backgroundColor: 'yellow',
+        backgroundColor: '#fff',
         borderRadius: 25,
         width: SCREEN_WIDTH * 0.95,
         height: SCREEN_HEIGHT * 0.4,

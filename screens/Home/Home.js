@@ -38,7 +38,7 @@ import NextAppointmentsDOC from '../User/Doctor/NextAppointments'
 import PreviousAppointmentsADMIN from '../User/Admin/PreviousAppointments'
 import NextAppointmentsADMIN from '../User/Admin/NextAppointments'
 import MedicalFolder from '../../screens/User/Patient/MedicalFolder'
-import DateNaissance from '../../screens/User/Patient/DateNaissance'
+import DateNaissance from '../../screens/User/DateNaissance'
 import Allergies from '../../screens/User/Patient/Allergies'
 import Antecedants from '../../screens/User/Patient/Antecedants'
 import AppointmentDetails from '../../screens/User/AppointmentDetails'
@@ -772,6 +772,13 @@ const StackNavigatorDoctor = createStackNavigator({
       // headerShown: false
     }
   },
+  DateNaissance: {
+    screen: DateNaissance,
+    navigationOptions: {
+      title: 'Ma date de naissance',
+      // headerShown: false
+    }
+  }
 })
 
 const AppContainerDoctor = createAppContainer(StackNavigatorDoctor)
@@ -907,7 +914,7 @@ const StackNavigatorAdmin = createStackNavigator({
     screen: DateNaissance,
     navigationOptions: {
       title: 'Date de naissance',
-      headerShown: false
+     // headerShown: false
     }
   },
   Allergies: {

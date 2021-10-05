@@ -41,7 +41,7 @@ import PreviousAppointmentsADMIN from '../User/Admin/PreviousAppointments'
 import NextAppointmentsADMIN from '../User/Admin/NextAppointments'
 
 import MedicalFolder from '../../screens/User/Patient/MedicalFolder'
-import DateNaissance from '../../screens/User/Patient/DateNaissance'
+import DateNaissance from '../../screens/User/DateNaissance'
 import Allergies from '../../screens/User/Patient/Allergies'
 import Antecedants from '../../screens/User/Patient/Antecedants'
 import AppointmentDetails from '../../screens/User/AppointmentDetails'

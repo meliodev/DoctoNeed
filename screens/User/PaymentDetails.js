@@ -10,7 +10,7 @@ import 'moment/locale/fr'  // without this line it didn't work
 moment.locale('fr')
 
 import { connect } from 'react-redux'
-import { InitializeUserId } from '../../functions/functions'
+import { InitializeDoctorId } from '../../functions/functions'
 
 import * as REFS from '../../DB/CollectionsRefs'
 import theme from '../../constants/theme';
@@ -27,7 +27,7 @@ class PaymentDetails extends React.Component {
         this.doctor = this.props.navigation.getParam('doctor', '')
         this.doctor_id_param = this.props.navigation.getParam('doctor_id', '')  //received from admin or doctor navigation params
         this.getFiltersfromParams()
-        InitializeUserId(this)
+        InitializeDoctorId(this)
 
         this.loadAppointments = this.loadAppointments.bind(this);
 

@@ -12,27 +12,27 @@ import RadioForm, { RadioButton, RadioButtonInput, RadioButtonLabel } from 'reac
 
 import { withNavigation } from 'react-navigation';
 
-import * as REFS from '../../../DB/CollectionsRefs'
+import * as REFS from '../../DB/CollectionsRefs'
 
 import { connect } from 'react-redux'
 
-import { InitializePatientId } from '../../../functions/functions'
+import { InitializePatientId, InitializeDoctorId } from '../../functions/functions'
 
 import moment from 'moment'
 import 'moment/locale/fr'  // without this line it didn't work
 moment.locale('fr')
 
-import { toggleLeftSideMenu, navigateToMedicalFolder, navigateToScreen, signOutUserandToggle } from '../../../Navigation/Navigation_Functions'
+import { toggleLeftSideMenu, navigateToMedicalFolder, navigateToScreen, signOutUserandToggle } from '../../Navigation/Navigation_Functions'
 
 import Icon from 'react-native-vector-icons/FontAwesome';
 import firebase from 'react-native-firebase';
 import { CheckBox, Content, Header, Card, CardItem, ListItem, Radio, Right, Left } from 'native-base';
 import DatePicker from 'react-native-date-picker'
-import { imagePickerOptions, options2, getFileLocalPath, createStorageReferenceToFile, uploadFileToFireBase } from '../../../util/MediaPickerFunctions'
+import { imagePickerOptions, options2, getFileLocalPath, createStorageReferenceToFile, uploadFileToFireBase } from '../../util/MediaPickerFunctions'
 
 import ImagePicker from 'react-native-image-picker';
 
-import LeftSideMenu from '../../../components/LeftSideMenu'
+import LeftSideMenu from '../../components/LeftSideMenu'
 import Icon1 from 'react-native-vector-icons/FontAwesome';
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -47,11 +47,17 @@ const LOGO_WIDTH = SCREEN_WIDTH * 0.25 * ratioLogo;
 class DateNaissance extends React.Component {
   constructor(props) {
     super(props);
-    this.updateDN = this.updateDN.bind(this);
+    this.updateDateNaissance = this.updateDateNaissance.bind(this);
 
     this.dateNaissance = this.props.navigation.getParam('dateNaissance', '')
-    this.user_id_param = this.props.navigation.getParam('user_id', '')  //received from admin or doctor navigation params
+
+    //Patient
+    this.user_id_param = this.props.navigation.getParam('user_id', '')  //admin or patient user
     this.user_id = ''
+
+    //Doctor
+    this.doctor_id_param = this.props.navigation.getParam('doctor_id', '')  //admin or doctor user
+    this.doctor_id = ''
 
     this.state = {
       date: this.dateNaissance
@@ -60,12 +66,22 @@ class DateNaissance extends React.Component {
   }
 
   componentDidMount() {
-    InitializePatientId(this)
+    if (this.user_id_param)
+      InitializePatientId(this)
+
+    else if (this.doctor_id_param)
+      InitializeDoctorId(this)
   }
 
-  async updateDN() { 
-    let dateNaissance = moment(this.state.date).subtract(1, 'day').format("DD/MM/YYYY")
-    await REFS.users.doc(this.user_id).update({ dateNaissance })
+  async updateDateNaissance() {
+    const dateNaissance = moment(this.state.date).format()
+
+    if (this.user_id_param)
+      await REFS.users.doc(this.user_id).update({ dateNaissance })
+
+    else if (this.doctor_id_param)
+      await REFS.doctors.doc(this.doctor_id).update({ dateNaissance })
+
     this.props.navigation.goBack()
   }
 
@@ -85,7 +101,7 @@ class DateNaissance extends React.Component {
           <Text style={styles.buttonText1}>Annuler</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={{ width: '40%' }} onPress={this.updateDN}>
+        <TouchableOpacity style={{ width: '40%' }} onPress={this.updateDateNaissance}>
           <LinearGradient
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}

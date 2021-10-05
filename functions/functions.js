@@ -32,7 +32,7 @@ export const getMetaData = async (main, role) => {
     }
 }
 
-export const InitializeUserId = (main) => {
+export const InitializeDoctorId = (main) => {
     if (main.props.role === 'isDoctor')
         main.doctor_id = firebase.auth().currentUser.uid
 

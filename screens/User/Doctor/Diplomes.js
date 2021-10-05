@@ -5,7 +5,7 @@ import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ImagePicker from 'react-native-image-picker';
 import { imagePickerOptions, getFileLocalPath } from '../../../util/MediaPickerFunctions';
-import { InitializeUserId } from '../../../functions/functions'
+import { InitializeDoctorId } from '../../../functions/functions'
 import firebase from 'react-native-firebase';
 import LinearGradient from 'react-native-linear-gradient';
 import { connect } from 'react-redux'
@@ -47,7 +47,7 @@ class Diplomes extends React.Component {
   }
 
   componentDidMount() {
-    InitializeUserId(this)
+    InitializeDoctorId(this)
 
     this.unsubscribe = REFS.doctors.doc(this.doctor_id).onSnapshot((doc) => {
       this.setState({ diplomes: doc.data().diplomes })

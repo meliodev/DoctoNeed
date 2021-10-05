@@ -72,9 +72,10 @@ class MyPatients extends React.Component {
                     patient = patientDoc.data()
                     patient.id = patientDoc.id
 
-                    let birthday = moment(patientDoc.data().dateNaissance, 'DD/MM/YYYY').format('YYYY-MM-DD')
+                    let birthday = moment(patientDoc.data().dateNaissance).format('YYYY-MM-DD')
                     let now = moment().format('YYYY-MM-DD')
                     let age = moment(now).diff(moment(birthday), 'years')
+                    console.log('age', age)
                     patient.age = age
 
                     patientList.push(patient)

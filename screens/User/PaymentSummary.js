@@ -25,7 +25,7 @@ import * as REFS from '../../DB/CollectionsRefs'
 import theme from '../../constants/theme.js'
 
 import { connect } from 'react-redux'
-import { InitializeUserId } from '../../functions/functions'
+import { InitializeDoctorId } from '../../functions/functions'
 
 
 const SCREEN_WIDTH = Dimensions.get("window").width
@@ -41,7 +41,7 @@ class PaymentSummary extends PureComponent {
         super(props);
         this.doctor_id_param = this.props.navigation.getParam('doctor_id', '')  //received from admin or doctor navigation params
         this.doctor = this.props.navigation.getParam('doctor', '')
-        InitializeUserId(this)
+        InitializeDoctorId(this)
     }
 
     state = {

@@ -96,10 +96,7 @@ class SignUp4 extends ValidationComponent {
         <View style={styles.form_container}>
           <DatePicker
             date={this.state.date}
-            onDateChange={pickedDate => {
-              const date = pickedDate.toString()
-              this.setState({ date })
-            }}
+            onDateChange={date => this.setState({ date })}
             mode={'date'}
             locale='fr'
           />

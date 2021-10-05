@@ -52,6 +52,7 @@ class DoctorItem extends React.Component {
               </View>
               <View style={styles.description_container}>
                 <Text style={styles.description_text}>{doctor.speciality}</Text>
+                <Text style={[styles.description_text, {color: '#000'}]}>Prix: {doctor.regularPrice}€</Text>
               </View>
 
 
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     //borderColor: 'green',
     //borderWidth: 1,
-    height: 120,
+    height: 130,
     width: SCREEN_WIDTH * 0.75,
     flexDirection: 'row',
     alignItems: 'center',
@@ -165,12 +166,12 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    //backgroundColor: 'pink',
+    backgroundColor: '#fff',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 1,
+    elevation: 5,
     shadowColor: '#93eafe'
   },
 })

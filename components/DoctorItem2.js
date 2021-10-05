@@ -102,12 +102,12 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    //backgroundColor: 'pink',
+    backgroundColor: '#fff',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 1,
+    elevation: 5,
     shadowColor: '#93eafe'
   },
   image: {

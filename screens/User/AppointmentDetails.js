@@ -293,13 +293,12 @@ class AppointmentDetails extends React.Component {
                   <Text style={{ flex: 0.65, textAlign: 'left', color: textColor, textDecorationLine: fontStyle }} onPress={() => {
                     if (element.label === 'Médecin') {
                       let doctor = null
-                      REFS.doctors.doc(this.state.doctor_id[0]).get().then((doc) => {
-                        const id = doc.id
+                      REFS.doctors.doc('Eqerm7XTBWPzB1mGwPcKoVEiej62').get().then((doc) => {
                         doctor = doc.data()
-                        doctor.id = id
+                        doctor.id = doc.id
                         doctor.isSelected = false
                       })
-                        .then(() => this.props.navigation.navigate('DoctorFile', { doctor: doctor, isUrgence: false, role: this.props.role }))
+                        .then(() => this.props.navigation.navigate('DoctorFile', { doctor, isUrgence: false, role: this.props.role }))
                         .catch((err) => console.error(err))
                     }
 
@@ -621,9 +620,8 @@ class AppointmentDetails extends React.Component {
             <TouchableOpacity
               activeOpacity={0.8}
               style={styles.doctorDocuments}
-              onPress={() => this.toggleModalImage(doc.image, true)}
-            //onLongPress={() => console.log('Hey man ! wassup ?')}
-            >
+              onPress={() => this.toggleModalImage(doc.image, true)}>
+
               <Icon name="clipboard"
                 size={SCREEN_WIDTH * 0.07}
                 color="#93E7FF" />
@@ -783,7 +781,7 @@ class AppointmentDetails extends React.Component {
           : null}
 
         {this.props.role === 'isAdmin' || this.props.role === 'isPatient' ?
-          <View style={{ flex: 0.12, flexDirection: 'row' }}>
+          <TouchableOpacity style={{ flex: 0.12, flexDirection: 'row' }} onPress={() => this.props.navigation.navigate('Chat', { appId: this.appId, noinput: noinput })}>
 
             <View style={{ flex: 0.7, flexDirection: 'row' }}>
               <View style={{ flex: 0.1, alignItems: 'center', justifyContent: 'center' }}>
@@ -794,7 +792,7 @@ class AppointmentDetails extends React.Component {
               </View>
 
               <View style={{ flex: 0.9, justifyContent: 'center' }}>
-                <Text style={{ fontSize: SCREEN_HEIGHT * 0.01, fontWeight: 'bold', color: "gray", flexWrap: 'wrap', }}>Cette conversation est strictement confidentielle entre l'admin est le patient. Si vous avez des questions à propos de cette consultation, n'hésitez pas à les poser ici.</Text>
+                <Text style={{ fontSize: SCREEN_HEIGHT * 0.01, fontWeight: 'bold', color: "gray", flexWrap: 'wrap', }}>Cette conversation est strictement confidentielle entre l'admin et le patient. Si vous avez des questions à propos de cette consultation, n'hésitez pas à les poser ici.</Text>
               </View>
             </View>
 
@@ -802,13 +800,12 @@ class AppointmentDetails extends React.Component {
               {/* <Icon name="numeric-1-circle"
                 size={SCREEN_WIDTH * 0.05}
                 color="red" /> */}
-              <TouchableOpacity
-                onPress={() => this.props.navigation.navigate('Chat', { appId: this.appId, noinput: noinput })}>
+              <TouchableOpacity>
                 <Image source={require('../../assets/profile.jpg')}
                   style={styles.avatarIcon} />
               </TouchableOpacity>
             </View>
-          </View>
+          </TouchableOpacity>
           : null}
 
       </View >

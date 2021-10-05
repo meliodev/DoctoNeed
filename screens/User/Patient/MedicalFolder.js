@@ -602,7 +602,7 @@ class MedicalFolder extends React.Component {
           <TouchableOpacity onPress={() => this.onPress1('isName')}>
             <View style={styles.metadata_box}>
               <Text style={styles.metadata_text1}>{this.state.prenom} {this.state.nom}</Text>
-              <Text style={styles.metadata_text2}>{moment(this.state.dateNaissance).format('LL')}</Text>
+              <Text style={styles.metadata_text2}>{moment(this.state.dateNaissance).format('DD/MM/YYYY')}</Text>
             </View>
           </TouchableOpacity>
         </View>

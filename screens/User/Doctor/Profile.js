@@ -9,12 +9,12 @@ import RadioForm, { RadioButton, RadioButtonInput, RadioButtonLabel } from 'reac
 import ImageViewing from "react-native-image-viewing";
 
 import * as REFS from '../../../DB/CollectionsRefs'
-
+ 
 import firebase from 'react-native-firebase';
 import { connect } from 'react-redux'
 
 import { toggleLeftSideMenu, navigateToScreen, signOutUserandToggle } from '../../../Navigation/Navigation_Functions'
-import { InitializeUserId } from '../../../functions/functions'
+import { InitializeDoctorId } from '../../../functions/functions'
 
 import { Card } from 'native-base';
 import DatePicker from 'react-native-datepicker'
@@ -85,14 +85,18 @@ class Profile extends React.Component {
       bio: '',
       codeFinesse: '',
       diplomes: [],
+      urgences: false,
+      regularPrice: '',
+      urgencePrice: '',
 
 
-      //Variables to toggle Modal
       isName: false,
       isSexe: false,
       isSpeciality: false,
       isBio: false,
       isCodeFinesse: false,
+      isPriceRegular: false,
+      isPriceUrgence: false,
 
       isModalVisible: false,
       //Mutuelle & Carte Vitale refs
@@ -104,7 +108,7 @@ class Profile extends React.Component {
 
 
   componentDidMount() {
-    InitializeUserId(this)
+    InitializeDoctorId(this)
     this.fetchData()
   }
 
@@ -113,46 +117,44 @@ class Profile extends React.Component {
   }
 
   fetchData() {
-
     this.unsubscribe = REFS.doctors.doc(this.doctor_id).onSnapshot(doc => {
-
+      const { Avatar, nom, prenom, bio, Sexe, dateNaissance, speciality, codeFinesse, urgences, regularPrice, urgencePrice, diplomes } = doc.data()
       this.setState({
         //Meta data
-        Avatar: doc.data().Avatar,
-        nom: doc.data().nom,
-        prenom: doc.data().prenom,
+        Avatar,
+        nom,
+        prenom,
         //Infos personnelles
-        Sexe: doc.data().Sexe,
-        dateNaissance: doc.data().dateNaissance,
+        Sexe,
+        dateNaissance,
 
         //Infos professionnelles
-        speciality: doc.data().speciality,
-        bio: doc.data().bio,
-        codeFinesse: doc.data().codeFinesse,
+        speciality,
+        bio,
+        codeFinesse,
+        urgences,
+        regularPrice,
+        urgencePrice,
 
         //Diplomes
-        diplomes: doc.data().diplomes,
-
-      }, () => {
-
-        //Initialize radio fields
-        if (this.state.Sexe === 'Homme')
-          this.setState({ sexeIndex: 0 })
-        else
-          this.setState({ sexeIndex: 1 })
+        diplomes,
       })
+
+      //Initialize radio fields
+      if (Sexe === 'Homme')
+        this.setState({ sexeIndex: 0 })
+      else
+        this.setState({ sexeIndex: 1 })
     })
   }
 
   toggleModal = (isField) => {
 
-    const update = {};
+    const update = {}
     update[isField] = true
-    this.setState(update);
+    this.setState(update)
 
-    this.setState({
-      isModalVisible: !this.state.isModalVisible
-    })
+    this.setState({ isModalVisible: !this.state.isModalVisible })
   }
 
   onConfirm(isField, Field, value) {
@@ -172,23 +174,32 @@ class Profile extends React.Component {
 
 
   rootingConfirm() {
-    if (this.state.isName === true) {
-      this.onConfirm('isName', 'nom', this.state.nom)
-      this.onConfirm('', 'prenom', this.state.prenom)
-      this.onConfirm('', 'name', this.state.nom + ' ' + this.state.prenom)
+    const { isName, isSexe, isBio, isSpeciality, isCodeFinesse, isPriceRegular, isPriceUrgence } = this.state
+    const { nom, prenom, Sexe, bio, speciality, codeFinesse, regularPrice, urgencePrice } = this.state
+
+    if (isName) {
+      this.onConfirm('isName', 'nom', nom)
+      this.onConfirm('', 'prenom', prenom)
+      this.onConfirm('', 'name', nom + ' ' + prenom)
     }
 
-    if (this.state.isSexe === true)
-      this.onConfirm('isSexe', 'Sexe', this.state.Sexe)
+    if (isSexe)
+      this.onConfirm('isSexe', 'Sexe', Sexe)
 
-    if (this.state.isBio === true)
-      this.onConfirm('isBio', 'bio', this.state.bio)
+    if (isBio)
+      this.onConfirm('isBio', 'bio', bio)
 
-    if (this.state.isSpeciality === true)
-      this.onConfirm('isSpeciality', 'speciality', this.state.speciality)
+    if (isSpeciality)
+      this.onConfirm('isSpeciality', 'speciality', speciality)
 
-    if (this.state.isCodeFinesse === true)
-      this.onConfirm('isCodeFinesse', 'codeFinesse', this.state.codeFinesse)
+    if (isCodeFinesse)
+      this.onConfirm('isCodeFinesse', 'codeFinesse', codeFinesse)
+
+    if (isPriceRegular)
+      this.onConfirm('isPriceRegular', 'regularPrice', regularPrice)
+
+    if (isPriceUrgence)
+      this.onConfirm('isPriceUrgence', 'urgencePrice', urgencePrice)
   }
 
   trimString(string) {
@@ -306,7 +317,37 @@ class Profile extends React.Component {
             <TextInput
               onChangeText={(codeFinesse) => this.setState({ codeFinesse })}
               placeholder={'Votre code finesse'}
-              value={this.state.codeFinesse} 
+              value={this.state.codeFinesse}
+              style={{ width: SCREEN_WIDTH * 0.6, height: SCREEN_HEIGHT * 0.1 }} />
+          </View>
+        </View>
+      )
+
+    else if (this.state.isPriceRegular)
+      component = (
+        <View style={{ flex: 1, alignItems: 'center', paddingTop: SCREEN_HEIGHT * 0.1 }}>
+          <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.04 }}>Le prix d'une consultation normale:</Text>
+          <View style={modalStyles.picker_container} >
+            <TextInput
+              onChangeText={(regularPrice) => this.setState({ regularPrice })}
+              placeholder={"Prix en euro"}
+              keyboardType='numeric'
+              value={this.state.regularPrice}
+              style={{ width: SCREEN_WIDTH * 0.6, height: SCREEN_HEIGHT * 0.1 }} />
+          </View>
+        </View>
+      )
+
+    else if (this.state.isPriceUrgence)
+      component = (
+        <View style={{ flex: 1, alignItems: 'center', paddingTop: SCREEN_HEIGHT * 0.1 }}>
+          <Text style={{ textAlign: 'center', fontWeight: 'bold', fontSize: 20, marginBottom: SCREEN_HEIGHT * 0.04 }}>Le prix d'une consultation en urgence</Text>
+          <View style={modalStyles.picker_container} >
+            <TextInput
+              onChangeText={(urgencePrice) => this.setState({ urgencePrice })}
+              placeholder="Prix en euro"
+              keyboardType='numeric'
+              value={this.state.urgencePrice}
               style={{ width: SCREEN_WIDTH * 0.6, height: SCREEN_HEIGHT * 0.1 }} />
           </View>
         </View>
@@ -316,7 +357,7 @@ class Profile extends React.Component {
       <View style={modalStyles.modalButtons_container}>
         <TouchableOpacity style={modalStyles.CancelButton} onPress={async () => {
           this.toggleModal()
-          this.setState({ isSexe: false, isName: false, isCodeFinesse: false, isBio: false, isSpeciality: false })
+          this.setState({ isSexe: false, isName: false, isCodeFinesse: false, isBio: false, isSpeciality: false, isPriceRegular: false, isPriceUrgence: false })
         }}>
           <Text style={modalStyles.buttonText1}>Annuler</Text>
         </TouchableOpacity>
@@ -331,8 +372,6 @@ class Profile extends React.Component {
           </LinearGradient>
         </TouchableOpacity>
       </View>)
-
-
 
     return (
       <View style={{ flex: 1, justifyContent: 'center' }}>
@@ -372,6 +411,7 @@ class Profile extends React.Component {
 
   render() {
     let images = [{ uri: this.state.ImageToShow }]
+    const { isUploading3, urgences, nom, prenom, dateNaissance, Avatar, Sexe, speciality, bio, codeFinesse, diplomes, regularPrice, urgencePrice, isName, isSexe, isSpeciality, isBio, isCodeFinesse, isPriceRegular, isPriceUrgence, isModalVisible, isModalImageVisible, ImageToShow } = this.state
 
     return (
       <View style={styles.container}>
@@ -386,7 +426,7 @@ class Profile extends React.Component {
         <View style={styles.metadata_container}>
           <TouchableOpacity onPress={() => this.handleImage('Avatar')}>
             <View style={styles.Avatar_box}>
-              {this.state.isUploading3
+              {isUploading3
                 ?
                 <View style={{ alignItems: 'flex-start' }}>
                   <ActivityIndicator size='small' />
@@ -397,15 +437,15 @@ class Profile extends React.Component {
                   height: SCREEN_WIDTH * 0.11,
                   borderRadius: 25,
                 }}
-                  source={{ uri: this.state.Avatar }} />
+                  source={{ uri: Avatar }} />
               }
             </View>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => this.toggleModal('isName')}>
             <View style={styles.metadata_box}>
-              <Text style={styles.metadata_text1}>{this.state.nom} {this.state.prenom}</Text>
-              <Text style={styles.metadata_text2}>{this.state.dateNaissance}</Text>
+              <Text style={styles.metadata_text1}>{nom} {prenom}</Text>
+              <Text style={styles.metadata_text2}>{moment(dateNaissance).format('DD-MM-YYYY')}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -414,7 +454,7 @@ class Profile extends React.Component {
           <View style={styles.info_container}>
 
             <Modal
-              isVisible={this.state.isModalVisible}
+              isVisible={isModalVisible}
               animationIn="slideInLeft"
               animationOut="slideOutLeft"
               style={{ backgroundColor: 'white', maxHeight: SCREEN_HEIGHT }}>
@@ -436,48 +476,21 @@ class Profile extends React.Component {
               <TouchableOpacity style={fieldStyle.container}
                 onPress={() => this.toggleModal('isSexe')}>
                 <Text style={fieldStyle.title_text}>Sexe</Text>
-                <Text style={fieldStyle.value}>{this.state.Sexe}</Text>
+                <Text style={fieldStyle.value}>{Sexe}</Text>
               </TouchableOpacity>
 
               {line}
 
               {/* date naissance */}
-              <View style={{ paddingLeft: SCREEN_WIDTH * 0.04, paddingTop: SCREEN_WIDTH * 0.025 }}>
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => {
+                  const { dateNaissance } = this.state
+                  if (this.props.role === 'isDoctor' || this.props.role === 'isAdmin')
+                    this.props.navigation.navigate('DateNaissance', { doctor_id: this.doctor_id, dateNaissance })
+                }}>
                 <Text style={fieldStyle.title_text}>Date de naissance</Text>
-
-                <DatePicker
-                  date={this.state.dateNaissance}
-                  mode="date"
-                  locale='fr'
-                  placeholder={this.state.dateNaissance}
-                  format="DD-MM-YYYY"
-                  minDate="01-01-1900"
-                  //maxDate="01-01-2020"
-                  confirmBtnText="Confirmer"
-                  cancelBtnText="Annuler"
-                  customStyles={{
-                    dateIcon: {
-                      width: 0,
-                      height: 0
-                    },
-                    dateInput: {
-                      padding: 0,
-                      alignItems: 'flex-start',
-                      justifyContent: 'flex-start',
-                      height: 30,
-                      borderWidth: 0,
-                    },
-                    dateText: {
-                      // fontWeight: 'bold',
-                    }
-                  }}
-
-                  onDateChange={(dateNaissance) => {
-                    REFS.doctors.doc(this.doctor_id).update({ 'dateNaissance': dateNaissance })
-                      .then(() => { this.setState({ dateNaissance: dateNaissance }) })
-                      .catch((err) => console.error(err))
-                  }} />
-              </View>
+                <Text style={fieldStyle.value}>{moment(dateNaissance).format('LL')}</Text>
+              </TouchableOpacity>
 
             </Card>
 
@@ -493,7 +506,7 @@ class Profile extends React.Component {
               <TouchableOpacity style={fieldStyle.container}
                 onPress={() => this.toggleModal('isSpeciality')}>
                 <Text style={fieldStyle.title_text}>Spécialité</Text>
-                <Text style={fieldStyle.value}>{this.state.speciality}</Text>
+                <Text style={fieldStyle.value}>{speciality}</Text>
               </TouchableOpacity>
 
               {line}
@@ -502,7 +515,7 @@ class Profile extends React.Component {
               <TouchableOpacity style={fieldStyle.container}
                 onPress={() => this.toggleModal('isBio')}>
                 <Text style={fieldStyle.title_text}>Bio</Text>
-                <Text style={fieldStyle.value}>{this.state.bio}</Text>
+                <Text style={fieldStyle.value}>{bio}</Text>
               </TouchableOpacity>
 
               {line}
@@ -511,23 +524,43 @@ class Profile extends React.Component {
               <TouchableOpacity style={fieldStyle.container}
                 onPress={() => this.toggleModal('isCodeFinesse')}>
                 <Text style={fieldStyle.title_text}>Code finesse</Text>
-                <Text style={fieldStyle.value}>{this.state.codeFinesse}</Text>
+                <Text style={fieldStyle.value}>{codeFinesse}</Text>
               </TouchableOpacity>
 
               {line}
 
               {/* Diplomes */}
               <TouchableOpacity style={fieldStyle.container}
-                onPress={() => this.props.navigation.navigate('Diplomes', { diplomes: this.state.diplomes, doctor_id: this.doctor_id })}>
+                onPress={() => this.props.navigation.navigate('Diplomes', { diplomes: diplomes, doctor_id: this.doctor_id })}>
                 <Text style={fieldStyle.title_text}>Diplômes</Text>
-                {this.state.diplomes.map(function (diplome) {
-                  return (
-                    <View>
-                      <Text style={[fieldStyle.image, { textDecorationLine: 'underline', alignSelf: 'flex-start' }]}
-                        onPress={() => this.toggleModalImage(diplome.image)} >{diplome.titre}</Text>
-                    </View>)
-                }.bind(this))}
+                {diplomes.length > 0 ?
+                  diplomes.map(function (diplome) {
+                    return (
+                      <View>
+                        <Text style={[fieldStyle.image, { textDecorationLine: 'underline', alignSelf: 'flex-start' }]}
+                          onPress={() => this.toggleModalImage(diplome.image)} >{diplome.titre}</Text>
+                      </View>)
+                  }.bind(this))
+                  : <Text />}
               </TouchableOpacity>
+
+              {line}
+
+              {/* Regular Price */}
+              <TouchableOpacity style={fieldStyle.container}
+                onPress={() => this.toggleModal('isPriceRegular')}>
+                <Text style={fieldStyle.title_text}>Prix normal</Text>
+                {regularPrice !== '' && <Text style={fieldStyle.value}>{regularPrice} €</Text>}
+              </TouchableOpacity>
+
+              {/* Regular Price */}
+              {urgences &&
+                <TouchableOpacity style={fieldStyle.container}
+                  onPress={() => this.toggleModal('isPriceUrgence')}>
+                  <Text style={fieldStyle.title_text}>Prix urgence</Text>
+                  {urgencePrice !== '' && <Text style={fieldStyle.value}>{urgencePrice} €</Text>}
+                </TouchableOpacity>
+              }
 
             </Card>
 
@@ -539,13 +572,11 @@ class Profile extends React.Component {
           images={images}
           imageIndex={0}
           presentationStyle="overFullScreen"
-          visible={this.state.isModalImageVisible}
-          onRequestClose={() => this.setState({ isModalImageVisible: false })}
-        />
+          visible={isModalImageVisible}
+          onRequestClose={() => this.setState({ isModalImageVisible: false })} />
 
       </View >
-
-    );
+    )
   }
 }
 
@@ -738,7 +769,7 @@ const modalStyles = StyleSheet.create({
   },
   bio: {
     height: 150,
-    width: SCREEN_WIDTH*0.8,
+    width: SCREEN_WIDTH * 0.8,
     justifyContent: "flex-start",
     borderRadius: 20,
     elevation: 3,

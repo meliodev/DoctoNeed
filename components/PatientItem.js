@@ -19,7 +19,7 @@ class PatientItem extends React.Component {
           onPress={this.props.navigateToMedicalFolder}>
 
           <View style={styles.container}>
-            <View style={{ flex: 0.37, paddingLeft: SCREEN_WIDTH * 0.04, borderBottomLeftRadius: 25, borderTopLeftRadius: 25, }}>
+            <View style={{ flex: 0.37, paddingLeft: SCREEN_WIDTH * 0.04, borderBottomLeftRadius: 25, borderTopLeftRadius: 25 }}>
               <View style={styles.Avatar_box}>
                 {patient.Avatar !== '' ?
                   <Image style={{ width: 75, height: 75, borderRadius: 37.5 }} source={{ uri: patient.Avatar }} />
@@ -145,12 +145,12 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    //backgroundColor: 'pink',
+    backgroundColor: '#fff',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.32,
     shadowRadius: 5.46,
-    elevation: 1,
+    elevation: 5,
     shadowColor: '#93eafe'
   },
 })

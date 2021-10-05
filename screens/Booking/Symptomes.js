@@ -82,7 +82,7 @@ export default class Symptomes extends React.Component {
         this.setState({ symptomsList })
       }
 
-      if(otherSymptomes) {
+      if (otherSymptomes) {
         this.setState({ otherSymptomes })
       }
 
@@ -221,7 +221,10 @@ export default class Symptomes extends React.Component {
 
               <Container>
                 <ScrollView >
-                  <Content style={{ flex: 0.85 }}>
+                  <Content style={{ flex: 0.85, marginHorizontal: SCREEN_WIDTH * 0.03 }}>
+                    <View style={{ paddingVertical: 10, borderBottomWidth: 2, borderBottomColor: '#93eafe' }}>
+                      <Text style={{ textAlign: 'center', fontWeight: 'bold' }}>Liste des symptômes</Text>
+                    </View>
                     {symptomsList.map((symp, key) => {
                       return (
                         <ListItem>
@@ -262,7 +265,7 @@ export default class Symptomes extends React.Component {
             </Modal>
 
             <View style={styles.header_container}>
-              <Text style={styles.header}>Ajouter un commentaire utile:</Text>
+              <Text style={styles.header}>Ajoutez un commentaire utile:</Text>
             </View>
 
             <View style={styles.comment_container}>
@@ -455,7 +458,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   buttonText2: {
-    fontSize: SCREEN_HEIGHT * 0.025,
+    fontSize: SCREEN_HEIGHT * 0.02,
     fontWeight: 'bold',
     fontFamily: 'Avenir',
     textAlign: 'center',

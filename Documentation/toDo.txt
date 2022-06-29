@@ -1,0 +1,24 @@
+1. Choisir un nom de lapplication
+2. installed:
+rn-fetch-blob
+react-native-device-info
+react-native-fs
+@react-native-firebase/app
+@react-native-firebase/firestore
+@react-native-firebase/auth
+@react-native-firebase/messaging
+@react-native-firebase/functions
+@react-native-firebase/storage
+@react-native-firebase/remote-config
+@notifee/react-native
+compare-versions
+
+to install:
+@react-native-firebase/crashlytics
+
+
+3. Configure firebase
+4. Put back notifications on "AuthloadingScreen" (bootstrapNotifications)
+5. Put back version check and notification handlers on "AuthloadingScreen"
+
+npm uninstall @react-native-firebase/remote-config

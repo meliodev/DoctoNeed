@@ -11,21 +11,11 @@ import com.facebook.react.ReactPackage;
 import com.facebook.soloader.SoLoader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import io.invertase.firebase.auth.RNFirebaseAuthPackage;
-import io.invertase.firebase.storage.RNFirebaseStoragePackage;
-import io.invertase.firebase.firestore.RNFirebaseFirestorePackage;
-import io.invertase.firebase.functions.RNFirebaseFunctionsPackage; // <-- Add this line
-import io.invertase.firebase.messaging.RNFirebaseMessagingPackage;  // <-- Add this line                     
-import io.invertase.firebase.notifications.RNFirebaseNotificationsPackage; // <-- Add this line
 import com.gettipsi.stripe.StripeReactPackage; // <-- Add this line
 // import com.shinetechchina.react_native_screen_recorder.ScreenRecorderPackage; // <-- add this import
 
 // import io.wazo.callkeep.RNCallKeepPackage; // <-- Add this line
 // import com.busfor.RNGooglePayPackage; //added for google pay
-
-
-//import io.invertase.firebase.firestore.RNFirebaseFirestorePackage;
-//import io.invertase.firebase.firestore.ReactNativeFirebaseFirestorePackage;
 
 public class MainApplication extends Application implements ReactApplication {
 
@@ -42,12 +32,6 @@ public class MainApplication extends Application implements ReactApplication {
           List<ReactPackage> packages = new PackageList(this).getPackages();
           // Packages that cannot be autolinked yet can be added manually here, for example:
           // packages.add(new MyReactNativePackage());
-          packages.add(new RNFirebaseAuthPackage());
-          packages.add(new RNFirebaseFirestorePackage());
-          packages.add(new RNFirebaseStoragePackage());
-          packages.add(new RNFirebaseFunctionsPackage());
-          packages.add(new RNFirebaseMessagingPackage());
-          packages.add( new RNFirebaseNotificationsPackage());
           packages.add(new StripeReactPackage());
           // packages.add(new ScreenRecorderPackage());
 
